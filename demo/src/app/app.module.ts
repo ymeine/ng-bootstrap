@@ -1,5 +1,6 @@
 import {NgModule} from '@angular/core';
 import {BrowserModule} from '@angular/platform-browser';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 
@@ -21,7 +22,8 @@ import {NgbdSharedModule} from './shared';
     routing,
     NgbModule.forRoot(),
     NgbdDemoModule,
-    NgbdSharedModule
+    NgbdSharedModule,
+    BrowserAnimationsModule
   ],
   bootstrap: [AppComponent]
 })

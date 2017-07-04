@@ -4,13 +4,15 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
+} from '@angular/core';
 
+import {
   trigger,
   state,
   style,
   animate,
   transition
-} from '@angular/core';
+} from '@angular/animations';
 
 import {NgbAlertConfig} from './alert-config';
 
@@ -22,9 +24,12 @@ import {NgbAlertConfig} from './alert-config';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
-      [class]="'alert alert-' + type + (dismissible ? ' alert-dismissible' : '') + (false && visibilityState === 'shown' ? ' show' : '')"
-      [@visibility]="visibilityState"
+      [class]="'alert alert-' + type + (dismissible ? ' alert-dismissible' : '')"
       role="alert"
+
+      [@visibility]="visibilityState"
+      (@visibility.start)="onAnimationStart($event)"
+      (@visibility.done)="onAnimationEnd($event)"
     >
       <button *ngIf="dismissible" type="button" class="close" aria-label="Close" (click)="closeHandler()">
             <span aria-hidden="true">&times;</span>
@@ -34,25 +39,15 @@ import {NgbAlertConfig} from './alert-config';
     `,
     animations: [
       trigger('visibility', [
-        state('shown', style({
+        state('visible', style({
           opacity: '*'
-          //height: 100
         })),
-        /*state('hidden', style({
+        state('hidden', style({
           opacity: '0'
         })),
-        transition('shown => hidden', animate('0.15s linear')),*/
-        transition(':leave', animate('2s linear', style({
-            //height: 0
-            opacity: 0
-        })))
+        transition('visible => hidden', animate('0.15s linear'))
       ])
-    ],
-    host: {
-      //'[@visibility]': 'visibilityState'
-      /*'(@visibility.done)': 'animation_callback("done", $event)',
-      '(@visibility.start)': 'animation_callback("start", $event)'*/
-    }
+    ]
 })
 export class NgbAlert {
   /**
@@ -69,7 +64,9 @@ export class NgbAlert {
    */
   @Output() close = new EventEmitter();
 
-  private visibilityState: string = 'shown';
+  @Output() visibilityStateChange = new EventEmitter();
+
+  visibilityState = 'visible';
 
   constructor(config: NgbAlertConfig) {
     this.dismissible = config.dismissible;
@@ -81,10 +78,23 @@ export class NgbAlert {
     this.close.emit(null);
   }
 
-  animation_callback(step, event) {
-    console.log(step, event, this);
-    /*if (step === 'start') {
-      this.
-    }*/
+  onAnimationStart({toState}) {
+    const visibilityStateChange = this.visibilityStateChange;
+
+    if (toState === 'hidden') {
+      visibilityStateChange.emit('hiding');
+    } else if (toState === 'visible') {
+      visibilityStateChange.emit('showing');
+    }
+  }
+
+  onAnimationEnd({toState}) {
+    const visibilityStateChange = this.visibilityStateChange;
+
+    if (toState === 'hidden') {
+      visibilityStateChange.emit('hidden');
+    } else if (toState === 'visible') {
+      visibilityStateChange.emit('visible');
+    }
   }
 }

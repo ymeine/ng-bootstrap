@@ -37,6 +37,12 @@ export class NgbdAlertCloseable {
     this.alerts.splice(index, 1);
   }
 
+  public onVisibilityStateChange(visibility, alert) {
+    if (visibility === 'hidden') {
+      this.closeAlert(alert);
+    }
+  }
+
   public reset() {
     this.alerts = this.backup.map((alert: IAlert) => Object.assign({}, alert));
   }
