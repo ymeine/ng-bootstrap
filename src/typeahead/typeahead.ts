@@ -68,7 +68,7 @@ let nextWindowId = 0;
   host: {
     '(blur)': 'handleBlur()',
     '[class.open]': 'isPopupOpen()',
-    '(document:click)': 'dismissPopup()',
+    '(document:click)': 'onDocumentClick($event)',
     '(keydown)': 'handleKeyDown($event)',
     'autocomplete': 'off',
     'autocapitalize': 'off',
@@ -211,6 +211,29 @@ export class NgbTypeahead implements ControlValueAccessor,
 
   setDisabledState(isDisabled: boolean): void {
     this._renderer.setProperty(this._elementRef.nativeElement, 'disabled', isDisabled);
+  }
+
+  onDocumentClick(event) {
+    if (this.isPopupOpen()) {
+      if (!this._isClickInWidget(event)) {
+        this.dismissPopup();
+      }
+    }
+  }
+
+  _isClickInWidget(event) {
+    const target = event.target;
+
+    const input = this._viewContainerRef.element.nativeElement;
+    return this._isElementOrAncestorOf(input, target);
+  }
+
+  _isElementOrAncestorOf(possibleAncestor, reference) {
+    let currentNode = reference;
+    while (currentNode != null && currentNode !== possibleAncestor) {
+      currentNode = currentNode.parentNode;
+    }
+    return currentNode === possibleAncestor;
   }
 
   dismissPopup() {
