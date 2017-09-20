@@ -320,6 +320,7 @@ export class NgbTypeahead implements ControlValueAccessor,
 
     if (!defaultPrevented) {
       this.writeValue(result);
+      this._userInput = result;
       this._onChange(result);
     }
   }
@@ -330,7 +331,7 @@ export class NgbTypeahead implements ControlValueAccessor,
   }
 
   private _showHint() {
-    if (this.showHint) {
+    if (this.showHint && this._userInput != null) {
       const userInputLowerCase = this._userInput.toLowerCase();
       const formattedVal = this._formatItemForInput(this._windowRef.instance.getActive());
 
