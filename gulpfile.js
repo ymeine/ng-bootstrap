@@ -284,6 +284,10 @@ gulp.task('build', function(done) {
   runSequence('lint', 'enforce-format', 'ddescribe-iit', 'test', 'clean:build', 'ngc', 'umd', 'npm', done);
 });
 
+gulp.task('build-force', function(done) {
+  runSequence('clean:build', 'ngc', 'umd', 'npm', done);
+});
+
 gulp.task(
     'deploy-demo', function(done) { runSequence('clean:demo', 'build:demo', 'demo-push', 'clean:demo-cache', done); });
 

@@ -21,6 +21,7 @@ import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {Subscription} from 'rxjs/Subscription';
 import {letProto} from 'rxjs/operator/let';
 import {_do} from 'rxjs/operator/do';
+import {merge} from 'rxjs/operator/merge';
 import {switchMap} from 'rxjs/operator/switchMap';
 import {fromEvent} from 'rxjs/observable/fromEvent';
 import {positionElements, PlacementArray} from '../util/positioning';
@@ -88,6 +89,7 @@ export class NgbTypeahead implements ControlValueAccessor,
   private _subscription: Subscription;
   private _userInput: string;
   private _valueChanges: Observable<string>;
+  private _focus: Observable<string>;
   private _resubscribeTypeahead: BehaviorSubject<any>;
   private _windowRef: ComponentRef<NgbTypeaheadWindow>;
   private _zoneSubscription: any;
@@ -118,7 +120,7 @@ export class NgbTypeahead implements ControlValueAccessor,
    * A function to transform the provided observable text into the array of results.  Note that the "this" argument
    * is undefined so you need to explicitly bind it to a desired "this" target.
    */
-  @Input() ngbTypeahead: (text: Observable<string>) => Observable<any[]>;
+  @Input() ngbTypeahead: (text: Observable<string>, focus: Observable<string>) => Observable<any[]>;
 
   /**
    * A function to format a given result before display. This function should return a formatted string without any
@@ -165,6 +167,10 @@ export class NgbTypeahead implements ControlValueAccessor,
     this.placement = config.placement;
 
     this._valueChanges = fromEvent(_elementRef.nativeElement, 'input', ($event) => $event.target.value);
+    this._focus = fromEvent(_elementRef.nativeElement, 'focus', ($event) => {
+      console.log('receiving focus');
+      return $event.target.value;
+    });
 
     this._resubscribeTypeahead = new BehaviorSubject(null);
 
@@ -181,13 +187,15 @@ export class NgbTypeahead implements ControlValueAccessor,
   }
 
   ngOnInit(): void {
+    const focus$ = this._focus;
+
     const inputValues$ = _do.call(this._valueChanges, value => {
       this._userInput = value;
       if (this.editable) {
         this._onChange(value);
       }
     });
-    const results$ = letProto.call(inputValues$, this.ngbTypeahead);
+    const results$ = this.ngbTypeahead(inputValues$, focus$);
     const processedResults$ = _do.call(results$, () => {
       if (!this.editable) {
         this._onChange(undefined);
@@ -341,6 +349,9 @@ export class NgbTypeahead implements ControlValueAccessor,
   }
 
   private _writeInputValue(value: string): void {
+    if (value == null) {
+      value = '';
+    }
     this._renderer.setProperty(this._elementRef.nativeElement, 'value', value);
   }
 
