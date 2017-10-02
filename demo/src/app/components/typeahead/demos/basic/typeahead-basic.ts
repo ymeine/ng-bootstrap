@@ -16,16 +16,31 @@ const states = ['Alabama', 'Alaska', 'American Samoa', 'Arizona', 'Arkansas', 'C
 @Component({
   selector: 'ngbd-typeahead-basic',
   templateUrl: './typeahead-basic.html',
-  styles: [`.form-control { width: 300px; }`]
+  styles: [
+    `.form-control { width: 300px; }`,
+  ]
 })
 export class NgbdTypeaheadBasic {
   public model: any;
+
+  onActiveChanged(payload) {
+    console.log(payload);
+    const {element, container} = payload;
+    if (element != null) {
+      const elementRect = element.getBoundingClientRect();
+      const containerRect = container.nativeElement.getBoundingClientRect();
+      console.log(elementRect);
+      console.log(containerRect);
+      if (elementRect.bottom > containerRect.bottom || elementRect.top < containerRect.top) {
+        console.log('scroll');
+      }
+    }
+  }
 
   search = (text$: Observable<string>) =>
     text$
       .debounceTime(200)
       .distinctUntilChanged()
-      .map(term => term.length < 2 ? []
-        : states.filter(v => v.toLowerCase().indexOf(term.toLowerCase()) > -1).slice(0, 10));
+      .map(term => term.length === 0 ? states : states.filter(v => v.toLowerCase().indexOf(term.toLowerCase()) > -1).slice(0, 10));
 
 }
