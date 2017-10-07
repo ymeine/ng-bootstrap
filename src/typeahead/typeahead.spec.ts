@@ -8,6 +8,7 @@ import {By} from '@angular/platform-browser';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/debounceTime';
+import 'rxjs/add/operator/merge';
 
 import {NgbTypeahead} from './typeahead';
 import {NgbTypeaheadModule} from './typeahead.module';
@@ -180,6 +181,52 @@ describe('ngb-typeahead', () => {
 
       fixture.nativeElement.click();
       expect(getWindow(compiled)).toBeNull();
+    });
+
+    it('should not be closed on input click', () => {
+      const fixture = createTestComponent(`<input type="text" [ngbTypeahead]="find"/>`);
+      const compiled = fixture.nativeElement;
+
+      changeInput(compiled, 'one');
+      fixture.detectChanges();
+      expect(getWindow(compiled)).not.toBeNull();
+      
+      getNativeInput(compiled).click();
+      expect(getWindow(compiled)).not.toBeNull();
+    });
+    
+    it('should open on focus', () => {
+      const fixture = createTestComponent(`<input type="text" [ngbTypeahead]="find"/>`);
+      const compiled = fixture.nativeElement;
+      
+      getNativeInput(compiled).focus();
+      expect(getWindow(compiled)).not.toBeNull();
+    });
+
+    fit('should preserve value previously selected with mouse when reopening with focus then closing without selection', () => {
+      const fixture = createTestComponent(`<input type="text" [ngbTypeahead]="find"/>`);
+      const compiled = fixture.nativeElement;
+      
+      fixture.whenStable().then(() => {
+        // open with partial input
+        changeInput(compiled, 'o');
+        fixture.detectChanges();
+        
+        // select with click
+        getWindowLinks(fixture.debugElement)[0].triggerEventHandler('click', {});
+        fixture.detectChanges();
+        expectInputValue(compiled, 'one');
+        
+        // open again but with focus
+        getNativeInput(compiled).blur();
+        getNativeInput(compiled).focus();
+
+        // close without selecting a new value
+        const event = createKeyDownEvent(Key.Escape);
+        getDebugInput(fixture.debugElement).triggerEventHandler('keydown', event);
+        fixture.detectChanges();
+        expectInputValue(compiled, 'one');
+      });
     });
 
     it('should be closed when ESC is pressed', () => {
@@ -911,7 +958,11 @@ class TestComponent {
 
   @ViewChild(NgbTypeahead) typeahead: NgbTypeahead;
 
-  find = (text$: Observable<string>) => { return text$.map(text => this._strings.filter(v => v.startsWith(text))); };
+  find = (text$: Observable<string>, focus$: Observable<string>) => {
+    return text$
+    .merge(focus$)
+    .map(text => this._strings.filter(v => v.startsWith(text)));
+  };
 
   findAnywhere =
       (text$: Observable<string>) => { return text$.map(text => this._strings.filter(v => v.indexOf(text) > -1)); };
