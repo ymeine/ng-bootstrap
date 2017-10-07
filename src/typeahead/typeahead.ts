@@ -118,7 +118,7 @@ export class NgbTypeahead implements ControlValueAccessor,
    * A function to transform the provided observable text into the array of results.  Note that the "this" argument
    * is undefined so you need to explicitly bind it to a desired "this" target.
    * The function also receives an optional second argument holding the
-   * observable on input events, sending the current input values and allowing
+   * observable on focus events, sending the current input value and allowing
    * you to provide a list of results on focus.
    */
   @Input() ngbTypeahead: (text: Observable<string>, focus?: Observable<string>) => Observable<any[]>;
