@@ -1,4 +1,4 @@
-import {Component, Input, Output, EventEmitter, TemplateRef, OnInit, ViewContainerRef} from '@angular/core';
+import {Component, Input, Output, EventEmitter, TemplateRef, OnInit, OnDestroy, ViewContainerRef} from '@angular/core';
 
 import {toString} from '../util/util';
 
@@ -26,7 +26,8 @@ export interface ResultTemplateContext {
     '[style.max-height]': 'maxHeight == null ? null : maxHeight',
     '[style.overflow]': 'maxHeight == null ? null : "auto"',
     'role': 'listbox',
-    '[id]': 'id'
+    '[id]': 'id',
+    '(mouseleave)': 'onMouseLeaveDropdown'
   },
   template: `
     <ng-template #rt let-result="result" let-term="term" let-formatter="formatter">
@@ -36,7 +37,7 @@ export interface ResultTemplateContext {
       <button type="button" class="dropdown-item" role="option"
         [id]="id + '-' + idx"
         [class.active]="idx === activeIdx"
-        (mouseenter)="markActive(idx)"
+        (mouseenter)="onMouseEnterItem($event, idx)"
         (click)="select(result)">
           <ng-template [ngTemplateOutlet]="resultTemplate || rt"
           [ngTemplateOutletContext]="{result: result, term: term, formatter: formatter}"></ng-template>
@@ -44,8 +45,11 @@ export interface ResultTemplateContext {
     </ng-template>
   `
 })
-export class NgbTypeaheadWindow implements OnInit {
+export class NgbTypeaheadWindow implements OnInit,
+    OnDestroy {
   activeIdx = 0;
+  private _latestMousePosition = null;
+  private _mouseMoveListener = null;
 
   /**
    *  The id for the typeahead widnow. The id should be unique and the same
@@ -93,7 +97,43 @@ export class NgbTypeaheadWindow implements OnInit {
 
   constructor(private view: ViewContainerRef) {}
 
+  ngOnDestroy() {
+    if (this._mouseMoveListener != null) {
+      document.removeEventListener('mousemove', this._mouseMoveListener);
+    }
+  }
+
   getActive() { return this.results[this.activeIdx]; }
+
+  onMouseLeaveDropdown() {
+    // we don't want to handle the mouse anymore as soon as it is outside of
+    // the dropdown
+    this._latestMousePosition = null;
+    if (this._mouseMoveListener != null) {
+      document.removeEventListener('mousemove', this._mouseMoveListener);
+      this._mouseMoveListener = null;
+    }
+  }
+
+  onMouseEnterItem(event, activeIdx) {
+    // to prevent the case where the mouse cursor stays over the dropdown
+    // while we scroll the content because of a keyboard navigation
+    // scrolling makes a the mouse enter a new element,
+    // and therefore would mark it active otherwise
+    const latestMousePosition = this._latestMousePosition;
+    const x = event.screenX;
+    const y = event.screenY;
+
+    if (latestMousePosition == null || latestMousePosition.x !== x || latestMousePosition.y !== y) {
+      this.markActive(activeIdx);
+    }
+
+    // to keep track of the actual latest mouse position while we keep the mouse inside items
+    if (this._mouseMoveListener == null) {
+      this._mouseMoveListener = (moveEvent) => this._latestMousePosition = {x: moveEvent.screenX, y: moveEvent.screenY};
+      document.addEventListener('mousemove', this._mouseMoveListener);
+    }
+  }
 
   markActive(activeIdx: number) {
     this.activeIdx = activeIdx;
