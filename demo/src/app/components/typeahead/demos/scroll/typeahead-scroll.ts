@@ -14,18 +14,17 @@ const states = ['Alabama', 'Alaska', 'American Samoa', 'Arizona', 'Arkansas', 'C
   'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'];
 
 @Component({
-  selector: 'ngbd-typeahead-basic',
-  templateUrl: './typeahead-basic.html',
+  selector: 'ngbd-typeahead-scroll',
+  templateUrl: './typeahead-scroll.html',
   styles: [`.form-control { width: 300px; }`]
 })
-export class NgbdTypeaheadBasic {
+export class NgbdTypeaheadScroll {
   public model: any;
+  public maxHeight = '10em';
 
   search = (text$: Observable<string>) =>
     text$
       .debounceTime(200)
       .distinctUntilChanged()
-      .map(term => term.length < 2 ? []
-        : states.filter(v => v.toLowerCase().indexOf(term.toLowerCase()) > -1).slice(0, 10));
-
+      .map(term => states.filter(v => v.toLowerCase().indexOf(term.toLowerCase()) > -1));
 }
