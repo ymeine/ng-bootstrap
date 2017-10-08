@@ -91,9 +91,7 @@ export class NgbTypeaheadWindow implements OnInit {
 
   @Output('activeChange') activeChangeEvent = new EventEmitter();
 
-  constructor(private view: ViewContainerRef) {
-
-  }
+  constructor(private view: ViewContainerRef) {}
 
   getActive() { return this.results[this.activeIdx]; }
 
@@ -139,33 +137,37 @@ export class NgbTypeaheadWindow implements OnInit {
       const elementsList = container.querySelectorAll('.dropdown-item');
       const activeElement = elementsList[activeIdx];
 
-      // if the element is null it means the content has not been inserted yet (the window is opening) so we have nothing to do: the first element will be aligned properly at the top
+      // if the element is null
+      // it means the content has not been inserted yet (the window is opening)
+      // so we have nothing to do:
+      // the first element will be aligned properly at the top
       if (activeElement != null) {
-        this._ensureActiveElementIsVisible({activeElement, container, direction})
+        this._ensureActiveElementIsVisible({activeElement, container, direction});
       }
     }
-    
+
     this.activeChangeEvent.emit(activeId);
   }
-  
+
   private _ensureActiveElementIsVisible({activeElement, container, direction}) {
     if (direction == null) {
       // the keyboard wasn't used, we don't want to do anything in this case
       return;
     }
-    
+
     const containerRect = container.getBoundingClientRect();
     const containerStyle = window.getComputedStyle(container);
-    const getStyleValue = (style, property) => parseInt(style.getPropertyValue(property), 10)
-    const getVerticalOffset = (style, zone) => getStyleValue(style, `padding-${zone}`) + getStyleValue(style, `border-${zone}-width`);
-    
+    const getStyleValue = (style, property) => parseInt(style.getPropertyValue(property), 10);
+    const getVerticalOffset = (style, zone) =>
+        getStyleValue(style, `padding-${zone}`) + getStyleValue(style, `border-${zone}-width`);
+
     const adjustScroll = (zone, offsetDirection) => {
       const innerContentOffset = getVerticalOffset(containerStyle, zone) * offsetDirection;
       const difference = activeElement.getBoundingClientRect()[zone] - (containerRect[zone] + innerContentOffset);
       if (difference * offsetDirection < 0) {
         container.scrollTop += difference;
       }
-    }
+    };
 
     adjustScroll('bottom', -1);
     adjustScroll('top', +1);
