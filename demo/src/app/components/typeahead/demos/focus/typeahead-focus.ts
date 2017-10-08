@@ -26,6 +26,6 @@ export class NgbdTypeaheadFocus {
       .debounceTime(200)
       .distinctUntilChanged()
       .merge(focus$)
-      .map(term => (term == '' ? states : states.filter(v => v.toLowerCase().indexOf(term.toLowerCase()) > -1)).slice(0, 10));
+      .map(term => (term === '' ? states : states.filter(v => v.toLowerCase().indexOf(term.toLowerCase()) > -1)).slice(0, 10));
 
 }
