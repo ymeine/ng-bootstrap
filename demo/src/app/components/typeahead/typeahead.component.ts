@@ -7,6 +7,7 @@ import {DEMO_SNIPPETS} from './demos';
     <ngbd-component-wrapper component="Typeahead">
       <ngbd-api-docs directive="NgbTypeahead"></ngbd-api-docs>
       <ngbd-api-docs-class type="NgbTypeaheadSelectItemEvent"></ngbd-api-docs-class>
+      <ngbd-api-docs-class type="NgbTypeaheadInitParams"></ngbd-api-docs-class>
       <ngbd-api-docs-class type="ResultTemplateContext"></ngbd-api-docs-class>
       <ngbd-api-docs-config type="NgbTypeaheadConfig"></ngbd-api-docs-config>
       <ngbd-example-box demoTitle="Simple Typeahead" [snippets]="snippets" component="typeahead" demo="basic">

@@ -1,6 +1,8 @@
 import {Component} from '@angular/core';
+import {NgbTypeaheadInitParams} from '@ng-bootstrap/ng-bootstrap';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/merge';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/distinctUntilChanged';
 
@@ -21,11 +23,11 @@ const states = ['Alabama', 'Alaska', 'American Samoa', 'Arizona', 'Arkansas', 'C
 export class NgbdTypeaheadFocus {
   public model: any;
 
-  search = (text$: Observable<string>, focus$: Observable<string>) =>
+  search = (text$: Observable<string>, {focusAndClickToggle$}: NgbTypeaheadInitParams) =>
     text$
       .debounceTime(200)
       .distinctUntilChanged()
-      .merge(focus$)
+      .merge(focusAndClickToggle$)
       .map(term => (term === '' ? states : states.filter(v => v.toLowerCase().indexOf(term.toLowerCase()) > -1)).slice(0, 10));
 
 }

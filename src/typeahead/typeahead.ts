@@ -56,6 +56,23 @@ export interface NgbTypeaheadSelectItemEvent {
    */
   preventDefault: () => void;
 }
+/**
+ * Parameters given to the Typeahead user initialization function.
+ */
+export interface NgbTypeaheadInitParams {
+  /**
+   * Observable of input's focus event, sending the current input's value.
+   */
+  focus$: Observable<string>;
+
+  /**
+   * Observable sending the current input's values when there is either a focus
+   * in the input or a click inside it when the dropdown is closed,
+   * in order to be able to open it on click no matter the previous focus state.
+   *
+   */
+  focusAndClickToggle$: Observable<string>;
+};
 
 let nextWindowId = 0;
 
@@ -88,6 +105,7 @@ export class NgbTypeahead implements ControlValueAccessor,
   private _userInput: string;
   private _valueChanges: Observable<string>;
   private _focus: Observable<string>;
+  private _click: Observable<string>;
   private _resubscribeTypeahead: BehaviorSubject<any>;
   private _windowRef: ComponentRef<NgbTypeaheadWindow>;
   private _zoneSubscription: any;
@@ -117,11 +135,10 @@ export class NgbTypeahead implements ControlValueAccessor,
   /**
    * A function to transform the provided observable text into the array of results.  Note that the "this" argument
    * is undefined so you need to explicitly bind it to a desired "this" target.
-   * The function also receives an optional second argument holding the
-   * observable on focus events, sending the current input value and allowing
-   * you to provide a list of results on focus.
+   * The function also receives an optional second argument giving more
+   * observables and data so that you can tweak the widget behavior and /or react to more events.
    */
-  @Input() ngbTypeahead: (text: Observable<string>, focus?: Observable<string>) => Observable<any[]>;
+  @Input() ngbTypeahead: (text: Observable<string>, params?: NgbTypeaheadInitParams) => Observable<any[]>;
 
   /**
    * A function to format a given result before display. This function should return a formatted string without any
@@ -169,6 +186,7 @@ export class NgbTypeahead implements ControlValueAccessor,
 
     this._valueChanges = fromEvent(_elementRef.nativeElement, 'input', ($event) => $event.target.value);
     this._focus = fromEvent(_elementRef.nativeElement, 'focus', ($event) => $event.target.value);
+    this._click = fromEvent(_elementRef.nativeElement, 'click', ($event) => $event.target.value);
 
     this._resubscribeTypeahead = new BehaviorSubject(null);
 
@@ -191,7 +209,17 @@ export class NgbTypeahead implements ControlValueAccessor,
         this._onChange(value);
       }
     });
-    const results$ = this.ngbTypeahead(inputValues$, this._focus);
+
+    const focus$ = this._focus;
+    const click$ = this._click;
+    const focusAndClickToggle$ = focus$
+    .merge(click$);
+    // TODO Transform click$ so that it doesn't send values if dropdown is already open
+
+    const results$ = this.ngbTypeahead(inputValues$, {
+      focus$,
+      focusAndClickToggle$
+    });
     const processedResults$ = _do.call(results$, () => {
       if (!this.editable) {
         this._onChange(undefined);

@@ -10,7 +10,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/merge';
 
-import {NgbTypeahead} from './typeahead';
+import {NgbTypeahead, NgbTypeaheadInitParams} from './typeahead';
 import {NgbTypeaheadModule} from './typeahead.module';
 import {NgbTypeaheadConfig} from './typeahead-config';
 
@@ -199,7 +199,6 @@ describe('ngb-typeahead', () => {
       const fixture = createTestComponent(`<input type="text" [ngbTypeahead]="find"/>`);
       const compiled = fixture.nativeElement;
 
-      // getNativeInput(compiled).blur();
       getNativeInput(compiled).focus();
       expect(getWindow(compiled)).not.toBeNull();
     });
@@ -960,7 +959,7 @@ class TestComponent {
 
   @ViewChild(NgbTypeahead) typeahead: NgbTypeahead;
 
-  find = (text$: Observable<string>, focus$: Observable<string>) => {
+  find = (text$: Observable<string>, {focus$}: NgbTypeaheadInitParams) => {
     return text$.merge(focus$).map(text => this._strings.filter(v => v.startsWith(text)));
   };
 
