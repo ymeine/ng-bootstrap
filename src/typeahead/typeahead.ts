@@ -20,6 +20,7 @@ import {Observable} from 'rxjs/Observable';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {Subscription} from 'rxjs/Subscription';
 import {_do} from 'rxjs/operator/do';
+import {mergeMap} from 'rxjs/operator/mergeMap';
 import {switchMap} from 'rxjs/operator/switchMap';
 import {fromEvent} from 'rxjs/observable/fromEvent';
 import {positionElements, PlacementArray} from '../util/positioning';
@@ -212,9 +213,9 @@ export class NgbTypeahead implements ControlValueAccessor,
 
     const focus$ = this._focus;
     const click$ = this._click;
-    const focusAndClickToggle$ = focus$
-    .merge(click$);
-    // TODO Transform click$ so that it doesn't send values if dropdown is already open
+
+    const focusAndClickToggle$ = mergeMap.call(click$, (event) => this.isPopupOpen() ? [] : [event])
+    .merge(focus$);
 
     const results$ = this.ngbTypeahead(inputValues$, {
       focus$,
