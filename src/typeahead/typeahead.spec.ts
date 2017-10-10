@@ -9,6 +9,7 @@ import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/merge';
+import 'rxjs/add/operator/filter';
 
 import {NgbTypeahead, NgbTypeaheadInitParams} from './typeahead';
 import {NgbTypeaheadModule} from './typeahead.module';
@@ -195,7 +196,50 @@ describe('ngb-typeahead', () => {
       expect(getWindow(compiled)).not.toBeNull();
     });
 
-    it('should open on focus', () => {
+    it('should open on focus or click', () => {
+      const fixture = createTestComponent(`<input type="text" [ngbTypeahead]="find"/>`);
+      const compiled = fixture.nativeElement;
+
+      let searchCount = 0;
+      fixture.componentInstance.findOutput$.subscribe(() => searchCount++);
+      const checkSearchCount = (expected = 1) => {
+        expect(searchCount).toBe(expected);
+        searchCount = 0;
+      };
+
+      // focusing the input triggers a search and opens the dropdown
+      getNativeInput(compiled).focus();
+      checkSearchCount(1);
+      expect(getWindow(compiled)).not.toBeNull();
+
+      // clicking again in the input while the dropdown is open doesn't trigger a new search and keeps the dropdown open
+      getNativeInput(compiled).click();
+      checkSearchCount(0);
+      expect(getWindow(compiled)).not.toBeNull();
+
+      // closing the dropdown but keeping focus
+      const event = createKeyDownEvent(Key.Escape);
+      getDebugInput(fixture.debugElement).triggerEventHandler('keydown', event);
+      fixture.detectChanges();
+      expect(getWindow(compiled)).toBeNull();
+
+      // clicking again in the input while already focused but dropdown closed triggers a search and opens the dropdown
+      getNativeInput(compiled).click();
+      checkSearchCount(1);
+      expect(getWindow(compiled)).not.toBeNull();
+
+      // closing the dropdown and losing focus
+      fixture.nativeElement.click();
+      getNativeInput(compiled).blur();
+      expect(getWindow(compiled)).toBeNull();
+
+      // Clicking directly, putting focus at the same time, triggers only one search and opens the dropdown
+      getNativeInput(compiled).click();
+      checkSearchCount(1);
+      expect(getWindow(compiled)).not.toBeNull();
+    });
+
+    it('should open on click when input already has focus', () => {
       const fixture = createTestComponent(`<input type="text" [ngbTypeahead]="find"/>`);
       const compiled = fixture.nativeElement;
 
@@ -957,10 +1001,15 @@ class TestComponent {
 
   form = new FormGroup({control: new FormControl('', Validators.required)});
 
+  findOutput$: Observable<any[]>;
+
   @ViewChild(NgbTypeahead) typeahead: NgbTypeahead;
 
-  find = (text$: Observable<string>, {focus$}: NgbTypeaheadInitParams) => {
-    return text$.merge(focus$).map(text => this._strings.filter(v => v.startsWith(text)));
+  find = (text$: Observable<string>, {focus$, click$, instance}: NgbTypeaheadInitParams) => {
+    this.findOutput$ = text$.merge(focus$.map(event => event.target.value))
+                           .merge(click$.filter(() => !instance.isPopupOpen()).map(event => event.target.value))
+                           .map(text => this._strings.filter(v => v.startsWith(text)));
+    return this.findOutput$;
   };
 
   findAnywhere =

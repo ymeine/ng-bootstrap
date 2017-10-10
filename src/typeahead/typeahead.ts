@@ -20,7 +20,7 @@ import {Observable} from 'rxjs/Observable';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {Subscription} from 'rxjs/Subscription';
 import {_do} from 'rxjs/operator/do';
-import {mergeMap} from 'rxjs/operator/mergeMap';
+import {map} from 'rxjs/operator/map';
 import {switchMap} from 'rxjs/operator/switchMap';
 import {fromEvent} from 'rxjs/observable/fromEvent';
 import {positionElements, PlacementArray} from '../util/positioning';
@@ -57,23 +57,42 @@ export interface NgbTypeaheadSelectItemEvent {
    */
   preventDefault: () => void;
 }
+
+/**
+ * Extends standard Event interface to specify the type of the "target" property
+ * for the case of HTMLInputElement events.
+ */
+export interface HTMLInputElementEvent extends Event { target: HTMLInputElement & EventTarget; }
+
 /**
  * Parameters given to the Typeahead user initialization function.
  */
 export interface NgbTypeaheadInitParams {
   /**
-   * Observable of input's focus event, sending the current input's value.
+   * Observable of input's input event, sending the event itself.
    */
-  focus$: Observable<string>;
+  input$: Observable<HTMLInputElementEvent>;
 
   /**
-   * Observable sending the current input's values when there is either a focus
-   * in the input or a click inside it when the dropdown is closed,
-   * in order to be able to open it on click no matter the previous focus state.
-   *
+   * Observable of input's focus event, sending the event itself.
    */
-  focusAndClickToggle$: Observable<string>;
-};
+  focus$: Observable<HTMLInputElementEvent>;
+
+  /**
+   * Observable of input's click event, sending the event itself.
+   */
+  click$: Observable<HTMLInputElementEvent>;
+
+  /**
+   * The current NgbTypeahead instance.
+   */
+  instance: NgbTypeahead;
+
+  /**
+   * The custom context passed to this NgbTypeahead instance.
+   */
+  context: any;
+}
 
 let nextWindowId = 0;
 
@@ -105,8 +124,9 @@ export class NgbTypeahead implements ControlValueAccessor,
   private _subscription: Subscription;
   private _userInput: string;
   private _valueChanges: Observable<string>;
-  private _focus: Observable<string>;
-  private _click: Observable<string>;
+  private _input: NgbTypeaheadInitParams['input$'];
+  private _focus: NgbTypeaheadInitParams['focus$'];
+  private _click: NgbTypeaheadInitParams['click$'];
   private _resubscribeTypeahead: BehaviorSubject<any>;
   private _windowRef: ComponentRef<NgbTypeaheadWindow>;
   private _zoneSubscription: any;
@@ -137,7 +157,7 @@ export class NgbTypeahead implements ControlValueAccessor,
    * A function to transform the provided observable text into the array of results.  Note that the "this" argument
    * is undefined so you need to explicitly bind it to a desired "this" target.
    * The function also receives an optional second argument giving more
-   * observables and data so that you can tweak the widget behavior and /or react to more events.
+   * observables and data so that you can tweak the widget behavior and/or react to more events.
    */
   @Input() ngbTypeahead: (text: Observable<string>, params?: NgbTypeaheadInitParams) => Observable<any[]>;
 
@@ -165,6 +185,13 @@ export class NgbTypeahead implements ControlValueAccessor,
   @Input() placement: PlacementArray = 'bottom-left';
 
   /**
+   * A custom context data to associate to this NgbTypeahead instance,
+   * notably useful to share a common search function for multiple
+   * NgbTypeahead instances and still be able to differentiate them.
+   */
+  @Input() context: any;
+
+  /**
    * An event emitted when a match is selected. Event payload is of type NgbTypeaheadSelectItemEvent.
    */
   @Output() selectItem = new EventEmitter<NgbTypeaheadSelectItemEvent>();
@@ -185,9 +212,8 @@ export class NgbTypeahead implements ControlValueAccessor,
     this.showHint = config.showHint;
     this.placement = config.placement;
 
-    this._valueChanges = fromEvent(_elementRef.nativeElement, 'input', ($event) => $event.target.value);
-    this._focus = fromEvent(_elementRef.nativeElement, 'focus', ($event) => $event.target.value);
-    this._click = fromEvent(_elementRef.nativeElement, 'click', ($event) => $event.target.value);
+    this._input = fromEvent(_elementRef.nativeElement, 'input');
+    this._valueChanges = map.call(this._input, ($event) => $event.target.value);
 
     this._resubscribeTypeahead = new BehaviorSubject(null);
 
@@ -204,6 +230,8 @@ export class NgbTypeahead implements ControlValueAccessor,
   }
 
   ngOnInit(): void {
+    const {nativeElement} = this._elementRef;
+
     const inputValues$ = _do.call(this._valueChanges, value => {
       this._userInput = value;
       if (this.editable) {
@@ -211,15 +239,25 @@ export class NgbTypeahead implements ControlValueAccessor,
       }
     });
 
-    const focus$ = this._focus;
-    const click$ = this._click;
-
-    const focusAndClickToggle$ = mergeMap.call(click$, (event) => this.isPopupOpen() ? [] : [event])
-    .merge(focus$);
-
     const results$ = this.ngbTypeahead(inputValues$, {
-      focus$,
-      focusAndClickToggle$
+      input$: this._input,
+
+      get focus$() {
+        if (this._focus == null) {
+          this._focus = fromEvent(nativeElement, 'focus');
+        };
+        return this._focus;
+      },
+
+      get click$() {
+        if (this._click == null) {
+          this._click = fromEvent(nativeElement, 'click');
+        };
+        return this._click;
+      },
+
+      instance: this,
+      context: this.context
     });
     const processedResults$ = _do.call(results$, () => {
       if (!this.editable) {
