@@ -170,7 +170,7 @@ export class NgbTypeaheadWindow implements OnInit, OnDestroy {
 
     const activeId = activeIdx < 0 ? undefined : `${id}-${activeIdx}`;
 
-    if (activeId != null) {
+    if (isDefined(activeId)) {
       const container = this.view.element.nativeElement;
       const elementsList = container.querySelectorAll('.dropdown-item');
       const activeElement = elementsList[activeIdx];
@@ -179,7 +179,7 @@ export class NgbTypeaheadWindow implements OnInit, OnDestroy {
       // it means the content has not been inserted yet (the window is opening)
       // so we have nothing to do:
       // the first element will be aligned properly at the top
-      if (activeElement != null) {
+      if (isDefined(activeElement)) {
         this._ensureActiveElementIsVisible({activeElement, container, withKeyboard});
       }
     }
@@ -189,7 +189,7 @@ export class NgbTypeaheadWindow implements OnInit, OnDestroy {
 
   private _ensureStateForKeyboardNavigation() {
     this._preventActivationOnMouseEnter = true;
-    if (this._mouseMoveListener == null) {
+    if (!isDefined(this._mouseMoveListener)) {
       this._mouseMoveListener = this._onMouseMove.bind(this);
       document.addEventListener('mousemove', this._mouseMoveListener);
     }
@@ -197,26 +197,35 @@ export class NgbTypeaheadWindow implements OnInit, OnDestroy {
 
   private _onMouseMove(event) {
     console.log('moving mouse');
-    const index: string = event.target.getAttribute('data-ngbtypeahead-item-index');
-    if (index != null) {
+    const item = this._findItemFromElement(event.target);
+    if (isDefined(item)) {
+      const index: string = item.getAttribute('data-ngbtypeahead-item-index');
       this.markActive(toInteger(index));
     }
     this._revertStateAfterKeyboardNavigation();
   }
 
+  private _findItemFromElement(element: HTMLElement) {
+    while (isDefined(element) && !isDefined(element.getAttribute('data-ngbtypeahead-item-index'))) {
+      element = element.parentElement;
+    }
+    return element;
+  }
+
   private _revertStateAfterKeyboardNavigation() {
     this._preventActivationOnMouseEnter = false;
-    if (this._mouseMoveListener != null) {
+    if (isDefined(this._mouseMoveListener)) {
       document.removeEventListener('mousemove', this._mouseMoveListener);
       this._mouseMoveListener = null;
     }
   }
 
-  private _ensureActiveElementIsVisible(arg: {activeElement: HTMLElement, container: HTMLElement, withKeyboard: boolean}) {
-    const {activeElement, container, withKeyboard} = arg;
-
+  private _ensureActiveElementIsVisible({activeElement, container, withKeyboard}: {
+    activeElement: HTMLElement,
+    container: HTMLElement,
+    withKeyboard: boolean
+  }) {
     if (!withKeyboard) {
-      // the keyboard wasn't used, we don't want to do anything in this case
       return;
     }
 
