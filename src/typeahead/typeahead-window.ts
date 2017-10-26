@@ -26,8 +26,7 @@ export interface ResultTemplateContext {
     '[style.max-height]': 'maxHeight == null ? null : maxHeight',
     '[style.overflow]': 'maxHeight == null ? null : "auto"',
     'role': 'listbox',
-    '[id]': 'id',
-    '(mouseleave)': 'onMouseLeaveDropdown'
+    '[id]': 'id'
   },
   template: `
     <ng-template #rt let-result="result" let-term="term" let-formatter="formatter">
@@ -36,6 +35,7 @@ export interface ResultTemplateContext {
     <ng-template ngFor [ngForOf]="results" let-result let-idx="index">
       <button type="button" class="dropdown-item" role="option"
         [id]="id + '-' + idx"
+        attr.data-ngbtypeahead-item-index='{{idx}}'
         [class.active]="idx === activeIdx"
         (mouseenter)="onMouseEnterItem($event, idx)"
         (click)="select(result)">
@@ -45,11 +45,11 @@ export interface ResultTemplateContext {
     </ng-template>
   `
 })
-export class NgbTypeaheadWindow implements OnInit,
-    OnDestroy {
+export class NgbTypeaheadWindow implements OnInit, OnDestroy {
   activeIdx = 0;
-  private _latestMousePosition = null;
+  private _preventActivationOnMouseEnter = false;
   private _mouseMoveListener = null;
+  private _results = [];
 
   /**
    *  The id for the typeahead widnow. The id should be unique and the same
@@ -65,7 +65,17 @@ export class NgbTypeaheadWindow implements OnInit,
   /**
    * Typeahead match results to be displayed
    */
-  @Input() results;
+  @Input() set results(results) {
+    this._results = results;
+    this.view.element.nativeElement.scrollTop = 0;
+    if (results.length > 0) {
+      this.markActive(0);
+    }
+  }
+
+  get results() {
+    return this._results;
+  }
 
   /**
    * Search term used to get current results
@@ -98,46 +108,20 @@ export class NgbTypeaheadWindow implements OnInit,
   constructor(private view: ViewContainerRef) {}
 
   ngOnDestroy() {
-    if (this._mouseMoveListener != null) {
-      document.removeEventListener('mousemove', this._mouseMoveListener);
-    }
+    this._revertStateAfterKeyboardNavigation();
   }
 
   getActive() { return this.results[this.activeIdx]; }
 
-  onMouseLeaveDropdown() {
-    // we don't want to handle the mouse anymore as soon as it is outside of
-    // the dropdown
-    this._latestMousePosition = null;
-    if (this._mouseMoveListener != null) {
-      document.removeEventListener('mousemove', this._mouseMoveListener);
-      this._mouseMoveListener = null;
-    }
-  }
-
   onMouseEnterItem(event, activeIdx) {
-    // to prevent the case where the mouse cursor stays over the dropdown
-    // while we scroll the content because of a keyboard navigation
-    // scrolling makes a the mouse enter a new element,
-    // and therefore would mark it active otherwise
-    const latestMousePosition = this._latestMousePosition;
-    const x = event.screenX;
-    const y = event.screenY;
-
-    if (latestMousePosition == null || latestMousePosition.x !== x || latestMousePosition.y !== y) {
+    if (!this._preventActivationOnMouseEnter) {
       this.markActive(activeIdx);
-    }
-
-    // to keep track of the actual latest mouse position while we keep the mouse inside items
-    if (this._mouseMoveListener == null) {
-      this._mouseMoveListener = (moveEvent) => this._latestMousePosition = {x: moveEvent.screenX, y: moveEvent.screenY};
-      document.addEventListener('mousemove', this._mouseMoveListener);
     }
   }
 
   markActive(activeIdx: number) {
     this.activeIdx = activeIdx;
-    this._activeChanged(null);
+    this._activeChanged(false);
   }
 
   next() {
@@ -146,7 +130,7 @@ export class NgbTypeaheadWindow implements OnInit,
     } else {
       this.activeIdx++;
     }
-    this._activeChanged(1);
+    this._activeChanged(true);
   }
 
   prev() {
@@ -157,17 +141,17 @@ export class NgbTypeaheadWindow implements OnInit,
     } else {
       this.activeIdx--;
     }
-    this._activeChanged(-1);
+    this._activeChanged(true);
   }
 
   select(item) { this.selectEvent.emit(item); }
 
   ngOnInit() {
     this.activeIdx = this.focusFirst ? 0 : -1;
-    this._activeChanged(null);
+    this._activeChanged(false);
   }
 
-  private _activeChanged(direction) {
+  private _activeChanged(withKeyboard: boolean) {
     const {activeIdx, id} = this;
 
     const activeId = activeIdx < 0 ? undefined : `${id}-${activeIdx}`;
@@ -182,18 +166,45 @@ export class NgbTypeaheadWindow implements OnInit,
       // so we have nothing to do:
       // the first element will be aligned properly at the top
       if (activeElement != null) {
-        this._ensureActiveElementIsVisible({activeElement, container, direction});
+        this._ensureActiveElementIsVisible({activeElement, container, withKeyboard});
       }
     }
 
     this.activeChangeEvent.emit(activeId);
   }
 
-  private _ensureActiveElementIsVisible({activeElement, container, direction}) {
-    if (direction == null) {
+  private _ensureStateForKeyboardNavigation() {
+    this._preventActivationOnMouseEnter = true;
+    if (this._mouseMoveListener == null) {
+      this._mouseMoveListener = (event) => {
+        console.log('moving mouse');
+        const index: string = event.target.getAttribute('data-ngbtypeahead-item-index');
+        if (index != null) {
+          this.markActive(parseInt(index, 10));
+        }
+        this._revertStateAfterKeyboardNavigation();
+      };
+      document.addEventListener('mousemove', this._mouseMoveListener);
+    }
+  }
+
+  private _revertStateAfterKeyboardNavigation() {
+    this._preventActivationOnMouseEnter = false;
+    if (this._mouseMoveListener != null) {
+      document.removeEventListener('mousemove', this._mouseMoveListener);
+      this._mouseMoveListener = null;
+    }
+  }
+
+  private _ensureActiveElementIsVisible(arg: {activeElement: HTMLElement, container: HTMLElement, withKeyboard: boolean}) {
+    const {activeElement, container, withKeyboard} = arg;
+
+    if (!withKeyboard) {
       // the keyboard wasn't used, we don't want to do anything in this case
       return;
     }
+
+    this._ensureStateForKeyboardNavigation();
 
     const containerRect = container.getBoundingClientRect();
     const containerStyle = window.getComputedStyle(container);

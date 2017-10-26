@@ -146,7 +146,7 @@ export class NgbTypeahead implements ControlValueAccessor,
   /**
    * A CSS max-height value to limit the height of the dropdown and be able to scroll through its list of results.
    */
-  @Input() maxHeight: string | null = null;
+  @Input() maxHeight: string;
 
   /**
    * An event emitted when a match is selected. Event payload is of type NgbTypeaheadSelectItemEvent.
