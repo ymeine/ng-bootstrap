@@ -8,7 +8,9 @@ import {
   OnDestroy,
 
   TemplateRef,
-  ViewContainerRef
+  ViewContainerRef,
+  ChangeDetectorRef,
+  NgZone
 } from '@angular/core';
 
 import {toString, isDefined, toInteger} from '../util/util';
@@ -61,6 +63,7 @@ export class NgbTypeaheadWindow implements OnInit, OnDestroy {
   private _preventActivationOnMouseEnter = false;
   private _mouseMoveListener = null;
   private _results = [];
+  private _scrollListener;
 
   public isDefined = isDefined;
 
@@ -119,15 +122,24 @@ export class NgbTypeaheadWindow implements OnInit, OnDestroy {
   @Output('activeChange') activeChangeEvent = new EventEmitter();
 
   constructor(
-    private view: ViewContainerRef
+    private view: ViewContainerRef,
+    private ngZone: NgZone,
+    private changeDetector: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
     this.markActive(this.focusFirst ? 0 : -1);
+    this.ngZone.run(() => {
+      this._scrollListener = (event) => {
+        console.log('scrolling');
+      };
+      window.addEventListener('scroll', this._scrollListener, true);
+    });
   }
 
   ngOnDestroy() {
     this._revertStateAfterKeyboardNavigation();
+    window.removeEventListener('scroll', this._scrollListener);
   }
 
   getActive() { return this.results[this.activeIdx]; }
