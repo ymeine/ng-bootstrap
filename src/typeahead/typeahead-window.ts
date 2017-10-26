@@ -1,6 +1,17 @@
-import {Component, Input, Output, EventEmitter, TemplateRef, OnInit, OnDestroy, ViewContainerRef} from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
 
-import {toString} from '../util/util';
+  OnInit,
+  OnDestroy,
+
+  TemplateRef,
+  ViewContainerRef
+} from '@angular/core';
+
+import {toString, isDefined, toInteger} from '../util/util';
 
 /**
  * Context for the typeahead result template in case you want to override the default one
@@ -23,8 +34,8 @@ export interface ResultTemplateContext {
   host: {
     'class': 'dropdown-menu',
     'style': 'display: block',
-    '[style.max-height]': 'maxHeight == null ? null : maxHeight',
-    '[style.overflow]': 'maxHeight == null ? null : "auto"',
+    '[style.max-height]': 'isDefined(maxHeight) ? maxHeight : null',
+    '[style.overflow]': 'isDefined(maxHeight) ? "auto" : null',
     'role': 'listbox',
     '[id]': 'id'
   },
@@ -51,8 +62,10 @@ export class NgbTypeaheadWindow implements OnInit, OnDestroy {
   private _mouseMoveListener = null;
   private _results = [];
 
+  public isDefined = isDefined;
+
   /**
-   *  The id for the typeahead widnow. The id should be unique and the same
+   *  The id for the typeahead window. The id should be unique and the same
    *  as the associated typeahead's id.
    */
   @Input() id: string;
@@ -105,7 +118,13 @@ export class NgbTypeaheadWindow implements OnInit, OnDestroy {
 
   @Output('activeChange') activeChangeEvent = new EventEmitter();
 
-  constructor(private view: ViewContainerRef) {}
+  constructor(
+    private view: ViewContainerRef
+  ) {}
+
+  ngOnInit() {
+    this.markActive(this.focusFirst ? 0 : -1);
+  }
 
   ngOnDestroy() {
     this._revertStateAfterKeyboardNavigation();
@@ -146,11 +165,6 @@ export class NgbTypeaheadWindow implements OnInit, OnDestroy {
 
   select(item) { this.selectEvent.emit(item); }
 
-  ngOnInit() {
-    this.activeIdx = this.focusFirst ? 0 : -1;
-    this._activeChanged(false);
-  }
-
   private _activeChanged(withKeyboard: boolean) {
     const {activeIdx, id} = this;
 
@@ -176,16 +190,18 @@ export class NgbTypeaheadWindow implements OnInit, OnDestroy {
   private _ensureStateForKeyboardNavigation() {
     this._preventActivationOnMouseEnter = true;
     if (this._mouseMoveListener == null) {
-      this._mouseMoveListener = (event) => {
-        console.log('moving mouse');
-        const index: string = event.target.getAttribute('data-ngbtypeahead-item-index');
-        if (index != null) {
-          this.markActive(parseInt(index, 10));
-        }
-        this._revertStateAfterKeyboardNavigation();
-      };
+      this._mouseMoveListener = this._onMouseMove.bind(this);
       document.addEventListener('mousemove', this._mouseMoveListener);
     }
+  }
+
+  private _onMouseMove(event) {
+    console.log('moving mouse');
+    const index: string = event.target.getAttribute('data-ngbtypeahead-item-index');
+    if (index != null) {
+      this.markActive(toInteger(index));
+    }
+    this._revertStateAfterKeyboardNavigation();
   }
 
   private _revertStateAfterKeyboardNavigation() {
@@ -208,7 +224,7 @@ export class NgbTypeaheadWindow implements OnInit, OnDestroy {
 
     const containerRect = container.getBoundingClientRect();
     const containerStyle = window.getComputedStyle(container);
-    const getStyleValue = (style, property) => parseInt(style.getPropertyValue(property), 10);
+    const getStyleValue = (style, property) => toInteger(style.getPropertyValue(property));
     const getVerticalOffset = (style, zone) =>
         getStyleValue(style, `padding-${zone}`) + getStyleValue(style, `border-${zone}-width`);
 
