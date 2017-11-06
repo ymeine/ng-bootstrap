@@ -1,6 +1,7 @@
-import {Component} from '@angular/core';
-import {NgbTypeaheadInitParams} from '@ng-bootstrap/ng-bootstrap';
+import {Component, ViewChild} from '@angular/core';
+import {NgbTypeahead} from '@ng-bootstrap/ng-bootstrap';
 import {Observable} from 'rxjs/Observable';
+import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/merge';
 import 'rxjs/add/operator/filter';
@@ -24,10 +25,14 @@ const states = ['Alabama', 'Alaska', 'American Samoa', 'Arizona', 'Arkansas', 'C
 export class NgbdTypeaheadFocus {
   public model: any;
 
-  search = (text$: Observable<string>, {focus$, click$, instance}: NgbTypeaheadInitParams) =>
+  @ViewChild('instance') instance: NgbTypeahead;
+  public focus$ = new Subject<string>();
+  public click$ = new Subject<string>();
+
+  search = (text$: Observable<string>) =>
     text$
       .debounceTime(200).distinctUntilChanged()
-      .merge(focus$.map(event => event.target.value))
-      .merge(click$.filter(() => !instance.isPopupOpen()).map(event => event.target.value))
+      .merge(this.focus$)
+      .merge(this.click$.filter(() => !this.instance.isPopupOpen()))
       .map(term => (term === '' ? states : states.filter(v => v.toLowerCase().indexOf(term.toLowerCase()) > -1)).slice(0, 10));
 }

@@ -6,12 +6,13 @@ import {Component, DebugElement, ViewChild, ChangeDetectionStrategy} from '@angu
 import {Validators, FormControl, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {By} from '@angular/platform-browser';
 import {Observable} from 'rxjs/Observable';
+import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/merge';
 import 'rxjs/add/operator/filter';
 
-import {NgbTypeahead, NgbTypeaheadInitParams} from './typeahead';
+import {NgbTypeahead} from './typeahead';
 import {NgbTypeaheadModule} from './typeahead.module';
 import {NgbTypeaheadConfig} from './typeahead-config';
 
@@ -197,7 +198,12 @@ describe('ngb-typeahead', () => {
     });
 
     it('should open on focus or click', async(async() => {
-         const fixture = createTestComponent(`<input type="text" [ngbTypeahead]="find"/>`);
+         const fixture = createTestComponent(`<input
+           type="text"
+           [ngbTypeahead]="find"
+           (focus)="focus$.next($event.target.value)"
+           (click)="click$.next($event.target.value)"
+          />`);
          const compiled = fixture.nativeElement;
 
          let searchCount = 0;
@@ -1000,10 +1006,12 @@ class TestComponent {
   findOutput$: Observable<any[]>;
 
   @ViewChild(NgbTypeahead) typeahead: NgbTypeahead;
+  public focus$ = new Subject<string>();
+  public click$ = new Subject<string>();
 
-  find = (text$: Observable<string>, {focus$, click$, instance}: NgbTypeaheadInitParams) => {
-    this.findOutput$ = text$.merge(focus$.map(event => event.target.value))
-                           .merge(click$.filter(() => !instance.isPopupOpen()).map(event => event.target.value))
+  find = (text$: Observable<string>) => {
+    this.findOutput$ = text$.merge(this.focus$)
+                           .merge(this.click$.filter(() => !this.typeahead.isPopupOpen()))
                            .map(text => this._strings.filter(v => v.startsWith(text)));
     return this.findOutput$;
   };

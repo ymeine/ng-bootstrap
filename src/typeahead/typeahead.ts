@@ -58,42 +58,6 @@ export interface NgbTypeaheadSelectItemEvent {
   preventDefault: () => void;
 }
 
-/**
- * Extends standard Event interface to specify the type of the "target" property
- * for the case of HTMLInputElement events.
- */
-export interface HTMLInputElementEvent extends Event { target: HTMLInputElement & EventTarget; }
-
-/**
- * Parameters given to the Typeahead user initialization function.
- */
-export interface NgbTypeaheadInitParams {
-  /**
-   * Observable of input's input event, sending the event itself.
-   */
-  input$: Observable<HTMLInputElementEvent>;
-
-  /**
-   * Observable of input's focus event, sending the event itself.
-   */
-  focus$: Observable<HTMLInputElementEvent>;
-
-  /**
-   * Observable of input's click event, sending the event itself.
-   */
-  click$: Observable<HTMLInputElementEvent>;
-
-  /**
-   * The current NgbTypeahead instance.
-   */
-  instance: NgbTypeahead;
-
-  /**
-   * The custom context passed to this NgbTypeahead instance.
-   */
-  context: any;
-}
-
 let nextWindowId = 0;
 
 /**
@@ -116,7 +80,8 @@ let nextWindowId = 0;
     '[attr.aria-owns]': 'isPopupOpen() ? popupId : null',
     '[attr.aria-expanded]': 'isPopupOpen()'
   },
-  providers: [NGB_TYPEAHEAD_VALUE_ACCESSOR]
+  providers: [NGB_TYPEAHEAD_VALUE_ACCESSOR],
+  exportAs: 'ngbTypeahead'
 })
 export class NgbTypeahead implements ControlValueAccessor,
     OnInit, OnDestroy {
@@ -124,9 +89,6 @@ export class NgbTypeahead implements ControlValueAccessor,
   private _subscription: Subscription;
   private _userInput: string;
   private _valueChanges: Observable<string>;
-  private _input: NgbTypeaheadInitParams['input$'];
-  private _focus: NgbTypeaheadInitParams['focus$'];
-  private _click: NgbTypeaheadInitParams['click$'];
   private _resubscribeTypeahead: BehaviorSubject<any>;
   private _windowRef: ComponentRef<NgbTypeaheadWindow>;
   private _zoneSubscription: any;
@@ -156,10 +118,8 @@ export class NgbTypeahead implements ControlValueAccessor,
   /**
    * A function to transform the provided observable text into the array of results.  Note that the "this" argument
    * is undefined so you need to explicitly bind it to a desired "this" target.
-   * The function also receives an optional second argument giving more
-   * observables and data so that you can tweak the widget behavior and/or react to more events.
    */
-  @Input() ngbTypeahead: (text: Observable<string>, params?: NgbTypeaheadInitParams) => Observable<any[]>;
+  @Input() ngbTypeahead: (text: Observable<string>) => Observable<any[]>;
 
   /**
    * A function to format a given result before display. This function should return a formatted string without any
@@ -185,13 +145,6 @@ export class NgbTypeahead implements ControlValueAccessor,
   @Input() placement: PlacementArray = 'bottom-left';
 
   /**
-   * A custom context data to associate to this NgbTypeahead instance,
-   * notably useful to share a common search function for multiple
-   * NgbTypeahead instances and still be able to differentiate them.
-   */
-  @Input() context: any;
-
-  /**
    * An event emitted when a match is selected. Event payload is of type NgbTypeaheadSelectItemEvent.
    */
   @Output() selectItem = new EventEmitter<NgbTypeaheadSelectItemEvent>();
@@ -212,8 +165,7 @@ export class NgbTypeahead implements ControlValueAccessor,
     this.showHint = config.showHint;
     this.placement = config.placement;
 
-    this._input = fromEvent(_elementRef.nativeElement, 'input');
-    this._valueChanges = map.call(this._input, ($event) => $event.target.value);
+    this._valueChanges = fromEvent(_elementRef.nativeElement, 'input', ($event) => $event.target.value);
 
     this._resubscribeTypeahead = new BehaviorSubject(null);
 
@@ -230,8 +182,6 @@ export class NgbTypeahead implements ControlValueAccessor,
   }
 
   ngOnInit(): void {
-    const {nativeElement} = this._elementRef;
-
     const inputValues$ = _do.call(this._valueChanges, value => {
       this._userInput = value;
       if (this.editable) {
@@ -239,26 +189,7 @@ export class NgbTypeahead implements ControlValueAccessor,
       }
     });
 
-    const results$ = this.ngbTypeahead(inputValues$, {
-      input$: this._input,
-
-      get focus$() {
-        if (this._focus == null) {
-          this._focus = fromEvent(nativeElement, 'focus');
-        };
-        return this._focus;
-      },
-
-      get click$() {
-        if (this._click == null) {
-          this._click = fromEvent(nativeElement, 'click');
-        };
-        return this._click;
-      },
-
-      instance: this,
-      context: this.context
-    });
+    const results$ = this.ngbTypeahead(inputValues$);
     const processedResults$ = _do.call(results$, () => {
       if (!this.editable) {
         this._onChange(undefined);
