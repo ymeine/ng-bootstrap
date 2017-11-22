@@ -9,10 +9,13 @@ import {
   ContentChild,
   NgZone,
   Renderer2,
-  OnInit
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef
 } from '@angular/core';
 import {NgbDropdownConfig} from './dropdown-config';
 import {positionElements, PlacementArray, Placement} from '../util/positioning';
+import {isEscape} from '../util/keys';
 
 /**
  */
@@ -79,14 +82,12 @@ export class NgbDropdownToggle {
 @Directive({
   selector: '[ngbDropdown]',
   exportAs: 'ngbDropdown',
-  host: {
-    '[class.show]': 'isOpen()',
-    '(keyup.esc)': 'closeFromOutsideEsc()',
-    '(document:click)': 'closeFromClick($event)'
-  }
+  host: {'[class.show]': 'isOpen()', '(document:click)': 'closeFromClick($event)'}
 })
-export class NgbDropdown implements OnInit {
+export class NgbDropdown implements OnInit,
+    OnDestroy {
   private _zoneSubscription: any;
+  private _escapeListener: (event: KeyboardEvent) => any;
 
   @ContentChild(NgbDropdownMenu) private _menu: NgbDropdownMenu;
 
@@ -120,7 +121,7 @@ export class NgbDropdown implements OnInit {
    */
   @Output() openChange = new EventEmitter();
 
-  constructor(config: NgbDropdownConfig, ngZone: NgZone) {
+  constructor(config: NgbDropdownConfig, private ngZone: NgZone, private changeDetector: ChangeDetectorRef) {
     this.placement = config.placement;
     this.autoClose = config.autoClose;
     this._zoneSubscription = ngZone.onStable.subscribe(() => { this._positionMenu(); });
@@ -145,6 +146,13 @@ export class NgbDropdown implements OnInit {
       this._open = true;
       this._positionMenu();
       this.openChange.emit(true);
+      this._escapeListener = (event) => {
+        if (isEscape(event)) {
+          this.closeFromOutsideEsc();
+          this.changeDetector.detectChanges();
+        }
+      };
+      this.ngZone.runOutsideAngular(() => document.addEventListener('keyup', this._escapeListener));
     }
   }
 
@@ -155,6 +163,7 @@ export class NgbDropdown implements OnInit {
     if (this._open) {
       this._open = false;
       this.openChange.emit(false);
+      document.removeEventListener('keyup', this._escapeListener);
     }
   }
 
