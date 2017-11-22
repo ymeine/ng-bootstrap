@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 
 import {ModalDismissReasons} from './modal-dismiss-reasons';
+import {trapFocusInside} from '../util/focus';
 
 @Component({
   selector: 'ngb-modal-window',
@@ -33,6 +34,7 @@ export class NgbModalWindow implements OnInit,
     AfterViewInit, OnDestroy {
   private _document: any;
   private _elWithFocus: Element;  // element that is focused prior to modal opening
+  private _revertFocusTrap;
 
   @Input() backdrop: boolean | string = true;
   @Input() centered: string;
@@ -63,6 +65,7 @@ export class NgbModalWindow implements OnInit,
   ngOnInit() {
     this._elWithFocus = this._document.activeElement;
     this._renderer.addClass(this._document.body, 'modal-open');
+    this._revertFocusTrap = trapFocusInside(this._elRef.nativeElement);
   }
 
   ngAfterViewInit() {
@@ -85,5 +88,7 @@ export class NgbModalWindow implements OnInit,
 
     this._elWithFocus = null;
     this._renderer.removeClass(body, 'modal-open');
+
+    this._revertFocusTrap();
   }
 }
