@@ -587,6 +587,45 @@ describe('ngb-modal', () => {
       fixture.detectChanges();
     });
   });
+
+  describe('accessibility', () => {
+    function testAttributes(modalOptions, expectedAttributes) {
+      const modalInstance = fixture.componentInstance.open('foo', modalOptions);
+      fixture.detectChanges();
+
+      const modalElement = <HTMLElement>document.querySelector('ngb-modal-window');
+      expectedAttributes.forEach(([name, value]) => expect(modalElement.getAttribute(name)).toBe(value));
+
+      modalInstance.close('some result');
+      fixture.detectChanges();
+      expect(fixture.nativeElement).not.toHaveModal();
+    }
+
+    it('should support aria-label', () => {
+      const label = 'This is the aria-label';
+
+      testAttributes({ariaLabel: label}, [['aria-label', label]]);
+    });
+
+    it('should support aria-labelledby', () => {
+      const id = 'aria-labelledby-id';
+
+      testAttributes({ariaLabelledBy: id}, [['aria-labelledby', id]]);
+    });
+
+    it('should make aria-label have priority over aria-labelledby', () => {
+      const label = 'This is the aria-label';
+      const id = 'aria-labelledby-id';
+
+      testAttributes({ariaLabel: label, ariaLabelledBy: id}, [['aria-label', label], ['aria-labelledby', null]]);
+    });
+
+    it('should support aria-describedby', () => {
+      const id = 'aria-describedby-id';
+
+      testAttributes({ariaDescribedBy: id}, [['aria-describedby', id]]);
+    });
+  });
 });
 
 @Component({selector: 'custom-injector-cmpt', template: 'Some content'})
