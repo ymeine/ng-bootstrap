@@ -64,11 +64,12 @@ export class NgbModalStack {
   }
 
   private _applyWindowOptions(windowInstance: NgbModalWindow, options: Object): void {
-    ['backdrop', 'keyboard', 'size', 'windowClass'].forEach((optionName: string) => {
-      if (isDefined(options[optionName])) {
-        windowInstance[optionName] = options[optionName];
-      }
-    });
+    ['backdrop', 'keyboard', 'size', 'windowClass', 'ariaLabel', 'ariaLabelledBy', 'ariaDescribedBy'].forEach(
+        (optionName: string) => {
+          if (isDefined(options[optionName])) {
+            windowInstance[optionName] = options[optionName];
+          }
+        });
   }
 
   private _getContentRef(

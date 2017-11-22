@@ -43,6 +43,21 @@ export interface NgbModalOptions {
    * Custom class to append to the modal window
    */
   windowClass?: string;
+
+  /**
+   * Sets the aria attribute aria-label. Takes precedence over ariaLabelledBy.
+   */
+  ariaLabel?: string;
+
+  /**
+   * Sets the aria attribute aria-labelledby, if ariaLabel is not defined.
+   */
+  ariaLabelledBy?: string;
+
+  /**
+   * Sets the aria attribute aria-describedby.
+   */
+  ariaDescribedBy?: string;
 }
 
 /**
