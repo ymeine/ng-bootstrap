@@ -361,46 +361,6 @@ describe('ngb-dropdown-toggle', () => {
     expect(compiled).toBeShown();
   });
 
-  it('should close on ESC', () => {
-    const html = `
-      <div ngbDropdown>
-          <button ngbDropdownToggle>Toggle dropdown</button>
-          <div ngbDropdownMenu></div>
-      </div>`;
-
-    const fixture = createTestComponent(html);
-    const compiled = fixture.nativeElement;
-    const buttonEl = compiled.querySelector('button');
-
-    buttonEl.click();
-    fixture.detectChanges();
-    expect(compiled).toBeShown();
-
-    fixture.debugElement.query(By.directive(NgbDropdown)).triggerEventHandler('keyup.esc', {});
-    fixture.detectChanges();
-    expect(compiled).not.toBeShown();
-  });
-
-  it('should not close on ESC if autoClose is set to false', () => {
-    const html = `
-      <div ngbDropdown [autoClose]="false">
-          <button ngbDropdownToggle>Toggle dropdown</button>
-          <div ngbDropdownMenu></div>
-      </div>`;
-
-    const fixture = createTestComponent(html);
-    const compiled = fixture.nativeElement;
-    const buttonEl = compiled.querySelector('button');
-
-    buttonEl.click();
-    fixture.detectChanges();
-    expect(compiled).toBeShown();
-
-    fixture.debugElement.query(By.directive(NgbDropdown)).triggerEventHandler('keyup.esc', {});
-    fixture.detectChanges();
-    expect(compiled).toBeShown();
-  });
-
   it('should not close on item click if autoClose is set to false', () => {
     const html = `
       <div ngbDropdown [open]="true" [autoClose]="false">
