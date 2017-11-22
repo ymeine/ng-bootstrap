@@ -2,6 +2,7 @@ import {Component, Input, forwardRef, OnChanges, SimpleChanges} from '@angular/c
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 
 import {isNumber, padNumber, toInteger, isDefined} from '../util/util';
+import {isArrowUp, isArrowDown} from '../util/keys';
 import {NgbTime} from './ngb-time';
 import {NgbTimepickerConfig} from './timepicker-config';
 
@@ -67,48 +68,96 @@ const NGB_TIMEPICKER_VALUE_ACCESSOR = {
     <fieldset [disabled]="disabled" [class.disabled]="disabled">
       <div class="ngb-tp">
         <div class="ngb-tp-hour">
-          <button *ngIf="spinners" type="button" class="btn btn-link" [ngClass]="setButtonSize()" (click)="changeHour(hourStep)"
-            [disabled]="disabled" [class.disabled]="disabled">
+          <button
+            *ngIf="spinners"
+            tabindex="-1"
+            type="button"
+            class="btn btn-link"
+            [ngClass]="setButtonSize()"
+            (click)="changeHour(hourStep)"
+            [disabled]="disabled"
+            [class.disabled]="disabled"
+          >
             <span class="chevron"></span>
             <span class="sr-only">Increment hours</span>
           </button>
           <input type="text" class="form-control" [ngClass]="setFormControlSize()" maxlength="2" size="2" placeholder="HH"
-            [value]="formatHour(model?.hour)" (change)="updateHour($event.target.value)"
+            [value]="formatHour(model?.hour)" (keydown)="handleHourKeyDown($event)" (change)="updateHour($event.target.value)"
             [readonly]="readonlyInputs" [disabled]="disabled" aria-label="Hours">
-          <button *ngIf="spinners" type="button" class="btn btn-link" [ngClass]="setButtonSize()" (click)="changeHour(-hourStep)"
-            [disabled]="disabled" [class.disabled]="disabled">
+          <button
+            *ngIf="spinners"
+            tabindex="-1"
+            type="button"
+            class="btn btn-link"
+            [ngClass]="setButtonSize()"
+            (click)="changeHour(-hourStep)"
+            [disabled]="disabled"
+            [class.disabled]="disabled"
+          >
             <span class="chevron bottom"></span>
             <span class="sr-only">Decrement hours</span>
           </button>
         </div>
         <div class="ngb-tp-spacer">:</div>
         <div class="ngb-tp-minute">
-          <button *ngIf="spinners" type="button" class="btn btn-link" [ngClass]="setButtonSize()" (click)="changeMinute(minuteStep)"
-            [disabled]="disabled" [class.disabled]="disabled">
+          <button
+            *ngIf="spinners"
+            tabindex="-1"
+            type="button"
+            class="btn btn-link"
+            [ngClass]="setButtonSize()"
+            (click)="changeMinute(minuteStep)"
+            [disabled]="disabled"
+            [class.disabled]="disabled"
+          >
             <span class="chevron"></span>
             <span class="sr-only">Increment minutes</span>
           </button>
           <input type="text" class="form-control" [ngClass]="setFormControlSize()" maxlength="2" size="2" placeholder="MM"
-            [value]="formatMinSec(model?.minute)" (change)="updateMinute($event.target.value)"
+            [value]="formatMinSec(model?.minute)" (keydown)="handleMinuteKeyDown($event)" (change)="updateMinute($event.target.value)"
             [readonly]="readonlyInputs" [disabled]="disabled" aria-label="Minutes">
-          <button *ngIf="spinners" type="button" class="btn btn-link" [ngClass]="setButtonSize()" (click)="changeMinute(-minuteStep)"
-            [disabled]="disabled" [class.disabled]="disabled">
+          <button
+            *ngIf="spinners"
+            tabindex="-1"
+            type="button"
+            class="btn btn-link"
+            [ngClass]="setButtonSize()"
+            (click)="changeMinute(-minuteStep)"
+            [disabled]="disabled"
+            [class.disabled]="disabled"
+          >
             <span class="chevron bottom"></span>
             <span class="sr-only">Decrement minutes</span>
           </button>
         </div>
         <div *ngIf="seconds" class="ngb-tp-spacer">:</div>
         <div *ngIf="seconds" class="ngb-tp-second">
-          <button *ngIf="spinners" type="button" class="btn btn-link" [ngClass]="setButtonSize()" (click)="changeSecond(secondStep)"
-            [disabled]="disabled" [class.disabled]="disabled">
+          <button
+            *ngIf="spinners"
+            tabindex="-1"
+            type="button"
+            class="btn btn-link"
+            [ngClass]="setButtonSize()"
+            (click)="changeSecond(secondStep)"
+            [disabled]="disabled"
+            [class.disabled]="disabled"
+          >
             <span class="chevron"></span>
             <span class="sr-only">Increment seconds</span>
           </button>
           <input type="text" class="form-control" [ngClass]="setFormControlSize()" maxlength="2" size="2" placeholder="SS"
-            [value]="formatMinSec(model?.second)" (change)="updateSecond($event.target.value)"
+            [value]="formatMinSec(model?.second)" (keydown)="handleSecondKeyDown($event)" (change)="updateSecond($event.target.value)"
             [readonly]="readonlyInputs" [disabled]="disabled" aria-label="Seconds">
-          <button *ngIf="spinners" type="button" class="btn btn-link" [ngClass]="setButtonSize()" (click)="changeSecond(-secondStep)"
-            [disabled]="disabled" [class.disabled]="disabled">
+          <button
+            *ngIf="spinners"
+            tabindex="-1"
+            type="button"
+            class="btn btn-link"
+            [ngClass]="setButtonSize()"
+            (click)="changeSecond(-secondStep)"
+            [disabled]="disabled"
+            [class.disabled]="disabled"
+          >
             <span class="chevron bottom"></span>
             <span class="sr-only">Decrement seconds</span>
           </button>
@@ -212,6 +261,17 @@ export class NgbTimepicker implements ControlValueAccessor,
     this.propagateModelChange();
   }
 
+  private _handleInputKeyDown(event, step, updater) {
+    const stepSign = isArrowUp(event) ? 1 : isArrowDown(event) ? -1 : null;
+
+    if (isDefined(stepSign)) {
+      event.preventDefault();
+      updater(step * stepSign);
+    }
+  }
+
+  handleHourKeyDown(event) { this._handleInputKeyDown(event, this.hourStep, step => this.changeHour(step)); }
+
   updateHour(newVal: string) {
     const isPM = this.model.hour >= 12;
     const enteredHour = toInteger(newVal);
@@ -223,10 +283,14 @@ export class NgbTimepicker implements ControlValueAccessor,
     this.propagateModelChange();
   }
 
+  handleMinuteKeyDown(event) { this._handleInputKeyDown(event, this.minuteStep, step => this.changeMinute(step)); }
+
   updateMinute(newVal: string) {
     this.model.updateMinute(toInteger(newVal));
     this.propagateModelChange();
   }
+
+  handleSecondKeyDown(event) { this._handleInputKeyDown(event, this.secondStep, step => this.changeSecond(step)); }
 
   updateSecond(newVal: string) {
     this.model.updateSecond(toInteger(newVal));
