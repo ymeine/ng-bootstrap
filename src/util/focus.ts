@@ -1,5 +1,7 @@
 import {isDefined} from './util';
 
+type InsertPosition = 'beforebegin' | 'afterbegin' | 'beforeend' | 'afterend';
+
 
 
 export function canBeFocused(element): boolean {
@@ -88,23 +90,20 @@ export function createFocusInterceptor({onIntercept}) {
 }
 
 export function trapFocusInside(element: HTMLElement) {
-  const backwardInterceptor = createFocusInterceptor({onIntercept: () => focusLast(element)});
-  element.insertAdjacentElement('beforebegin', backwardInterceptor);
-  const forwardInterceptor = createFocusInterceptor({onIntercept: () => focusFirst(element)});
-  element.insertAdjacentElement('afterend', forwardInterceptor);
-
   const {body} = document;
-  const viewportForwardInterceptor = createFocusInterceptor({onIntercept: () => focusFirst(element)});
-  body.insertAdjacentElement('afterbegin', viewportForwardInterceptor);
-  const viewportBackwardInterceptor = createFocusInterceptor({onIntercept: () => focusLast(element)});
-  body.insertAdjacentElement('beforeend', viewportBackwardInterceptor);
+  const interceptors = [
+    {anchor: element, position: 'beforebegin', setFocus: focusLast},
+    {anchor: element, position: 'afterend', setFocus: focusFirst},
+    {anchor: body, position: 'afterbegin', setFocus: focusFirst},
+    {anchor: body, position: 'beforeend', setFocus: focusLast}
+  ].map(({anchor, position, setFocus}: InterceptorDescription) => {
+    const interceptor = createFocusInterceptor({onIntercept: () => setFocus(element)});
+    anchor.insertAdjacentElement(position, interceptor);
+    return interceptor;
+  });
 
   const revert = () => {
-    backwardInterceptor.remove();
-    forwardInterceptor.remove();
-
-    viewportForwardInterceptor.remove();
-    viewportBackwardInterceptor.remove();
+    interceptors.forEach(interceptor => interceptor.remove());
   };
 
   return revert;
