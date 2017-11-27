@@ -589,58 +589,41 @@ describe('ngb-modal', () => {
   });
 
   describe('accessibility', () => {
-    it('should support aria-label', () => {
-      const label = 'This is the aria-label';
-
-      const modalInstance = fixture.componentInstance.open('foo', {ariaLabel: label});
+    function testAttributes(modalOptions, expectedAttributes) {
+      const modalInstance = fixture.componentInstance.open('foo', modalOptions);
       fixture.detectChanges();
+
       const modalElement = <HTMLElement>document.querySelector('ngb-modal-window');
-      expect(modalElement.getAttribute('aria-label')).toBe(label);
+      expectedAttributes.forEach(([name, value]) => expect(modalElement.getAttribute(name)).toBe(value));
 
       modalInstance.close('some result');
       fixture.detectChanges();
       expect(fixture.nativeElement).not.toHaveModal();
+    }
+
+    it('should support aria-label', () => {
+      const label = 'This is the aria-label';
+
+      testAttributes({ariaLabel: label}, [['aria-label', label]]);
     });
 
     it('should support aria-labelledby', () => {
       const id = 'aria-labelledby-id';
 
-      const modalInstance = fixture.componentInstance.open('foo', {ariaLabelledBy: id});
-      fixture.detectChanges();
-      const modalElement = <HTMLElement>document.querySelector('ngb-modal-window');
-      expect(modalElement.getAttribute('aria-labelledby')).toBe(id);
-
-      modalInstance.close('some result');
-      fixture.detectChanges();
-      expect(fixture.nativeElement).not.toHaveModal();
+      testAttributes({ariaLabelledBy: id}, [['aria-labelledby', id]]);
     });
 
     it('should make aria-label have priority over aria-labelledby', () => {
       const label = 'This is the aria-label';
       const id = 'aria-labelledby-id';
 
-      const modalInstance = fixture.componentInstance.open('foo', {ariaLabel: label, ariaLabelledBy: id});
-      fixture.detectChanges();
-      const modalElement = <HTMLElement>document.querySelector('ngb-modal-window');
-      expect(modalElement.getAttribute('aria-label')).toBe(label);
-      expect(modalElement.getAttribute('aria-labelledby')).toBeNull();
-
-      modalInstance.close('some result');
-      fixture.detectChanges();
-      expect(fixture.nativeElement).not.toHaveModal();
+      testAttributes({ariaLabel: label, ariaLabelledBy: id}, [['aria-label', label], ['aria-labelledby', null]]);
     });
 
     it('should support aria-describedby', () => {
       const id = 'aria-describedby-id';
 
-      const modalInstance = fixture.componentInstance.open('foo', {ariaDescribedBy: id});
-      fixture.detectChanges();
-      const modalElement = <HTMLElement>document.querySelector('ngb-modal-window');
-      expect(modalElement.getAttribute('aria-describedby')).toBe(id);
-
-      modalInstance.close('some result');
-      fixture.detectChanges();
-      expect(fixture.nativeElement).not.toHaveModal();
+      testAttributes({ariaDescribedBy: id}, [['aria-describedby', id]]);
     });
   });
 });
