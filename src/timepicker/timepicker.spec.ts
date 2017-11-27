@@ -1,5 +1,6 @@
 import {TestBed, ComponentFixture, async, inject} from '@angular/core/testing';
 import {createGenericTestComponent} from '../test/common';
+import {createKeyboardEvent} from '../util/keys';
 
 import {Component, Injectable} from '@angular/core';
 import {By} from '@angular/platform-browser';
@@ -1364,6 +1365,39 @@ describe('ngb-timepicker', () => {
             expect(fixture.componentInstance.model).toBeNull();
           });
     });
+  });
+ 
+  describe('accessibility', () => {
+    it('should increment or decrement inputs with arrow keys', async(async() => {
+         const html = `<ngb-timepicker [(ngModel)]="model"></ngb-timepicker>`;
+
+         const fixture = createTestComponent(html);
+         fixture.componentInstance.model = {hour: 10, minute: 59, second: 0};
+         fixture.detectChanges();
+         await fixture.whenStable();
+         fixture.detectChanges();
+         await fixture.whenStable();
+
+         const fireKeyAndCheck = ({target, key, time}) => {
+           target.dispatchEvent(createKeyboardEvent({type: 'keydown', name: key}));
+           // target.triggerEventHandler('change', createChangeEvent('11'));
+           fixture.detectChanges();
+           expectToDisplayTime(fixture.nativeElement, `${time.hour}:${time.minute < 10 ? '0' : ''}${time.minute}`);
+           expect(fixture.componentInstance.model).toEqual(time);
+         };
+
+         const inputs = Array.from(getInputs(fixture.nativeElement));
+         //  const inputs = fixture.debugElement.queryAll(By.css('input'));
+         const[hoursInput, minutesInput] = inputs;
+
+         expectToDisplayTime(fixture.nativeElement, '10:59');
+         expect(fixture.componentInstance.model).toEqual({hour: 10, minute: 59, second: 0});
+
+         fireKeyAndCheck({target: hoursInput, key: 'ArrowUp', time: {hour: 11, minute: 59, second: 0}});
+         fireKeyAndCheck({target: hoursInput, key: 'ArrowDown', time: {hour: 10, minute: 59, second: 0}});
+         fireKeyAndCheck({target: minutesInput, key: 'ArrowUp', time: {hour: 11, minute: 0, second: 0}});
+         fireKeyAndCheck({target: minutesInput, key: 'ArrowDown', time: {hour: 10, minute: 59, second: 0}});
+       }));
   });
 });
 
