@@ -1,5 +1,6 @@
 import {TestBed, ComponentFixture, inject} from '@angular/core/testing';
 import {createGenericTestComponent} from '../test/common';
+import {createKeyboardEvent} from '../util/keys';
 
 import {Component} from '@angular/core';
 import {By} from '@angular/platform-browser';
@@ -359,6 +360,49 @@ describe('ngb-dropdown-toggle', () => {
     buttonEl.click();
     fixture.detectChanges();
     expect(compiled).toBeShown();
+  });
+
+  describe('escape closing', () => {
+    const testEscapeClosing = ({autoClose, getElementForEventDispatch}) => {
+      const template = `
+        <div ngbDropdown [autoClose]="${autoClose}">
+            <button ngbDropdownToggle>Toggle dropdown</button>
+            <div ngbDropdownMenu></div>
+        </div>`;
+
+      const fixture = createTestComponent(template);
+      const compiled = fixture.nativeElement;
+      const buttonElement = compiled.querySelector('button');
+
+      buttonElement.click();
+      fixture.detectChanges();
+      expect(compiled).toBeShown();
+
+      getElementForEventDispatch({root: compiled}).dispatchEvent(createKeyboardEvent({type: 'keyup', name: 'Escape'}));
+      fixture.detectChanges();
+
+      const expectation = expect(compiled);
+      if (autoClose) {
+        expectation.not.toBeShown();
+      } else {
+        expectation.toBeShown();
+        buttonElement.click();
+        fixture.detectChanges();
+        expectation.not.toBeShown();
+      }
+    };
+
+    it('should close on ESC from anywhere',
+       () => { testEscapeClosing({autoClose: true, getElementForEventDispatch: () => document}); });
+    it('should close on ESC from the toggling button', () => {
+      testEscapeClosing({autoClose: true, getElementForEventDispatch: ({root}) => root.querySelector('button')});
+    });
+
+    it('should not close on ESC from the toggling button if autoClose is set to false', () => {
+      testEscapeClosing({autoClose: false, getElementForEventDispatch: ({root}) => root.querySelector('button')});
+    });
+    it('should not close on ESC from anywhere if autoClose is set to false',
+       () => { testEscapeClosing({autoClose: false, getElementForEventDispatch: () => document}); });
   });
 
   it('should not close on item click if autoClose is set to false', () => {
