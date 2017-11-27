@@ -1,7 +1,8 @@
 import {Component, forwardRef, Input, OnChanges, SimpleChanges} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 
-import {isNumber, padNumber, toInteger} from '../util/util';
+import {isNumber, padNumber, toInteger, isDefined} from '../util/util';
+import {isArrowUp, isArrowDown} from '../util/keys';
 import {NgbTime} from './ngb-time';
 import {NgbTimepickerConfig} from './timepicker-config';
 import {NgbTimeAdapter} from './ngb-time-adapter';
@@ -281,32 +282,13 @@ export class NgbTimepicker implements ControlValueAccessor,
     this.propagateModelChange();
   }
 
-  private _keyDownToStepSign(event): number {
-    const ArrowUp = 38;
-    const ArrowDown = 40;
-
-    const code = event.keyCode;
-
-    let sign = null;
-    if (code === ArrowUp) {
-      sign = 1;
-    } else if (code === ArrowDown) {
-      sign = -1;
-    }
-
-    return sign;
-  }
-
   private _handleInputKeyDown(event, step, updater) {
-    const stepSign = this._keyDownToStepSign(event);
+    const stepSign = isArrowUp(event) ? 1 : isArrowDown(event) ? -1 : null;
 
-    if (!isDefined(stepSign)) {
-      return;
+    if (isDefined(stepSign)) {
+      event.preventDefault();
+      updater(step * stepSign);
     }
-
-    event.preventDefault();
-    const finalStep = step * stepSign;
-    updater(finalStep);
   }
 
   handleHourKeyDown(event) { this._handleInputKeyDown(event, this.hourStep, step => this.changeHour(step)); }
