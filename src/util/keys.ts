@@ -124,11 +124,7 @@ export function createKeyboardEvent(input): Event {
     type = 'keyup';
   }
 
-  const event = new Event(type) as FakeEvent;
-
-  if (isDefined(options)) {
-    Object.assign(event, options);
-  }
+  const event = new Event(type, {bubbles: true}) as FakeEvent;
 
   if (isDefined(name)) {
     const spec = NAMES_TO_SPECS[name];
@@ -138,6 +134,10 @@ export function createKeyboardEvent(input): Event {
       event.keyCode = code;
       event.key = key;
     }
+  }
+
+  if (isDefined(options)) {
+    Object.assign(event, options);
   }
 
   return event;
