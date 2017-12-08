@@ -12,6 +12,7 @@ import {
 
 import {ModalDismissReasons} from './modal-dismiss-reasons';
 import {trapFocusInside} from '../util/focus';
+import {isDefined} from '../util/util';
 
 @Component({
   selector: 'ngb-modal-window',
@@ -21,7 +22,10 @@ import {trapFocusInside} from '../util/focus';
     'tabindex': '-1',
     'style': 'display: block;',
     '(keyup.esc)': 'escKey($event)',
-    '(click)': 'backdropClick($event)'
+    '(click)': 'backdropClick($event)',
+    '[attr.aria-label]': 'isDefined(ariaLabel) ? ariaLabel : null',
+    '[attr.aria-labelledby]': 'isDefined(ariaLabelledBy) && !isDefined(ariaLabel) ? ariaLabelledBy : null',
+    '[attr.aria-describedby]': 'isDefined(ariaDescribedBy) ? ariaDescribedBy : null'
   },
   template: `
     <div [class]="'modal-dialog' + (size ? ' modal-' + size : '')" role="document">
@@ -39,9 +43,15 @@ export class NgbModalWindow implements OnInit,
   @Input() size: string;
   @Input() windowClass: string;
 
+  @Input() ariaLabel: string;
+  @Input() ariaLabelledBy: string;
+  @Input() ariaDescribedBy: string;
+
   @Output('dismiss') dismissEvent = new EventEmitter();
 
   constructor(private _elRef: ElementRef, private _renderer: Renderer2) {}
+
+  isDefined() { return isDefined.apply(null, arguments); }
 
   backdropClick($event): void {
     if (this.backdrop === true && this._elRef.nativeElement === $event.target) {
