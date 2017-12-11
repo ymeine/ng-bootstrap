@@ -1,0 +1,59 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "project": {
+    "name": "ng-bootstrap"
+  },
+  "apps": [
+    {
+      "root": "src",
+      "outDir": "dist2",
+      "main": "index.ts",
+      "test": "test/test.ts",
+      "tsconfig": "../tsconfig.json",
+      "prefix": "ngb"
+    },
+    {
+      "root": "demo/src",
+      "outDir": "demo/dist2",
+      "main": "main.ts",
+      "index": "public/index.html",
+      "polyfills": "polyfills.ts",
+      "tsconfig": "../../tsconfig-aot.json",
+      "prefix": "ngbd",
+      "styles": [
+        "style/app.scss"
+      ]
+    }
+  ],
+  "e2e": {
+    "protractor": {
+      "config": "./protractor.conf.js"
+    }
+  },
+  "lint": [
+    {
+      "project": "tsconfig.json",
+      "exclude": "**/node_modules/**"
+    },
+    {
+      "project": "tsconfig-aot.json",
+      "exclude": "**/node_modules/**"
+    },
+    {
+      "project": "e2e/tsconfig.e2e.json",
+      "exclude": "**/node_modules/**"
+    }
+  ],
+  "test": {
+    "karma": {
+      "config": "./karma.conf.js"
+    }
+  },
+  "defaults": {
+    "styleExt": "scss",
+    "component": {
+      "inlineStyle": true,
+      "inlineTemplate": true
+    }
+  }
+}
