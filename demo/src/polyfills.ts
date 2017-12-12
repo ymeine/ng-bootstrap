@@ -2,7 +2,7 @@ import 'core-js/shim';
 
 require('zone.js/dist/zone');
 
-if (process.env.ENV === 'build') {
+if (process.env.NODE_ENV === 'production') {
   // Production
 
 } else {

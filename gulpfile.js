@@ -23,7 +23,10 @@ var PATHS = {
   specs: 'src/**/*.spec.ts',
   testHelpers: 'src/test/**/*.ts',
   demo: 'demo/**/*.ts',
+  demoDistRoot: 'demo/dist',
   demoDist: 'demo/dist/**/*',
+  demoFrameworkVersionOutputFilename: 'version.ts',
+  demoFrameworkVersionOutputFolder: 'demo/src/app/default',
   typings: 'typings/index.d.ts',
   jasmineTypings: 'typings/globals/jasmine/index.d.ts',
   demoApiDocs: 'demo/src',
@@ -254,23 +257,30 @@ gulp.task('generate-plunks', function() {
   return gulpFile(plunks, {src: true}).pipe(gulp.dest('demo/src/public/app/components'));
 });
 
-gulp.task('clean:demo', function() { return del('demo/dist'); });
+gulp.task('clean:demo', function() { return del(PATHS.demoDistRoot); });
 
 gulp.task('clean:demo-cache', function() { return del('.publish/'); });
 
-gulp.task(
-    'demo-server', ['generate-docs', 'generate-plunks'],
-    shell.task([`webpack-dev-server --port ${docsConfig.port} --config webpack.demo.js --inline --progress`]));
+gulp.task('generate-version-module', function () {
+  const {version} = require('./package.json');
+  const code = `export default ${JSON.stringify(version)};`;
+
+  return gulpFile(PATHS.demoFrameworkVersionOutputFilename, code, {src: true})
+    .pipe(gulp.dest(PATHS.demoFrameworkVersionOutputFolder));
+});
 
 gulp.task(
-    'build:demo', ['clean:demo', 'generate-docs', 'generate-plunks'],
-    shell.task(['webpack --config webpack.demo.js --progress --profile --bail'], {env: {MODE: 'build'}}));
+    'demo-server', ['generate-docs', 'generate-plunks', 'generate-version-module'],
+    shell.task([`ng serve --port ${docsConfig.port} --app 1 --dev`]));
 
 gulp.task(
-    'demo-server:aot', ['generate-docs', 'generate-plunks'],
+    'build:demo', ['clean:demo', 'generate-docs', 'generate-plunks', 'generate-version-module'],
+    shell.task(['ng build --app 1 --prod']));
+
+gulp.task(
+    'demo-server:aot', ['generate-docs', 'generate-plunks', 'generate-version-module'],
     shell.task(
-        [`webpack-dev-server --port ${docsConfig.port} --config webpack.demo.js --inline --progress`],
-        {env: {MODE: 'build'}}));
+        [`ng serve --port ${docsConfig.port} --app 1 --prod`]));
 
 gulp.task('demo-push', function() {
   return gulp.src(PATHS.demoDist)

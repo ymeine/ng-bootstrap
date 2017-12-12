@@ -2,6 +2,7 @@
 /dist/
 /temp/
 /demo/dist/
+/demo/src/app/default/version.ts
 npm-debug.log
 .publish
 .sw*

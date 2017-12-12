@@ -5,24 +5,37 @@
   },
   "apps": [
     {
-      "root": "src",
       "outDir": "dist2",
+
+      "root": "src",
+
+      "tsconfig": "../tsconfig.json",
       "main": "index.ts",
       "test": "test/test.ts",
-      "tsconfig": "../tsconfig.json",
+
       "prefix": "ngb"
     },
     {
-      "root": "demo/src",
-      "outDir": "demo/dist2",
-      "main": "main.ts",
-      "index": "public/index.html",
-      "polyfills": "polyfills.ts",
-      "tsconfig": "../../tsconfig-aot.json",
-      "prefix": "ngbd",
+      "outDir": "demo/dist",
+
+      "root": "demo/src/public",
+
+      "index": "index.html",
+      "assets": [
+        "img/**",
+        "app/**"
+      ],
+
+      "tsconfig": "../../../tsconfig-aot.json",
+      "main": "../main.ts",
+      "polyfills": "../polyfills.ts",
       "styles": [
-        "style/app.scss"
-      ]
+        "../style/app.scss",
+        "../../../node_modules/prismjs/themes/prism.css",
+        "../../../node_modules/bootstrap/dist/css/bootstrap.css"
+      ],
+
+      "prefix": "ngbd"
     }
   ],
   "e2e": {
