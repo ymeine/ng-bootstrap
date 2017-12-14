@@ -5,17 +5,6 @@
   },
   "apps": [
     {
-      "outDir": "dist2",
-
-      "root": "src",
-
-      "tsconfig": "../tsconfig.json",
-      "main": "index.ts",
-      "test": "test/test.ts",
-
-      "prefix": "ngb"
-    },
-    {
       "outDir": "demo/dist",
 
       "root": "demo/src/public",

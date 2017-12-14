@@ -261,26 +261,25 @@ gulp.task('clean:demo', function() { return del(PATHS.demoDistRoot); });
 
 gulp.task('clean:demo-cache', function() { return del('.publish/'); });
 
-gulp.task('generate-version-module', function () {
+gulp.task('generate-version-module', function() {
   const {version} = require('./package.json');
-  const code = `export default ${JSON.stringify(version)};`;
+  const code = `export default '${version}';\n`;
 
   return gulpFile(PATHS.demoFrameworkVersionOutputFilename, code, {src: true})
-    .pipe(gulp.dest(PATHS.demoFrameworkVersionOutputFolder));
+      .pipe(gulp.dest(PATHS.demoFrameworkVersionOutputFolder));
 });
 
 gulp.task(
     'demo-server', ['generate-docs', 'generate-plunks', 'generate-version-module'],
-    shell.task([`ng serve --port ${docsConfig.port} --app 1 --dev`]));
+    shell.task([`ng serve --port ${docsConfig.port} --dev`]));
 
 gulp.task(
     'build:demo', ['clean:demo', 'generate-docs', 'generate-plunks', 'generate-version-module'],
-    shell.task(['ng build --app 1 --prod']));
+    shell.task(['ng build --prod']));
 
 gulp.task(
     'demo-server:aot', ['generate-docs', 'generate-plunks', 'generate-version-module'],
-    shell.task(
-        [`ng serve --port ${docsConfig.port} --app 1 --prod`]));
+    shell.task([`ng serve --port ${docsConfig.port} --prod`]));
 
 gulp.task('demo-push', function() {
   return gulp.src(PATHS.demoDist)
