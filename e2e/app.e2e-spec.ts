@@ -7,8 +7,8 @@ describe('tmp App', () => {
     page = new AppPage();
   });
 
-  it('should display welcome message', () => {
+  it('should display framework version', () => {
     page.navigateTo();
-    expect(page.getParagraphText()).toEqual('Welcome to app!');
+    expect(page.getVersionText()).toEqual('1.0.0-beta.7');
   });
 });
