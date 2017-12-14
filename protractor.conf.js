@@ -13,7 +13,8 @@ try {
 exports.config = hook({
   allScriptsTimeout: 11000,
   specs: [
-    './e2e/**/*.e2e-spec.ts'
+    './e2e/**/*.e2e-spec.ts',
+    './demo/src/**/*.e2e-spec.ts'
   ],
   capabilities: {
     'browserName': 'chrome'
