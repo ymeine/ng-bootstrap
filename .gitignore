@@ -8,6 +8,7 @@ npm-debug.log
 .sw*
 .idea
 .vscode
+protractor.conf.hook.js
 coverage
 demo/src/api-docs.ts
 demo/src/public/**/plnkr.html

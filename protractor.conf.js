@@ -3,7 +3,14 @@
 
 const { SpecReporter } = require('jasmine-spec-reporter');
 
-exports.config = {
+let hook;
+try {
+  hook = require('./protractor.conf.hook.js');
+} catch (e) {
+  hook = it => it;
+}
+
+exports.config = hook({
   allScriptsTimeout: 11000,
   specs: [
     './e2e/**/*.e2e-spec.ts'
@@ -25,4 +32,4 @@ exports.config = {
     });
     jasmine.getEnv().addReporter(new SpecReporter({ spec: { displayStacktrace: true } }));
   }
-};
+});
