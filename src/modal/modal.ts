@@ -45,12 +45,12 @@ export interface NgbModalOptions {
   windowClass?: string;
 
   /**
-   * Sets the aria attribute aria-label. Takes precedence over ariaLabelledBy.
+   * Sets the aria attribute aria-label.
    */
   ariaLabel?: string;
 
   /**
-   * Sets the aria attribute aria-labelledby, if ariaLabel is not defined.
+   * Sets the aria attribute aria-labelledby.
    */
   ariaLabelledBy?: string;
 

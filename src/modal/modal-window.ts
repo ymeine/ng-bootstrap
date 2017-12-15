@@ -23,7 +23,7 @@ import {isDefined} from '../util/util';
     '(keyup.esc)': 'escKey($event)',
     '(click)': 'backdropClick($event)',
     '[attr.aria-label]': 'isDefined(ariaLabel) ? ariaLabel : null',
-    '[attr.aria-labelledby]': 'isDefined(ariaLabelledBy) && !isDefined(ariaLabel) ? ariaLabelledBy : null',
+    '[attr.aria-labelledby]': 'isDefined(ariaLabelledBy) ? ariaLabelledBy : null',
     '[attr.aria-describedby]': 'isDefined(ariaDescribedBy) ? ariaDescribedBy : null'
   },
   template: `
