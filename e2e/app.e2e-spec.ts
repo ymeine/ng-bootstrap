@@ -8,7 +8,8 @@ describe('tmp App', () => {
   });
 
   it('should display framework version', () => {
+    const expectedVersion = require('../package.json').version;
     page.navigateTo();
-    expect(page.getVersionText()).toEqual('1.0.0-beta.7');
+    expect(page.getVersionText()).toEqual(expectedVersion);
   });
 });

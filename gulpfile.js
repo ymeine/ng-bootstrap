@@ -204,6 +204,8 @@ gulp.task('saucelabs', ['build:tests'], function(done) {
   });
 });
 
+gulp.task('e2e', shell.task(['ng e2e']));
+
 // Formatting
 
 gulp.task('lint', function() {
