@@ -74,7 +74,7 @@ const NGB_TIMEPICKER_VALUE_ACCESSOR = {
           </button>
           <input type="text" class="form-control" [ngClass]="setFormControlSize()" maxlength="2" size="2" placeholder="HH"
             [value]="formatHour(model?.hour)" (change)="updateHour($event.target.value)"
-            [readonly]="readonlyInputs" [disabled]="disabled" aria-label="Hours" data-part="hour">
+            [readonly]="readonlyInputs" [disabled]="disabled" aria-label="Hours">
           <button *ngIf="spinners" type="button" class="btn btn-link" [ngClass]="setButtonSize()" (click)="changeHour(-hourStep)"
             [disabled]="disabled" [class.disabled]="disabled">
             <span class="chevron bottom"></span>
@@ -90,7 +90,7 @@ const NGB_TIMEPICKER_VALUE_ACCESSOR = {
           </button>
           <input type="text" class="form-control" [ngClass]="setFormControlSize()" maxlength="2" size="2" placeholder="MM"
             [value]="formatMinSec(model?.minute)" (change)="updateMinute($event.target.value)"
-            [readonly]="readonlyInputs" [disabled]="disabled" aria-label="Minutes" data-part="minute">
+            [readonly]="readonlyInputs" [disabled]="disabled" aria-label="Minutes">
           <button *ngIf="spinners" type="button" class="btn btn-link" [ngClass]="setButtonSize()" (click)="changeMinute(-minuteStep)"
             [disabled]="disabled" [class.disabled]="disabled">
             <span class="chevron bottom"></span>
@@ -106,7 +106,7 @@ const NGB_TIMEPICKER_VALUE_ACCESSOR = {
           </button>
           <input type="text" class="form-control" [ngClass]="setFormControlSize()" maxlength="2" size="2" placeholder="SS"
             [value]="formatMinSec(model?.second)" (change)="updateSecond($event.target.value)"
-            [readonly]="readonlyInputs" [disabled]="disabled" aria-label="Seconds" data-part="second">
+            [readonly]="readonlyInputs" [disabled]="disabled" aria-label="Seconds">
           <button *ngIf="spinners" type="button" class="btn btn-link" [ngClass]="setButtonSize()" (click)="changeSecond(-secondStep)"
             [disabled]="disabled" [class.disabled]="disabled">
             <span class="chevron bottom"></span>
