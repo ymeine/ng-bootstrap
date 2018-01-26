@@ -21,7 +21,11 @@ export interface SubscriptionSpec {
 
 export type Subscription = Function;
 
-export type Subscriber = Function;
+export type Subscriber = {
+    (): void;
+    toggle: () => void;
+    unsubscribe: () => void;
+};
 
 
 
@@ -41,7 +45,7 @@ export class AutoCloseService {
             ['mouseup', 'onMouseEvent'],
             ['keydown', 'onKeyEvent'],
             ['keyup', 'onKeyEvent']
-        ].map(([type, handler]) => renderer.listen('document', type, event => this.onMouseEvent(event, type)));
+        ].map(([type, handler]) => renderer.listen('document', type, event => this[handler](event, type)));
     }
 
     OnDestroy() {
@@ -73,14 +77,34 @@ export class AutoCloseService {
     public createSubscriber(subscriptionSpec: SubscriptionSpec): Subscriber {
         let subscription: Subscription = null;
 
-        return () => {
-            if (!isDefined(subscription)) {
-                subscription = this.subscribe(subscriptionSpec);
+        const isSubscribed = () => isDefined(subscription);
+
+        const _subscribe = () => {
+            subscription = this.subscribe(subscriptionSpec);
+        };
+
+        const _unsubscribe = () => {
+            subscription();
+            subscription = null;
+        };
+
+        const _toggle = () => {
+            if (!isSubscribed()) {
+                _subscribe();
             } else {
-                subscription();
-                subscription = null;
+                _unsubscribe();
             }
-        }
+        };
+
+        const subscriber: any = () => _toggle();
+        subscriber.toggle = _toggle;
+        subscriber.unsubscribe = () => {
+            if (isSubscribed()) {
+                _unsubscribe();
+            }
+        };
+
+        return subscriber;
     }
 
 
@@ -104,7 +128,7 @@ export class AutoCloseService {
 
             close
         }) => {
-            if (!isDefined(mouseEvent) && mouseEvent !== 'mousedown') { return; }
+            if (!isDefined(mouseEvent) && type !== 'mousedown') { return; }
             if (isDefined(mouseEvent) && mouseEvent !== type) { return; }
 
             if (!shouldAutoClose()) { return; }
@@ -136,7 +160,7 @@ export class AutoCloseService {
 
             close
         }) => {
-            if (!isDefined(keyEvent) && keyEvent !== 'keyup') { return; }
+            if (!isDefined(keyEvent) && type !== 'keyup') { return; }
             if (isDefined(keyEvent) && keyEvent !== type) { return; }
 
             if (!shouldAutoClose()) { return; }
@@ -162,7 +186,7 @@ export class AutoCloseService {
     }
 
     public isTargetTogglingElementFactory(getTogglingElement: () => HTMLElement) {
-        return target => isDefined(getTogglingElement().contains(target));
+        return target => getTogglingElement().contains(target);
     }
 
     public isTargetInsideFactory(getElementsInside: () => HTMLElement[]) {
