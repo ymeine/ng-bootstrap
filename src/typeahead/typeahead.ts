@@ -185,7 +185,7 @@ export class NgbTypeahead implements ControlValueAccessor,
     });
 
     this._autoCloseSubscriber = autoCloseService.createSubscriber(autoCloseService.subscriptionSpecFactory({
-        keyEvent: 'keyup',
+        keyEvent: 'keydown',
         getAutoClose: () => true,
         getElementsInside: () => [this._windowRef.location.nativeElement],
         getTogglingElement: () => this._elementRef.nativeElement,
