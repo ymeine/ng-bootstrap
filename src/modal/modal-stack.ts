@@ -9,6 +9,7 @@ import {
   TemplateRef
 } from '@angular/core';
 
+import {AutoCloseService} from '../util/autoclose.service';
 import {ContentRef} from '../util/popup';
 import {isDefined, isString} from '../util/util';
 
@@ -23,7 +24,7 @@ export class NgbModalStack {
 
   constructor(
       private _applicationRef: ApplicationRef, private _injector: Injector,
-      private _componentFactoryResolver: ComponentFactoryResolver) {
+      private _componentFactoryResolver: ComponentFactoryResolver, private _autoCloseService: AutoCloseService) {
     this._backdropFactory = _componentFactoryResolver.resolveComponentFactory(NgbModalBackdrop);
     this._windowFactory = _componentFactoryResolver.resolveComponentFactory(NgbModalWindow);
   }
@@ -53,7 +54,8 @@ export class NgbModalStack {
     this._applicationRef.attachView(windowCmptRef.hostView);
     containerEl.appendChild(windowCmptRef.location.nativeElement);
 
-    ngbModalRef = new NgbModalRef(windowCmptRef, contentRef, backdropCmptRef, options.beforeDismiss);
+    ngbModalRef =
+        new NgbModalRef(this._autoCloseService, windowCmptRef, contentRef, backdropCmptRef, options.beforeDismiss);
 
     activeModal.close = (result: any) => { ngbModalRef.close(result); };
     activeModal.dismiss = (reason: any) => { ngbModalRef.dismiss(reason); };
