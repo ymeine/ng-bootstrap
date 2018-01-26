@@ -32,7 +32,7 @@ export interface SubscriptionSpecFactorySpec {
 
     getAutoClose: () => AutoCloseType;
     getElementsInside: () => HTMLElement[];
-    getTogglingElement: () => HTMLElement;
+    getTogglingElement?: () => HTMLElement;
 };
 
 export type Subscription = Function;
@@ -224,6 +224,14 @@ export class AutoCloseService {
     // Facilitation
     ////////////////////////////////////////////////////////////////////////////
 
+    public arraySome(array: any[], predicate): boolean {
+        return array.findIndex(predicate) !== -1;
+    }
+
+    public safeElementContains(element: HTMLElement | null, descendant: HTMLElement): boolean {
+        return !isDefined(element) ? false : element.contains(descendant);
+    }
+
     public subscriptionSpecFactory({
         keyEvent,
         mouseEvent,
@@ -234,7 +242,7 @@ export class AutoCloseService {
     }: SubscriptionSpecFactorySpec): SubscriptionSpec {
         return Object.assign({
             isTargetInside: this.isTargetInsideFactory(getElementsInside),
-            isTargetTogglingElement: this.isTargetTogglingElementFactory(getTogglingElement),
+            isTargetTogglingElement: !isDefined(getTogglingElement) ? undefined : this.isTargetTogglingElementFactory(getTogglingElement),
             close,
             keyEvent,
             mouseEvent
@@ -242,11 +250,11 @@ export class AutoCloseService {
     }
 
     public isTargetTogglingElementFactory(getTogglingElement: SubscriptionSpecFactorySpec['getTogglingElement']) {
-        return target => getTogglingElement().contains(target);
+        return (target: HTMLElement) => this.safeElementContains(getTogglingElement(), target);
     }
 
     public isTargetInsideFactory(getElementsInside: SubscriptionSpecFactorySpec['getElementsInside']) {
-        return target => isDefined(getElementsInside().find(element => element.contains(target)));
+        return target => this.arraySome(getElementsInside(), element => this.safeElementContains(element, target));
     }
 
     public shouldCloseFactory(getAutoClose: SubscriptionSpecFactorySpec['getAutoClose']) {
