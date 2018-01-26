@@ -11,8 +11,16 @@ export class NgbdModalBasic {
 
   constructor(private modalService: NgbModal) {}
 
+  onDropdownClick(message: string) {
+      console.log(message);
+  }
+
   open(content) {
-    this.modalService.open(content).result.then((result) => {
+    this.modalService.open(content, {
+        // backdrop: true
+        // backdrop: false
+        backdrop: 'static'
+    }).result.then((result) => {
       this.closeResult = `Closed with: ${result}`;
     }, (reason) => {
       this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
