@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import {NgbDropdownConfig} from './dropdown-config';
 import {positionElements, PlacementArray, Placement} from '../util/positioning';
-import {AutoCloseService, Subscriber} from '../util/autoclose.service';
+import {AutoCloseService, Subscriber, AutoCloseType} from '../util/autoclose.service';
 
 
 
@@ -97,7 +97,7 @@ export class NgbDropdown implements OnInit {
    * When it is 'outside' dropdowns are automatically closed on outside clicks but not on menu clicks.
    * When it is 'inside' dropdowns are automatically on menu clicks but not on outside clicks.
    */
-  @Input() autoClose: boolean | 'outside' | 'inside';
+  @Input() autoClose: AutoCloseType;
 
   /**
    *  Defines whether or not the dropdown-menu is open initially.
@@ -152,7 +152,7 @@ export class NgbDropdown implements OnInit {
     if (!this._open) {
       this._open = true;
       this._positionMenu();
-      this._autoCloseSubscriber();
+      this._autoCloseSubscriber.subscribe();
       this.openChange.emit(true);
     }
   }
@@ -163,7 +163,7 @@ export class NgbDropdown implements OnInit {
   close(): void {
     if (this._open) {
       this._open = false;
-      this._autoCloseSubscriber();
+      this._autoCloseSubscriber.unsubscribe();
       this.openChange.emit(false);
     }
   }
