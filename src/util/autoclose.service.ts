@@ -16,7 +16,10 @@ export interface SubscriptionSpec {
     isTargetTogglingElement?(target: HTMLElement): boolean;
     isTargetInside(target: HTMLElement): boolean;
 
-    close();
+    close(event: Event, payload: {
+        reason: 'escape' | 'mouse' | 'click',
+        eventType: string
+    });
 }
 
 export type Subscription = Function;
@@ -24,6 +27,7 @@ export type Subscription = Function;
 export type Subscriber = {
     (): void;
     toggle: () => void;
+    subscribe: () => void;
     unsubscribe: () => void;
 };
 
@@ -99,6 +103,11 @@ export class AutoCloseService {
 
         const subscriber: any = () => _toggle();
         subscriber.toggle = _toggle;
+        subscriber.subscribe = () => {
+            if (!isSubscribed()) {
+                _subscribe();
+            }
+        };
         subscriber.unsubscribe = () => {
             if (isSubscribed()) {
                 _unsubscribe();
@@ -114,7 +123,7 @@ export class AutoCloseService {
     // Event handling
     ////////////////////////////////////////////////////////////////////////////
 
-    private onClickEvent(event: MouseEvent, type: string) {
+    private onClickEvent(event: MouseEvent, eventType: string) {
         if (event.button !== 0) { return; }
 
         this.subscriptions.forEach(({
@@ -134,11 +143,11 @@ export class AutoCloseService {
             if (!shouldCloseOnClickInside()) { return; }
             if (!isTargetInside(<HTMLElement>event.target)) { return; }
 
-            close();
+            close(event, {reason: 'click', eventType});
         });
     }
 
-    private onMouseEvent(event: MouseEvent, type: string) {
+    private onMouseEvent(event: MouseEvent, eventType: string) {
         if (event.button !== 0) { return; }
 
         this.subscriptions.forEach(({
@@ -153,8 +162,8 @@ export class AutoCloseService {
 
             close
         }) => {
-            if (!isDefined(mouseEvent) && type !== 'mousedown') { return; }
-            if (isDefined(mouseEvent) && mouseEvent !== type) { return; }
+            if (!isDefined(mouseEvent) && eventType !== 'mousedown') { return; }
+            if (isDefined(mouseEvent) && mouseEvent !== eventType) { return; }
 
             if (!shouldAutoClose()) { return; }
 
@@ -170,11 +179,11 @@ export class AutoCloseService {
                 if (!shouldCloseOnClickOutside()) { return; }
             }
 
-            close();
+            close(event, {reason: 'mouse', eventType});
         });
     }
 
-    private onKeyEvent(event, type) {
+    private onKeyEvent(event: KeyboardEvent, eventType: string) {
         if (!['Escape', 'Esc'].includes(event.key)) { return; }
 
         this.subscriptions.forEach(({
@@ -185,14 +194,14 @@ export class AutoCloseService {
 
             close
         }) => {
-            if (!isDefined(keyEvent) && type !== 'keyup') { return; }
-            if (isDefined(keyEvent) && keyEvent !== type) { return; }
+            if (!isDefined(keyEvent) && eventType !== 'keyup') { return; }
+            if (isDefined(keyEvent) && keyEvent !== eventType) { return; }
 
             if (!shouldAutoClose()) { return; }
 
             if (!shouldCloseOnEscape()) { return; }
 
-            close();
+            close(event, {reason: 'escape', eventType});
         });
     }
 
