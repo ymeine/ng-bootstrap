@@ -17,6 +17,8 @@ import {
 } from '@angular/core';
 import {AbstractControl, ControlValueAccessor, Validator, NG_VALUE_ACCESSOR, NG_VALIDATORS} from '@angular/forms';
 
+import {AutoCloseService, Subscriber} from '../util/autoclose.service';
+
 import {NgbDate} from './ngb-date';
 import {NgbDatepicker, NgbDatepickerNavigateEvent} from './datepicker';
 import {DayTemplateContext} from './datepicker-day-template-context';
@@ -62,6 +64,9 @@ export class NgbInputDatepicker implements OnChanges,
   private _disabled = false;
   private _model: NgbDate;
   private _zoneSubscription: any;
+  private _autoCloseSubscriber: Subscriber;
+
+  @Input('ngbDatepicker') togglingElement: HTMLElement | null;
 
   /**
    * Reference for the custom template for the day display
@@ -165,13 +170,20 @@ export class NgbInputDatepicker implements OnChanges,
       private _parserFormatter: NgbDateParserFormatter, private _elRef: ElementRef, private _vcRef: ViewContainerRef,
       private _renderer: Renderer2, private _cfr: ComponentFactoryResolver, ngZone: NgZone,
       private _service: NgbDatepickerService, private _calendar: NgbCalendar,
-      private _ngbDateAdapter: NgbDateAdapter<any>) {
+      private _ngbDateAdapter: NgbDateAdapter<any>, autoCloseService: AutoCloseService) {
     this._zoneSubscription = ngZone.onStable.subscribe(() => {
       if (this._cRef) {
         positionElements(
             this._elRef.nativeElement, this._cRef.location.nativeElement, this.placement, this.container === 'body');
       }
     });
+
+    this._autoCloseSubscriber = autoCloseService.createSubscriber(autoCloseService.subscriptionSpecFactory({
+      getAutoClose: () => 'outside',
+      getElementsInside: () => [this._cRef.location.nativeElement, this._elRef.nativeElement],
+      getTogglingElement: () => this.togglingElement,
+      close: () => this.close()
+    }));
   }
 
   registerOnChange(fn: (value: any) => any): void { this._onChange = fn; }
@@ -224,6 +236,7 @@ export class NgbInputDatepicker implements OnChanges,
    */
   open() {
     if (!this.isOpen()) {
+      this._autoCloseSubscriber.subscribe();
       const cf = this._cfr.resolveComponentFactory(NgbDatepicker);
       this._cRef = this._vcRef.createComponent(cf);
 
@@ -256,6 +269,7 @@ export class NgbInputDatepicker implements OnChanges,
    */
   close() {
     if (this.isOpen()) {
+      this._autoCloseSubscriber.unsubscribe();
       this._vcRef.remove(this._vcRef.indexOf(this._cRef.hostView));
       this._cRef = null;
     }
