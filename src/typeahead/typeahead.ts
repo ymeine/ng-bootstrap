@@ -27,7 +27,10 @@ import {positionElements, PlacementArray} from '../util/positioning';
 import {NgbTypeaheadWindow, ResultTemplateContext} from './typeahead-window';
 import {PopupService} from '../util/popup';
 import {toString, isDefined} from '../util/util';
+import {AutoCloseService, Subscriber} from '../util/autoclose.service';
 import {NgbTypeaheadConfig} from './typeahead-config';
+
+
 
 enum Key {
   Tab = 9,
@@ -69,7 +72,6 @@ let nextWindowId = 0;
   host: {
     '(blur)': 'handleBlur()',
     '[class.open]': 'isPopupOpen()',
-    '(document:click)': 'onDocumentClick($event)',
     '(keydown)': 'handleKeyDown($event)',
     'autocomplete': 'off',
     'autocapitalize': 'off',
@@ -92,6 +94,7 @@ export class NgbTypeahead implements ControlValueAccessor,
   private _resubscribeTypeahead: BehaviorSubject<any>;
   private _windowRef: ComponentRef<NgbTypeaheadWindow>;
   private _zoneSubscription: any;
+  private _autoCloseSubscriber: Subscriber;
 
 
   /**
@@ -158,7 +161,7 @@ export class NgbTypeahead implements ControlValueAccessor,
   constructor(
       private _elementRef: ElementRef, private _viewContainerRef: ViewContainerRef, private _renderer: Renderer2,
       private _injector: Injector, componentFactoryResolver: ComponentFactoryResolver, config: NgbTypeaheadConfig,
-      ngZone: NgZone) {
+      ngZone: NgZone, autoCloseService: AutoCloseService) {
     this.container = config.container;
     this.editable = config.editable;
     this.focusFirst = config.focusFirst;
@@ -179,6 +182,20 @@ export class NgbTypeahead implements ControlValueAccessor,
             this.container === 'body');
       }
     });
+
+    this._autoCloseSubscriber = autoCloseService.createSubscriber(autoCloseService.subscriptionSpecFactory({
+      keyEvent: 'keydown',
+      getAutoClose: () => true,
+      getElementsInside: () => [this._windowRef.location.nativeElement],
+      getTogglingElement: () => this._elementRef.nativeElement,
+      close: (event, {reason}) => {
+        if (reason === 'escape') {
+          event.preventDefault();
+          this._resubscribeTypeahead.next(null);
+        }
+        this.dismissPopup();
+      }
+    }));
   }
 
   ngOnInit(): void {
@@ -267,17 +284,13 @@ export class NgbTypeahead implements ControlValueAccessor,
           }
           this._closePopup();
           break;
-        case Key.Escape:
-          event.preventDefault();
-          this._resubscribeTypeahead.next(null);
-          this.dismissPopup();
-          break;
       }
     }
   }
 
   private _openPopup() {
     if (!this.isPopupOpen()) {
+      this._autoCloseSubscriber.subscribe();
       this._inputValueBackup = this._elementRef.nativeElement.value;
       this._windowRef = this._popupService.open();
       this._windowRef.instance.id = this.popupId;
@@ -291,6 +304,7 @@ export class NgbTypeahead implements ControlValueAccessor,
   }
 
   private _closePopup() {
+    this._autoCloseSubscriber.unsubscribe();
     this._popupService.close();
     this._windowRef = null;
     this.activeDescendant = undefined;

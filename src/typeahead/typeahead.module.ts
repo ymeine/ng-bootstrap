@@ -1,6 +1,8 @@
 import {NgModule, ModuleWithProviders} from '@angular/core';
 import {CommonModule} from '@angular/common';
 
+import {AutoCloseService} from '../util/autoclose.service';
+
 import {NgbHighlight} from './highlight';
 import {NgbTypeaheadWindow} from './typeahead-window';
 import {NgbTypeahead, NgbTypeaheadSelectItemEvent} from './typeahead';
@@ -18,5 +20,7 @@ export {NgbTypeahead, NgbTypeaheadSelectItemEvent} from './typeahead';
   entryComponents: [NgbTypeaheadWindow]
 })
 export class NgbTypeaheadModule {
-  static forRoot(): ModuleWithProviders { return {ngModule: NgbTypeaheadModule, providers: [NgbTypeaheadConfig]}; }
+  static forRoot(): ModuleWithProviders {
+    return {ngModule: NgbTypeaheadModule, providers: [NgbTypeaheadConfig, AutoCloseService]};
+  }
 }
