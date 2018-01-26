@@ -22,6 +22,19 @@ export interface SubscriptionSpec {
     });
 }
 
+export type AutoCloseMode = 'inside' | 'outside';
+export type AutoCloseType = boolean | AutoCloseMode;
+
+export interface SubscriptionSpecFactorySpec {
+    keyEvent?: SubscriptionSpec['keyEvent'];
+    mouseEvent?: SubscriptionSpec['mouseEvent'];
+    close: SubscriptionSpec['close'];
+
+    getAutoClose: () => AutoCloseType;
+    getElementsInside: () => HTMLElement[];
+    getTogglingElement: () => HTMLElement;
+};
+
 export type Subscription = Function;
 
 export type Subscriber = {
@@ -211,27 +224,36 @@ export class AutoCloseService {
     // Facilitation
     ////////////////////////////////////////////////////////////////////////////
 
-    public subscriptionSpecFactory({getAutoClose, getElementsInside, getTogglingElement, close}): SubscriptionSpec {
+    public subscriptionSpecFactory({
+        keyEvent,
+        mouseEvent,
+        getAutoClose,
+        getElementsInside,
+        getTogglingElement,
+        close
+    }: SubscriptionSpecFactorySpec): SubscriptionSpec {
         return Object.assign({
             isTargetInside: this.isTargetInsideFactory(getElementsInside),
             isTargetTogglingElement: this.isTargetTogglingElementFactory(getTogglingElement),
-            close
+            close,
+            keyEvent,
+            mouseEvent
         }, this.shouldCloseFactory(getAutoClose));
     }
 
-    public isTargetTogglingElementFactory(getTogglingElement: () => HTMLElement) {
+    public isTargetTogglingElementFactory(getTogglingElement: SubscriptionSpecFactorySpec['getTogglingElement']) {
         return target => getTogglingElement().contains(target);
     }
 
-    public isTargetInsideFactory(getElementsInside: () => HTMLElement[]) {
+    public isTargetInsideFactory(getElementsInside: SubscriptionSpecFactorySpec['getElementsInside']) {
         return target => isDefined(getElementsInside().find(element => element.contains(target)));
     }
 
-    public shouldCloseFactory(getAutoClose) {
-        const isTrueOr = alternative => () => {
+    public shouldCloseFactory(getAutoClose: SubscriptionSpecFactorySpec['getAutoClose']) {
+        const isTrueOr = (alternative: AutoCloseMode) => () => {
             const autoClose = getAutoClose();
             return !!(autoClose === true || autoClose === alternative);
-        }
+        };
 
         const shouldAutoClose = () => getAutoClose() !== false;
 
