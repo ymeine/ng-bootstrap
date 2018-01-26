@@ -2,9 +2,6 @@ import {Injectable, Injector, ComponentFactoryResolver} from '@angular/core';
 
 import {NgbModalStack} from './modal-stack';
 import {NgbModalRef} from './modal-ref';
-import {AutoCloseService, Subscriber} from '../util/autoclose.service';
-
-
 
 /**
  * Represent options available when opening new modal windows.
@@ -54,21 +51,8 @@ export interface NgbModalOptions {
  */
 @Injectable()
 export class NgbModal {
-  private _autoCloseSubscriber: Subscriber;
-  private _modalRef: NgbModalRef;
-
   constructor(
-      private _moduleCFR: ComponentFactoryResolver, private _injector: Injector, private _modalStack: NgbModalStack,
-      autoCloseService: AutoCloseService) {
-        this._autoCloseSubscriber = autoCloseService.createSubscriber(autoCloseService.subscriptionSpecFactory({
-            getAutoClose: () => 'outside',
-            getElementsInside: () => [/**/],
-            close: () => {
-                this._modalRef.close();
-                this._autoCloseSubscriber.subscribe();
-            }
-        }));
-      }
+      private _moduleCFR: ComponentFactoryResolver, private _injector: Injector, private _modalStack: NgbModalStack) {}
 
   /**
    * Opens a new modal window with the specified content and using supplied options. Content can be provided
@@ -77,7 +61,6 @@ export class NgbModal {
    * NgbActiveModal class to close / dismiss modals from "inside" of a component.
    */
   open(content: any, options: NgbModalOptions = {}): NgbModalRef {
-    this._autoCloseSubscriber.subscribe();
-    return this._modalRef = this._modalStack.open(this._moduleCFR, this._injector, content, options);
+    return this._modalStack.open(this._moduleCFR, this._injector, content, options);
   }
 }

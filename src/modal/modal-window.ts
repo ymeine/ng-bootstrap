@@ -18,9 +18,7 @@ import {ModalDismissReasons} from './modal-dismiss-reasons';
     '[class]': '"modal fade show" + (windowClass ? " " + windowClass : "")',
     'role': 'dialog',
     'tabindex': '-1',
-    'style': 'display: block;',
-    '(keyup.esc)': 'escKey($event)',
-    '(click)': 'backdropClick($event)'
+    'style': 'display: block;'
   },
   template: `
     <div [class]="'modal-dialog' + (size ? ' modal-' + size : '')" role="document">
@@ -40,18 +38,6 @@ export class NgbModalWindow implements OnInit,
   @Output('dismiss') dismissEvent = new EventEmitter();
 
   constructor(private _elRef: ElementRef, private _renderer: Renderer2) {}
-
-  backdropClick($event): void {
-    if (this.backdrop === true && this._elRef.nativeElement === $event.target) {
-      this.dismiss(ModalDismissReasons.BACKDROP_CLICK);
-    }
-  }
-
-  escKey($event): void {
-    if (this.keyboard && !$event.defaultPrevented) {
-      this.dismiss(ModalDismissReasons.ESC);
-    }
-  }
 
   dismiss(reason): void { this.dismissEvent.emit(reason); }
 
