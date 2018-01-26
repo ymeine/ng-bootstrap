@@ -4,7 +4,7 @@ import {isDefined} from './util';
 
 
 
-export interface Subscriber {
+export interface SubscriptionSpec {
     keyEvent?: 'keyup' | 'keydown';
     mouseEvent?: 'mouseup' | 'mousedown';
 
@@ -13,10 +13,15 @@ export interface Subscriber {
     shouldCloseOnClickOutside(): boolean;
     shouldCloseOnClickInside(): boolean;
 
+    isTargetTogglingElement?(target: HTMLElement): boolean;
     isTargetInside(target: HTMLElement): boolean;
 
     close();
 }
+
+export type Subscription = Function;
+
+export type Subscriber = Function;
 
 
 
@@ -49,20 +54,33 @@ export class AutoCloseService {
     // Subscriptions management
     ////////////////////////////////////////////////////////////////////////////
 
-    private subscribers: Subscriber[] = [];
+    private subscriptions: SubscriptionSpec[] = [];
 
-    public subscribe(subscriber: Subscriber) {
-        const {subscribers} = this;
+    public subscribe(subscriptionSpec: SubscriptionSpec): Subscription {
+        const {subscriptions} = this;
 
-        if (!subscribers.includes(subscriber)) {
-            subscribers.push(subscriber);
+        if (!subscriptions.includes(subscriptionSpec)) {
+            subscriptions.push(subscriptionSpec);
         }
 
-        return () => this.unsubscribe(subscriber);
+        return () => this.unsubscribe(subscriptionSpec);
     }
 
-    public unsubscribe(subscriber: Subscriber) {
-        this.subscribers = this.subscribers.filter(item => item !== subscriber);
+    public unsubscribe(subscriptionSpec: SubscriptionSpec) {
+        this.subscriptions = this.subscriptions.filter(item => item !== subscriptionSpec);
+    }
+
+    public createSubscriber(subscriptionSpec: SubscriptionSpec): Subscriber {
+        let subscription: Subscription = null;
+
+        return () => {
+            if (!isDefined(subscription)) {
+                subscription = this.subscribe(subscriptionSpec);
+            } else {
+                subscription();
+                subscription = null;
+            }
+        }
     }
 
 
@@ -74,22 +92,34 @@ export class AutoCloseService {
     private onMouseEvent(event: MouseEvent, type: string) {
         if (event.button !== 0) { return; }
 
-        this.subscribers.forEach(({
+        this.subscriptions.forEach(({
             mouseEvent,
 
             shouldAutoClose,
             shouldCloseOnClickOutside,
             shouldCloseOnClickInside,
 
+            isTargetTogglingElement,
             isTargetInside,
+
             close
         }) => {
             if (!isDefined(mouseEvent) && mouseEvent !== 'mousedown') { return; }
             if (isDefined(mouseEvent) && mouseEvent !== type) { return; }
+
             if (!shouldAutoClose()) { return; }
-            const isInside = isTargetInside(<HTMLElement>event.target);
-            if (isInside && !shouldCloseOnClickInside()) { return; }
-            if (!isInside && !shouldCloseOnClickOutside()) { return; }
+
+            const target = <HTMLElement>event.target;
+
+            if (isDefined(isTargetTogglingElement)) {
+                if (isTargetTogglingElement(target)) { return; }
+            }
+
+            if (isDefined(isTargetInside)) {
+                const isInside = isTargetInside(target);
+                if (isInside && !shouldCloseOnClickInside()) { return; }
+                if (!isInside && !shouldCloseOnClickOutside()) { return; }
+            }
 
             close();
         });
@@ -98,7 +128,7 @@ export class AutoCloseService {
     private onKeyEvent(event, type) {
         if (!['Escape', 'Esc'].includes(event.key)) { return; }
 
-        this.subscribers.forEach(({
+        this.subscriptions.forEach(({
             keyEvent,
 
             shouldAutoClose,
@@ -108,7 +138,9 @@ export class AutoCloseService {
         }) => {
             if (!isDefined(keyEvent) && keyEvent !== 'keyup') { return; }
             if (isDefined(keyEvent) && keyEvent !== type) { return; }
+
             if (!shouldAutoClose()) { return; }
+
             if (!shouldCloseOnEscape()) { return; }
 
             close();
@@ -121,17 +153,20 @@ export class AutoCloseService {
     // Facilitation
     ////////////////////////////////////////////////////////////////////////////
 
-    public easySubscribe({getAutoClose, getElementsInside, close}) {
-        const subscriber: Subscriber = Object.assign({
+    public subscriptionSpecFactory({getAutoClose, getElementsInside, getTogglingElement, close}): SubscriptionSpec {
+        return Object.assign({
             isTargetInside: this.isTargetInsideFactory(getElementsInside),
+            isTargetTogglingElement: this.isTargetTogglingElementFactory(getTogglingElement),
             close
         }, this.shouldCloseFactory(getAutoClose));
+    }
 
-        return this.subscribe(subscriber);
+    public isTargetTogglingElementFactory(getTogglingElement: () => HTMLElement) {
+        return target => isDefined(getTogglingElement().contains(target));
     }
 
     public isTargetInsideFactory(getElementsInside: () => HTMLElement[]) {
-        return (target) => isDefined(getElementsInside().find(element => element.contains(target)));
+        return target => isDefined(getElementsInside().find(element => element.contains(target)));
     }
 
     public shouldCloseFactory(getAutoClose) {
