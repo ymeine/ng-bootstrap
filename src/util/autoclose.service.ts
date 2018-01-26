@@ -41,6 +41,7 @@ export class AutoCloseService {
         const renderer = rendererFactory.createRenderer(null, null);
 
         this.listenersSubscriptions = [
+            ['click', 'onClickEvent'],
             ['mousedown', 'onMouseEvent'],
             ['mouseup', 'onMouseEvent'],
             ['keydown', 'onKeyEvent'],
@@ -113,6 +114,30 @@ export class AutoCloseService {
     // Event handling
     ////////////////////////////////////////////////////////////////////////////
 
+    private onClickEvent(event: MouseEvent, type: string) {
+        if (event.button !== 0) { return; }
+
+        this.subscriptions.forEach(({
+            mouseEvent,
+
+            shouldAutoClose,
+            shouldCloseOnClickOutside,
+            shouldCloseOnClickInside,
+
+            isTargetTogglingElement,
+            isTargetInside,
+
+            close
+        }) => {
+            if (!isDefined(isTargetInside)) { return; }
+            if (!shouldAutoClose()) { return; }
+            if (!shouldCloseOnClickInside()) { return; }
+            if (!isTargetInside(<HTMLElement>event.target)) { return; }
+
+            close();
+        });
+    }
+
     private onMouseEvent(event: MouseEvent, type: string) {
         if (event.button !== 0) { return; }
 
@@ -141,8 +166,8 @@ export class AutoCloseService {
 
             if (isDefined(isTargetInside)) {
                 const isInside = isTargetInside(target);
-                if (isInside && !shouldCloseOnClickInside()) { return; }
-                if (!isInside && !shouldCloseOnClickOutside()) { return; }
+                if (isInside) { return; }
+                if (!shouldCloseOnClickOutside()) { return; }
             }
 
             close();
