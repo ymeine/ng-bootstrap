@@ -3,21 +3,24 @@ import {Injectable, RendererFactory2, OnDestroy} from '@angular/core';
 import {isDefined} from './util';
 
 
+export interface CallbackPayload {
+    event: Event;
+}
 
 export interface SubscriptionSpec {
     keyEvent?: 'keyup' | 'keydown';
     mouseEvent?: 'mouseup' | 'mousedown';
 
     shouldAutoClose(): boolean;
-    shouldCloseOnEscape(): boolean;
-    shouldCloseOnClickOutside(): boolean;
-    shouldCloseOnClickInside(): boolean;
+    shouldCloseOnEscape(payload: CallbackPayload): boolean;
+    shouldCloseOnClickOutside(payload: CallbackPayload): boolean;
+    shouldCloseOnClickInside(payload: CallbackPayload): boolean;
 
     isTargetTogglingElement?(target: HTMLElement): boolean;
     isTargetInside(target: HTMLElement): boolean;
 
     close(event: Event, payload: {
-        reason: 'escape' | 'mouse' | 'click',
+        reason: 'escape' | 'outside_click' | 'inside_click',
         eventType: string
     });
 }
@@ -82,7 +85,7 @@ export class AutoCloseService {
         const {subscriptions} = this;
 
         if (!subscriptions.includes(subscriptionSpec)) {
-            subscriptions.push(subscriptionSpec);
+            subscriptions.unshift(subscriptionSpec);
         }
 
         return () => this.unsubscribe(subscriptionSpec);
@@ -134,12 +137,22 @@ export class AutoCloseService {
 
     ////////////////////////////////////////////////////////////////////////////
     // Event handling
+    // FIXME 2018-01-27T00:07:40+01:00
+    // Stopping after first subscription executed (closing) works well only if this occurs for the same event
+    // There's no issue between keyboard vs mouse events, since they are related to two different use actions
+    // (except key enter which triggers clicks, but we don't implement enter)
+    // But when handling a mouse down, the upcoming click is triggered and doesn't see a subscription has executed
+    // Since those events are global, and there's always either only mousedown (when stopping it) or mousedown THEN click,
+    // we could store a state
     ////////////////////////////////////////////////////////////////////////////
 
+    private _subscriptionExecutedOnMouse: boolean;
+
     private onClickEvent(event: MouseEvent, eventType: string) {
+        if (this._subscriptionExecutedOnMouse) { return; }
         if (event.button !== 0) { return; }
 
-        this.subscriptions.forEach(({
+        this.arraySome(this.subscriptions, ({
             mouseEvent,
 
             shouldAutoClose,
@@ -153,17 +166,21 @@ export class AutoCloseService {
         }) => {
             if (!isDefined(isTargetInside)) { return; }
             if (!shouldAutoClose()) { return; }
-            if (!shouldCloseOnClickInside()) { return; }
+            if (!shouldCloseOnClickInside({event})) { return; }
             if (!isTargetInside(<HTMLElement>event.target)) { return; }
 
-            close(event, {reason: 'click', eventType});
+            close(event, {reason: 'inside_click', eventType});
+            return true;
         });
     }
 
     private onMouseEvent(event: MouseEvent, eventType: string) {
+        if (eventType === 'mousedown') {
+            this._subscriptionExecutedOnMouse = null;
+        }
         if (event.button !== 0) { return; }
 
-        this.subscriptions.forEach(({
+        const oneExecuted = this.arraySome(this.subscriptions, ({
             mouseEvent,
 
             shouldAutoClose,
@@ -189,17 +206,22 @@ export class AutoCloseService {
             if (isDefined(isTargetInside)) {
                 const isInside = isTargetInside(target);
                 if (isInside) { return; }
-                if (!shouldCloseOnClickOutside()) { return; }
+                if (!shouldCloseOnClickOutside({event})) { return; }
             }
 
-            close(event, {reason: 'mouse', eventType});
+            close(event, {reason: 'outside_click', eventType});
+            return true;
         });
+
+        if (this._subscriptionExecutedOnMouse !== true) {
+            this._subscriptionExecutedOnMouse = oneExecuted;
+        }
     }
 
     private onKeyEvent(event: KeyboardEvent, eventType: string) {
         if (!['Escape', 'Esc'].includes(event.key)) { return; }
 
-        this.subscriptions.forEach(({
+        this.arraySome(this.subscriptions, ({
             keyEvent,
 
             shouldAutoClose,
@@ -212,9 +234,10 @@ export class AutoCloseService {
 
             if (!shouldAutoClose()) { return; }
 
-            if (!shouldCloseOnEscape()) { return; }
+            if (!shouldCloseOnEscape({event})) { return; }
 
             close(event, {reason: 'escape', eventType});
+            return true;
         });
     }
 
