@@ -24,10 +24,13 @@ import {AutoCloseService, Subscriber, AutoCloseType} from '../util/autoclose.ser
 export class NgbDropdownMenu {
   placement: Placement = 'bottom';
   isOpen = false;
+  anchorEl;
 
   constructor(
       @Inject(forwardRef(() => NgbDropdown)) public dropdown, private _elementRef: ElementRef,
-      private _renderer: Renderer2) {}
+      private _renderer: Renderer2) {
+        this.anchorEl = _elementRef.nativeElement;
+      }
 
   position(triggerEl, placement) {
     this.applyPlacement(positionElements(triggerEl, this._elementRef.nativeElement, placement));
@@ -124,14 +127,10 @@ export class NgbDropdown implements OnInit {
     this._zoneSubscription = ngZone.onStable.subscribe(() => { this._positionMenu(); });
     this._autoCloseSubscriber = autoCloseService.createSubscriber(autoCloseService.subscriptionSpecFactory({
         getAutoClose: () => this.autoClose,
-        getElementsInside: () => [this._getNativeElementOf(this._menu)],
-        getTogglingElement: () => this._getNativeElementOf(this._toggle),
+        getElementsInside: () => [this._menu.anchorEl],
+        getTogglingElement: () => this._toggle.anchorEl,
         close: () => this.close()
     }));
-  }
-
-  _getNativeElementOf(reference) {
-    return reference._elementRef.nativeElement;
   }
 
   ngOnInit() {
