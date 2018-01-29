@@ -136,13 +136,6 @@ export class AutoCloseService {
 
     ////////////////////////////////////////////////////////////////////////////
     // Event handling
-    // FIXME 2018-01-27T00:07:40+01:00
-    // Stopping after first subscription executed (closing) works well only if this occurs for the same event
-    // There's no issue between keyboard vs mouse events, since they are related to two different use actions
-    // (except key enter which triggers clicks, but we don't implement enter)
-    // But when handling a mouse down, the upcoming click is triggered and doesn't see a subscription has executed
-    // Since those events are global, and there's always either only mousedown (when stopping it) or mousedown THEN click,
-    // we could store a state
     ////////////////////////////////////////////////////////////////////////////
 
     private _subscriptionExecuted: boolean;
