@@ -16,9 +16,12 @@ import {
   ComponentFactoryResolver,
   NgZone
 } from '@angular/core';
+
 import {listenToTriggers} from '../util/triggers';
 import {positionElements, Placement, PlacementArray} from '../util/positioning';
 import {PopupService} from '../util/popup';
+import {AutoCloseService, Subscriber, AutoCloseType} from '../util/autoclose.service';
+
 import {NgbTooltipConfig} from './tooltip-config';
 
 let nextId = 0;
@@ -49,7 +52,7 @@ let nextId = 0;
     :host.bs-tooltip-left .arrow, :host.bs-tooltip-right .arrow {
       top: calc(50% - 0.4rem);
     }
-    
+
     :host.bs-tooltip-left-top .arrow, :host.bs-tooltip-right-top .arrow {
       top: 0.4rem;
     }
@@ -64,7 +67,11 @@ export class NgbTooltipWindow {
   @Input() placement: Placement = 'top';
   @Input() id: string;
 
-  constructor(private _element: ElementRef, private _renderer: Renderer2) {}
+  anchorEl;
+
+  constructor(private _element: ElementRef, private _renderer: Renderer2) {
+      this.anchorEl = _element.nativeElement;
+  }
 
   applyPlacement(_placement: Placement) {
     // remove the current placement classes
@@ -96,6 +103,7 @@ export class NgbTooltip implements OnInit, OnDestroy {
    * Specifies events that should trigger. Supports a space separated list of event names.
    */
   @Input() triggers: string;
+  @Input() autoClose: AutoCloseType;
   /**
    * A selector specifying the element the tooltip should be appended to.
    * Currently only supports "body".
@@ -116,11 +124,13 @@ export class NgbTooltip implements OnInit, OnDestroy {
   private _windowRef: ComponentRef<NgbTooltipWindow>;
   private _unregisterListenersFn;
   private _zoneSubscription: any;
+  private _autoCloseSubscriber: Subscriber;
 
   constructor(
       private _elementRef: ElementRef, private _renderer: Renderer2, injector: Injector,
       componentFactoryResolver: ComponentFactoryResolver, viewContainerRef: ViewContainerRef, config: NgbTooltipConfig,
-      ngZone: NgZone) {
+      ngZone: NgZone,
+      autoCloseService: AutoCloseService) {
     this.placement = config.placement;
     this.triggers = config.triggers;
     this.container = config.container;
@@ -135,6 +145,12 @@ export class NgbTooltip implements OnInit, OnDestroy {
                 this.container === 'body'));
       }
     });
+    this._autoCloseSubscriber = autoCloseService.createSubscriber(autoCloseService.subscriptionSpecFactory({
+        getAutoClose: () => this.autoClose,
+        getElementsInside: () => [this._windowRef.instance.anchorEl],
+        getTogglingElement: () => this._elementRef.nativeElement,
+        close: () => this.close()
+    }));
   }
 
   /**
@@ -177,6 +193,8 @@ export class NgbTooltip implements OnInit, OnDestroy {
               this._elementRef.nativeElement, this._windowRef.location.nativeElement, this.placement,
               this.container === 'body'));
 
+      this._autoCloseSubscriber.subscribe();
+
       this.shown.emit();
     }
   }
@@ -186,6 +204,7 @@ export class NgbTooltip implements OnInit, OnDestroy {
    */
   close(): void {
     if (this._windowRef != null) {
+      this._autoCloseSubscriber.unsubscribe();
       this._renderer.removeAttribute(this._elementRef.nativeElement, 'aria-describedby');
       this._popupService.close();
       this._windowRef = null;
