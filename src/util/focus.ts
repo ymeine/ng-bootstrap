@@ -1,93 +1,70 @@
 import {isDefined} from './util';
 
-type InsertPosition = 'beforebegin' | 'afterbegin' | 'beforeend' | 'afterend';
 
+////////////////////////////////////////////////////////////////////////////////
+// Focusing
+////////////////////////////////////////////////////////////////////////////////
 
+export function getTabIndex(element: HTMLElement): number {
+  const value = element.getAttribute('tabindex');
+  return isDefined(value) ? parseInt(value, 10) : element.tabIndex;
+}
 
-export function canBeFocused(element): boolean {
-  let {nodeName} = element;
-  nodeName = nodeName.toLowerCase();
-  const {disabled} = element;
-  const {href} = element;
-  const tabIndex = element.getAttributeNode('tabindex');
+export function isElementHiddenOrDisabled(element: any): boolean {
+  if (element.disabled) { return true; }
+  if (element.tagName === 'input' && element.type === 'hidden') { return true; }
+  // TODO Check visibility in whole branch
 
-  let result = false;
+  return false;
+}
 
-  // TODO Check visibility
-  if (!disabled) {
-    if (nodeName === 'input') {
-      result = true;
-    } else if (nodeName === 'button') {
-      result = true;
-    } else if (nodeName === 'a' && isDefined(href)) {
-      result = true;
-    } else if (nodeName === 'textarea') {
-      result = true;
-    } else if (nodeName === 'area' && isDefined(href)) {
-      result = true;
-    } else if (isDefined(tabIndex) && tabIndex.specified && tabIndex.nodeValue !== -1) {
-      result = true;
-    }
-  }
+export function getTabIndexForSorting(element: HTMLElement): number {
+  const value = getTabIndex(element);
+  return value === 0 ? Infinity : value;
+}
 
-  return result;
+export function getTabbable(root: HTMLElement): HTMLElement[] {
+  return Array.from(root.querySelectorAll([
+    'input', 'select', 'button',
+    'a[href]', 'area[href]',
+    'textarea',
+    '[tabindex]'
+  ].join(', ')))
+  .map((element: HTMLElement, index: number) => { return {
+    element,
+    index,
+    tabIndex: getTabIndexForSorting(element)
+  }; })
+  .filter(wrapper => wrapper.tabIndex >= 0)
+  .filter(wrapper => !isElementHiddenOrDisabled(wrapper.element))
+  .sort((a, b) => a.tabIndex === b.tabIndex ? a.index - b.index : a.tabIndex - b.tabIndex)
+  .map(wrapper => wrapper.element);
 }
 
 export function findFirstFocusable(element: HTMLElement, reverse?: boolean): HTMLElement {
-  if (!isDefined(reverse)) {
-    reverse = false;
-  }
+  if (!isDefined(reverse)) { reverse = false; }
 
-  const children = Array.from(element.children) as HTMLElement[];
-  if (reverse) {
-    children.reverse();
-  }
+  const children = getTabbable(element);
+  console.log(children);
+  const index = reverse ? children.length - 1 : 0;
 
-  for (let index = 0, length = children.length; index < length; index++) {
-    const child = children[index];
-
-    if (canBeFocused(child)) {
-      return child;
-    }
-
-    const descendent = findFirstFocusable(child, reverse);
-    if (isDefined(descendent)) {
-      return descendent;
-    }
-  }
-
-  return null;
+  return children[index];
 }
 
 export function focusFirst(container: HTMLElement, reverse?: boolean) {
-  if (!isDefined(reverse)) {
-    reverse = false;
-  }
+  if (!isDefined(reverse)) { reverse = false; }
 
   const element = findFirstFocusable(container, reverse);
-  if (isDefined(element)) {
-    element.focus();
-  }
+  if (isDefined(element)) { element.focus(); }
 }
 
-export function focusLast(container: HTMLElement) {
-  return focusFirst(container, true);
-}
+export function focusLast(container: HTMLElement) { return focusFirst(container, true); }
 
-export function createFocusInterceptor({onIntercept}) {
-  const element = document.createElement('div');
 
-  const style = element.style;
-  style.width = '0';
-  style.height = '0';
-  element.setAttribute('aria-hidden', 'true');
 
-  element.tabIndex = 0;
-  style.position = 'fixed';
-  element.addEventListener('focus', onIntercept);
-
-  return element;
-}
+////////////////////////////////////////////////////////////////////////////////
+// aria-hidden
+////////////////////////////////////////////////////////////////////////////////
 
 export function hideOtherElements(element: HTMLElement) {
   const attribute = 'aria-hidden';
@@ -109,6 +86,29 @@ export function hideOtherElements(element: HTMLElement) {
 
   return revert;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Intercepting
+////////////////////////////////////////////////////////////////////////////////
+
+export function createFocusInterceptor({onIntercept}) {
+  const element = document.createElement('div');
+
+  const style = element.style;
+  style.width = '0';
+  style.height = '0';
+  element.setAttribute('aria-hidden', 'true');
+
+  element.tabIndex = 0;
+  style.position = 'fixed';
+  element.addEventListener('focus', onIntercept);
+
+  return element;
+}
+
+export type InsertPosition = 'beforebegin' | 'afterbegin' | 'beforeend' | 'afterend';
 
 export interface InterceptorDescription {
   anchor: HTMLElement;
