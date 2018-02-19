@@ -18,6 +18,7 @@ In this simple example, a search is done no matter the content of the input:
   (focus)="focus$.next($event.target.value)"
   (click)="click$.next($event.target.value)"
   #instance="ngbTypeahead"
+  [srOptionsSummaryTemplate]='optionsSummaryTemplate'
 />
 <hr>
 <pre>Model: {{ model | json }}</pre>

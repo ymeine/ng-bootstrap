@@ -35,4 +35,6 @@ export class NgbdTypeaheadFocus {
       .merge(this.focus$)
       .merge(this.click$.filter(() => !this.instance.isPopupOpen()))
       .map(term => (term === '' ? states : states.filter(v => v.toLowerCase().indexOf(term.toLowerCase()) > -1)).slice(0, 10));
+
+  optionsSummaryTemplate = ({count}) => count === 0 ? 'No result available' : `${count} options available`;
 }

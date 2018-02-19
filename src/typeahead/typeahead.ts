@@ -144,6 +144,8 @@ export class NgbTypeahead implements ControlValueAccessor,
   */
   @Input() placement: PlacementArray = 'bottom-left';
 
+  @Input() srOptionsSummaryTemplate: (payload: {count: number}) => string;
+
   /**
    * An event emitted when a match is selected. Event payload is of type NgbTypeaheadSelectItemEvent.
    */
@@ -152,6 +154,7 @@ export class NgbTypeahead implements ControlValueAccessor,
   activeDescendant: string;
   popupId = `ngb-typeahead-${nextWindowId++}`;
 
+  private _srStatus: HTMLElement;
   private _onTouched = () => {};
   private _onChange = (_: any) => {};
 
@@ -196,12 +199,26 @@ export class NgbTypeahead implements ControlValueAccessor,
     });
     const userInput$ = switchMap.call(this._resubscribeTypeahead, () => processedResults$);
     this._subscription = this._subscribeToUserInput(userInput$);
+
+    if (isDefined(this.srOptionsSummaryTemplate)) {
+      // TODO Use Angular API instead, and put it contextually?
+      const srStatus = document.createElement('span');
+      this._srStatus = srStatus;
+      srStatus.setAttribute('aria-hidden', 'true');
+      srStatus.setAttribute('role', 'status');
+      srStatus.setAttribute('aria-live', 'polite');
+      srStatus.style.display = 'none';
+      document.body.appendChild(srStatus);
+    }
   }
 
   ngOnDestroy(): void {
     this._closePopup();
     this._unsubscribeFromUserInput();
     this._zoneSubscription.unsubscribe();
+    if (isDefined(this._srStatus)) {
+      this._srStatus.remove();
+    }
   }
 
   registerOnChange(fn: (value: any) => any): void { this._onChange = fn; }
@@ -238,6 +255,9 @@ export class NgbTypeahead implements ControlValueAccessor,
   handleBlur() {
     this._resubscribeTypeahead.next(null);
     this._onTouched();
+    if (isDefined(this._srStatus)) {
+      this._srStatus.textContent = '';
+    }
   }
 
   handleKeyDown(event: KeyboardEvent) {
@@ -339,6 +359,9 @@ export class NgbTypeahead implements ControlValueAccessor,
     return userInput$.subscribe((results) => {
       if (!results || results.length === 0) {
         this._closePopup();
+        if (isDefined(this.srOptionsSummaryTemplate)) {
+          this._srStatus.textContent = this.srOptionsSummaryTemplate({count: 0});
+        }
       } else {
         this._openPopup();
         this._windowRef.instance.focusFirst = this.focusFirst;
@@ -349,6 +372,9 @@ export class NgbTypeahead implements ControlValueAccessor,
         }
         if (this.resultTemplate) {
           this._windowRef.instance.resultTemplate = this.resultTemplate;
+        }
+        if (isDefined(this.srOptionsSummaryTemplate)) {
+          this._srStatus.textContent = this.srOptionsSummaryTemplate({count: results.length});
         }
 
         // The observable stream we are subscribing to might have async steps
