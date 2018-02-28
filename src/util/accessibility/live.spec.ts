@@ -12,7 +12,7 @@ import {Live} from './live';
 
 
 function getLiveElement(): Element {
-  return document.body.querySelector('[aria-live]')!;
+  return document.body.querySelector('[aria-live]');
 }
 
 
