@@ -1,10 +1,4 @@
-import {
-  TestBed,
-  ComponentFixture,
-  inject,
-  fakeAsync,
-  tick
-} from '@angular/core/testing';
+import {TestBed, ComponentFixture, inject, fakeAsync, tick} from '@angular/core/testing';
 import {Component} from '@angular/core';
 import {By} from '@angular/platform-browser';
 import {Live} from './live';
@@ -42,25 +36,25 @@ describe('LiveAnnouncer', () => {
     afterEach(() => live.ngOnDestroy());
 
     it('should correctly update the text message', fakeAsync(() => {
-      say();
-      expect(liveElement.textContent).toBe('test');
-    }));
+         say();
+         expect(liveElement.textContent).toBe('test');
+       }));
 
     it('should remove the used element from the DOM on destroy', fakeAsync(() => {
-      say();
-      live.ngOnDestroy();
+         say();
+         live.ngOnDestroy();
 
-      expect(getLiveElement()).toBeFalsy();
-    }));
+         expect(getLiveElement()).toBeFalsy();
+       }));
 
     it('should return a promise that resolves after the text has been announced', fakeAsync(() => {
-      const spy = jasmine.createSpy('"say" spy');
-      live.say('test').then(spy);
+         const spy = jasmine.createSpy('"say" spy');
+         live.say('test').then(spy);
 
-      expect(spy).not.toHaveBeenCalled();
-      tick(100);
-      expect(spy).toHaveBeenCalled();
-    }));
+         expect(spy).not.toHaveBeenCalled();
+         tick(100);
+         expect(spy).toHaveBeenCalled();
+       }));
   });
 });
 
@@ -68,6 +62,6 @@ describe('LiveAnnouncer', () => {
 
 @Component({template: `<button (click)="say()">say</button>`})
 class TestComponent {
-  constructor(public live: Live) { }
+  constructor(public live: Live) {}
   say() { this.live.say('test'); }
 }

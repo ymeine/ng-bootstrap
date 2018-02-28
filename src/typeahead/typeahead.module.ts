@@ -19,5 +19,7 @@ export {NgbTypeahead, NgbTypeaheadSelectItemEvent} from './typeahead';
   entryComponents: [NgbTypeaheadWindow]
 })
 export class NgbTypeaheadModule {
-  static forRoot(): ModuleWithProviders { return {ngModule: NgbTypeaheadModule, providers: [Live, NgbTypeaheadConfig]}; }
+  static forRoot(): ModuleWithProviders {
+    return {ngModule: NgbTypeaheadModule, providers: [Live, NgbTypeaheadConfig]};
+  }
 }

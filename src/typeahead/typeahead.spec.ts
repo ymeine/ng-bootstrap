@@ -513,7 +513,7 @@ describe('ngb-typeahead', () => {
          changeInput(compiled, 'o');
          fixture.detectChanges();
          tick(250);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
          expectWindowResults(compiled, ['+one', 'one more']);
        }));
   });
@@ -527,20 +527,20 @@ describe('ngb-typeahead', () => {
          fixture.detectChanges();
 
          tick(50);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
 
          blurInput(compiled);
          fixture.detectChanges();
 
          tick(250);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
          expect(getWindow(compiled)).toBeNull();
 
          // Make sure that it is resubscribed again
          changeInput(compiled, 'two');
          fixture.detectChanges();
          tick(250);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
          expect(getWindow(compiled)).not.toBeNull();
        }));
 
@@ -554,14 +554,14 @@ describe('ngb-typeahead', () => {
 
          // Results for first input are loaded
          tick(250);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
          expect(getWindow(compiled)).not.toBeNull();
 
          // Change input second time
          changeInput(compiled, 'two');
          fixture.detectChanges();
          tick(50);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
 
          // Press Escape while second is still in proggress
          const event = createKeyDownEvent(Key.Escape);
@@ -570,14 +570,14 @@ describe('ngb-typeahead', () => {
 
          // Results for second input are loaded (window shouldn't be opened in this case)
          tick(250);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
          expect(getWindow(compiled)).toBeNull();
 
          // Make sure that it is resubscribed again
          changeInput(compiled, 'three');
          fixture.detectChanges();
          tick(250);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
          expect(getWindow(compiled)).not.toBeNull();
        }));
 
@@ -591,14 +591,14 @@ describe('ngb-typeahead', () => {
 
          // Results for first input are loaded
          tick(250);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
          expect(getWindow(compiled)).not.toBeNull();
 
          // Change input second time
          changeInput(compiled, 'two');
          fixture.detectChanges();
          tick(50);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
 
          // Select a value from first results list while second is still in proggress
          getWindowLinks(fixture.debugElement)[0].triggerEventHandler('click', {});
@@ -607,14 +607,14 @@ describe('ngb-typeahead', () => {
 
          // Results for second input are loaded (window shouldn't be opened in this case)
          tick(250);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
          expect(getWindow(compiled)).toBeNull();
 
          // Make sure that it is resubscribed again
          changeInput(compiled, 'three');
          fixture.detectChanges();
          tick(250);
-         tick(100); // for the aria-live announcer
+         tick(100);  // for the aria-live announcer
          expect(getWindow(compiled)).not.toBeNull();
        }));
   });

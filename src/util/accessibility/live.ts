@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Inject,
-  OnDestroy
-} from '@angular/core';
+import {Injectable, Inject, OnDestroy} from '@angular/core';
 import {DOCUMENT} from '@angular/common';
 
 
@@ -11,15 +7,9 @@ import {DOCUMENT} from '@angular/common';
 export class Live implements OnDestroy {
   private _element: HTMLElement;
 
-  constructor(
-    @Inject(DOCUMENT) private _document: any
-  ) {
-    this._element = this._createElement();
-  }
+  constructor(@Inject(DOCUMENT) private _document: any) { this._element = this._createElement(); }
 
-  ngOnDestroy() {
-    this._element.remove();
-  }
+  ngOnDestroy() { this._element.remove(); }
 
   async say(message: string): Promise<void> {
     const element = this._element;
