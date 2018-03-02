@@ -4,6 +4,8 @@ import {createGenericTestComponent} from '../test/common';
 import {Component} from '@angular/core';
 import {By} from '@angular/platform-browser';
 
+import {createKeyboardEvent} from '../util/keys';
+
 import {NgbDropdownModule} from './dropdown.module';
 import {NgbDropdown} from './dropdown';
 import {NgbDropdownConfig} from './dropdown-config';
@@ -282,7 +284,7 @@ describe('ngb-dropdown-toggle', () => {
     fixture.detectChanges();
     expect(compiled).toBeShown();
 
-    buttonEl.click();
+    buttonEl.dispatchEvent(new MouseEvent('mousedown', {bubbles: true, button: 0}));
     fixture.detectChanges();
     expect(compiled).not.toBeShown();
   });
@@ -338,7 +340,8 @@ describe('ngb-dropdown-toggle', () => {
     fixture.detectChanges();
     expect(compiled).toBeShown();
 
-    fixture.debugElement.query(By.directive(NgbDropdown)).triggerEventHandler('keyup.esc', {});
+    const target = fixture.debugElement.query(By.directive(NgbDropdown)).nativeElement;
+    target.dispatchEvent(createKeyboardEvent({type: 'keyup', name: 'Escape'}));
     fixture.detectChanges();
     expect(compiled).not.toBeShown();
   });
@@ -400,7 +403,7 @@ describe('ngb-dropdown-toggle', () => {
     fixture.detectChanges();
     expect(compiled).toBeShown();
 
-    linkEl.click();
+    linkEl.dispatchEvent(new MouseEvent('click', {bubbles: true, button: 0}));
     fixture.detectChanges();
     expect(compiled).not.toBeShown();
   });
@@ -431,12 +434,14 @@ describe('ngb-dropdown-toggle', () => {
     expect(dropdownEls[0]).not.toHaveCssClass('show');
     expect(dropdownEls[1]).not.toHaveCssClass('show');
 
-    buttonEls[0].click();
+    buttonEls[0].dispatchEvent(new MouseEvent('mousedown', {bubbles: true, button: 0}));
+    buttonEls[0].dispatchEvent(new MouseEvent('click', {bubbles: true, button: 0}));
     fixture.detectChanges();
     expect(dropdownEls[0]).toHaveCssClass('show');
     expect(dropdownEls[1]).not.toHaveCssClass('show');
 
-    buttonEls[1].click();
+    buttonEls[1].dispatchEvent(new MouseEvent('mousedown', {bubbles: true, button: 0}));
+    buttonEls[1].dispatchEvent(new MouseEvent('click', {bubbles: true, button: 0}));
     fixture.detectChanges();
     expect(dropdownEls[0]).not.toHaveCssClass('show');
     expect(dropdownEls[1]).toHaveCssClass('show');
@@ -493,12 +498,12 @@ describe('ngb-dropdown-toggle', () => {
       expect(compiled).toBeShown();
 
       // remains open on outside click
-      buttonEl.click();
+      buttonEl.dispatchEvent(new MouseEvent('mousedown', {bubbles: true, button: 0}));
       fixture.detectChanges();
       expect(compiled).toBeShown();
 
       // but closes on item click
-      linkEl.click();
+      linkEl.dispatchEvent(new MouseEvent('click', {bubbles: true, button: 0}));
       fixture.detectChanges();
       expect(compiled).not.toBeShown();
     });

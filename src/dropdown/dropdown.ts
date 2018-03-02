@@ -12,6 +12,7 @@ import {
   OnInit
 } from '@angular/core';
 import {NgbDropdownConfig} from './dropdown-config';
+import {isDefined} from '../util/util';
 import {positionElements, PlacementArray, Placement} from '../util/positioning';
 import {AutoCloseService, Subscriber, AutoCloseType} from '../util/autoclose.service';
 
@@ -121,8 +122,8 @@ export class NgbDropdown implements OnInit {
     this._zoneSubscription = ngZone.onStable.subscribe(() => { this._positionMenu(); });
     this._autoCloseSubscriber = autoCloseService.createSubscriber(autoCloseService.subscriptionSpecFactory({
       getAutoClose: () => this.autoClose,
-      getElementsInside: () => [this._menu.anchorEl],
-      getTogglingElement: () => this._toggle.anchorEl,
+      getElementsInside: () => isDefined(this._menu) ? [this._menu.anchorEl] : [],
+      getTogglingElement: () => isDefined(this._toggle) ? this._toggle.anchorEl : null,
       close: () => this.close()
     }));
   }
@@ -130,6 +131,9 @@ export class NgbDropdown implements OnInit {
   ngOnInit() {
     if (this._menu) {
       this._menu.applyPlacement(Array.isArray(this.placement) ? (this.placement[0]) : this.placement as Placement);
+    }
+    if (this.isOpen()) {
+      this._autoCloseSubscriber.subscribe();
     }
   }
 

@@ -12,6 +12,8 @@ import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/merge';
 import 'rxjs/add/operator/filter';
 
+import {createKeyboardEvent} from '../util/keys';
+
 import {NgbTypeahead} from './typeahead';
 import {NgbTypeaheadModule} from './typeahead.module';
 import {NgbTypeaheadConfig} from './typeahead-config';
@@ -181,7 +183,7 @@ describe('ngb-typeahead', () => {
       fixture.detectChanges();
       expect(getWindow(compiled)).not.toBeNull();
 
-      fixture.nativeElement.click();
+      fixture.nativeElement.dispatchEvent(new MouseEvent('mousedown', {bubbles: true, button: 0}));
       expect(getWindow(compiled)).toBeNull();
     });
 
@@ -248,8 +250,7 @@ describe('ngb-typeahead', () => {
            checkWindowIsOpen();
 
            // closing the dropdown but keeping focus
-           const event = createKeyDownEvent(Key.Escape);
-           getDebugInput(fixture.debugElement).triggerEventHandler('keydown', event);
+           document.dispatchEvent(createKeyboardEvent({type: 'keydown', name: 'Escape'}));
            fixture.detectChanges();
            checkWindowIsClosed();
 
@@ -260,7 +261,7 @@ describe('ngb-typeahead', () => {
            checkWindowIsOpen();
 
            // closing the dropdown and losing focus
-           fixture.nativeElement.click();
+           fixture.nativeElement.dispatchEvent(new MouseEvent('mousedown', {bubbles: true, button: 0}));
            await blur(input);
            checkWindowIsClosed();
 
@@ -294,8 +295,7 @@ describe('ngb-typeahead', () => {
            expect(getWindow(compiled)).not.toBeNull('Window should be opened after focusing back the input');
 
            // close without selecting a new value
-           const event = createKeyDownEvent(Key.Escape);
-           getDebugInput(fixture.debugElement).triggerEventHandler('keydown', event);
+           document.dispatchEvent(createKeyboardEvent({type: 'keydown', name: 'Escape'}));
            fixture.detectChanges();
            expect(getWindow(compiled)).toBeNull('Window should be closed after pressing escape');
            expectInputValue(compiled, 'one');
@@ -310,8 +310,9 @@ describe('ngb-typeahead', () => {
       fixture.detectChanges();
       expect(getWindow(compiled)).not.toBeNull();
 
-      const event = createKeyDownEvent(Key.Escape);
-      getDebugInput(fixture.debugElement).triggerEventHandler('keydown', event);
+      const event = createKeyboardEvent({type: 'keydown', name: 'Escape'});
+      spyOn(event, 'preventDefault');
+      document.dispatchEvent(event);
       fixture.detectChanges();
       expect(getWindow(compiled)).toBeNull();
       expect(event.preventDefault).toHaveBeenCalled();
@@ -557,9 +558,8 @@ describe('ngb-typeahead', () => {
          fixture.detectChanges();
          tick(50);
 
-         // Press Escape while second is still in proggress
-         const event = createKeyDownEvent(Key.Escape);
-         getDebugInput(fixture.debugElement).triggerEventHandler('keydown', event);
+         // Press Escape while second is still in progress
+         document.dispatchEvent(createKeyboardEvent({type: 'keydown', name: 'Escape'}));
          fixture.detectChanges();
 
          // Results for second input are loaded (window shouldn't be opened in this case)
@@ -970,8 +970,7 @@ describe('ngb-typeahead', () => {
              expect(inputEl.selectionStart).toBe(2);
              expect(inputEl.selectionEnd).toBe(3);
 
-             const event = createKeyDownEvent(Key.Escape);
-             getDebugInput(fixture.debugElement).triggerEventHandler('keydown', event);
+             document.dispatchEvent(createKeyboardEvent({type: 'keydown', name: 'Escape'}));
              fixture.detectChanges();
              expect(inputEl.value).toBe('on');
              expect(inputEl.selectionStart).toBe(2);
