@@ -11,6 +11,8 @@ import {
 import {CommonModule} from '@angular/common';
 import {TestBed, ComponentFixture} from '@angular/core/testing';
 
+import {createKeyboardEvent} from '../util/keys';
+
 import {NgbModalModule, NgbModal, NgbActiveModal, NgbModalRef} from './modal.module';
 
 const NOOP = () => {};
@@ -431,7 +433,8 @@ describe('ngb-modal', () => {
       fixture.detectChanges();
       expect(fixture.nativeElement).toHaveModal('foo');
 
-      (<DebugElement>getDebugNode(document.querySelector('ngb-modal-window'))).triggerEventHandler('keyup.esc', {});
+      (<DebugElement>getDebugNode(document.querySelector('ngb-modal-window')))
+          .nativeElement.dispatchEvent(createKeyboardEvent({type: 'keyup', name: 'Escape'}));
       fixture.detectChanges();
       expect(fixture.nativeElement).not.toHaveModal();
     });
