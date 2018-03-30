@@ -45,6 +45,7 @@ export function findFirstFocusable(element: HTMLElement, reverse?: boolean): HTM
   if (!isDefined(reverse)) { reverse = false; }
 
   const children = getTabbable(element);
+  console.log('tabbable elements');
   console.log(children);
   const index = reverse ? children.length - 1 : 0;
 
@@ -53,6 +54,14 @@ export function findFirstFocusable(element: HTMLElement, reverse?: boolean): HTM
 
 export function focusFirst(container: HTMLElement, reverse?: boolean) {
   if (!isDefined(reverse)) { reverse = false; }
+
+  if (reverse) {
+    console.log('focusing last');
+  } else {
+    console.log('focusing first');
+  }
+  console.log('active element');
+  console.log(document.activeElement);
 
   const element = findFirstFocusable(container, reverse);
   if (isDefined(element)) { element.focus(); }
@@ -119,9 +128,9 @@ export interface InterceptorDescription {
 export function trapFocusInside(element: HTMLElement): () => any {
   const {body} = document;
   const interceptors = [
+    {anchor: body, position: 'afterbegin', setFocus: focusFirst},
     {anchor: element, position: 'beforebegin', setFocus: focusLast},
     {anchor: element, position: 'afterend', setFocus: focusFirst},
-    {anchor: body, position: 'afterbegin', setFocus: focusFirst},
     {anchor: body, position: 'beforeend', setFocus: focusLast}
   ].map(({anchor, position, setFocus}: InterceptorDescription) => {
     const interceptor = createFocusInterceptor({onIntercept: () => setFocus(element)});
