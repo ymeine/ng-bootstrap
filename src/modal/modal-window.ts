@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 
 import {ModalDismissReasons} from './modal-dismiss-reasons';
-import {trapFocusInside} from '../util/focus';
+import {trapFocusInside, focusFirst} from '../util/focus';
 
 @Component({
   selector: 'ngb-modal-window',
@@ -70,7 +70,7 @@ export class NgbModalWindow implements OnInit,
 
   ngAfterViewInit() {
     if (!this._elRef.nativeElement.contains(document.activeElement)) {
-      this._elRef.nativeElement['focus'].apply(this._elRef.nativeElement, []);
+      focusFirst(this._elRef.nativeElement);
     }
   }
 
