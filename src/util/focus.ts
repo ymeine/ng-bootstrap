@@ -11,10 +11,32 @@ export function getTabIndex(element: HTMLElement): number {
   return isDefined(value) ? parseInt(value, 10) : element.tabIndex;
 }
 
-export function isElementHiddenOrDisabled(element: any): boolean {
+export function isElementNotDisplayed(element: any, notDisplayedCache: Map<HTMLElement, boolean>): boolean {
+  if (element === document.documentElement) { return false; }
+
+  let notDisplayedState;
+  if (notDisplayedCache.has(element)) {
+    notDisplayedState = notDisplayedCache.get(element);
+  } else {
+    if (window.getComputedStyle(element).display === 'none') {
+      notDisplayedState = true;
+    } else {
+      const parent = element.parentNode;
+      if (isDefined(parent)) {
+        notDisplayedState = isElementNotDisplayed(parent, notDisplayedCache);
+      }
+    }
+    notDisplayedCache.set(element, notDisplayedState);
+  }
+
+  return notDisplayedState;
+}
+
+export function isElementHiddenOrDisabled(element: any, notDisplayedCache: Map<HTMLElement, boolean>): boolean {
   if (element.disabled) { return true; }
   if (element.tagName === 'input' && element.type === 'hidden') { return true; }
-  // TODO Check visibility in whole branch
+  if (isElementNotDisplayed(element, notDisplayedCache)) { return true; }
+  if (window.getComputedStyle(element).visibility === 'hidden') { return true; }
 
   return false;
 }
@@ -34,16 +56,17 @@ export interface SpecFilterTabbable {
   wrapper: TabbableWrapper;
   excludeHighTabIndexes?: boolean;
   excludeNaturalTabIndexes?: boolean;
+  notDisplayedCache: Map<HTMLElement, boolean>;
 };
 
-function filterPotentialTabbable({wrapper, excludeHighTabIndexes, excludeNaturalTabIndexes}: SpecFilterTabbable) {
+function filterPotentialTabbable({wrapper, excludeHighTabIndexes, excludeNaturalTabIndexes, notDisplayedCache}: SpecFilterTabbable) {
   const {element, tabIndex} = wrapper;
 
   if (tabIndex < 0) { return false; }
   if (excludeHighTabIndexes && tabIndex !== Infinity) { return false; }
   if (excludeNaturalTabIndexes && tabIndex === Infinity) { return false; }
 
-  if (isElementHiddenOrDisabled(wrapper.element)) { return false; }
+  if (isElementHiddenOrDisabled(wrapper.element, notDisplayedCache)) { return false; }
 
   return true;
 }
@@ -55,6 +78,7 @@ export interface SpecGetTabbable {
 };
 
 export function getTabbable({root, excludeHighTabIndexes, excludeNaturalTabIndexes}: SpecGetTabbable): HTMLElement[] {
+  const notDisplayedCache = new Map();
   return Array.from(root.querySelectorAll([
     'input', 'select', 'button',
     'a[href]', 'area[href]',
@@ -62,7 +86,7 @@ export function getTabbable({root, excludeHighTabIndexes, excludeNaturalTabIndex
     '[tabindex]'
   ].join(', ')))
   .map((element: HTMLElement, index: number): TabbableWrapper => { return {element, index, tabIndex: getTabIndexForSorting(element) }; })
-  .filter(wrapper => filterPotentialTabbable({wrapper, excludeHighTabIndexes, excludeNaturalTabIndexes}))
+  .filter(wrapper => filterPotentialTabbable({wrapper, excludeHighTabIndexes, excludeNaturalTabIndexes, notDisplayedCache}))
   .sort((a, b) => a.tabIndex === b.tabIndex ? a.index - b.index : a.tabIndex - b.tabIndex)
   .map(wrapper => wrapper.element);
 }
