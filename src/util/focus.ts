@@ -167,6 +167,7 @@ export function trapFocusInside(element: HTMLElement): () => any {
   const interceptors = [
     {anchor: body, position: 'afterbegin', setFocus: (element) => focusFirst(element, false, true) },
     {anchor: body, position: 'afterbegin', tabIndex: 1, setFocus: (element) => focusLast(element, true) },
+    {anchor: body, position: 'afterbegin', tabIndex: 1, setFocus: focusFirst },
     {anchor: element, position: 'beforebegin', setFocus: (element) => focusLast(element, false, true)},
     {anchor: element, position: 'afterend', setFocus: focusFirst},
     {anchor: body, position: 'beforeend', setFocus: focusLast}
