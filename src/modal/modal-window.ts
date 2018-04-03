@@ -70,7 +70,7 @@ export class NgbModalWindow implements OnInit,
 
   ngAfterViewInit() {
     if (!this._elRef.nativeElement.contains(document.activeElement)) {
-      focusFirst(this._elRef.nativeElement);
+      focusFirst({root: this._elRef.nativeElement});
     }
   }
 

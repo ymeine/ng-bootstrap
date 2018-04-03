@@ -24,71 +24,71 @@ export function getTabIndexForSorting(element: HTMLElement): number {
   return value === 0 ? Infinity : value;
 }
 
-function filterSortingTabIndex(tabIndex: number, excludeHighTabIndexes?: boolean, excludeNaturalTabIndexes?: boolean): boolean {
-  if (!isDefined(excludeHighTabIndexes)) {
-    excludeHighTabIndexes = false;
-  }
+export interface TabbableWrapper {
+  element: HTMLElement;
+  index: number;
+  tabIndex: number;
+}
 
-  if (!isDefined(excludeNaturalTabIndexes)) {
-    excludeNaturalTabIndexes = false;
-  }
+export interface SpecFilterTabbable {
+  wrapper: TabbableWrapper;
+  excludeHighTabIndexes?: boolean;
+  excludeNaturalTabIndexes?: boolean;
+};
 
-  if (tabIndex < 0) {
-    return false;
-  }
+function filterPotentialTabbable({wrapper, excludeHighTabIndexes, excludeNaturalTabIndexes}: SpecFilterTabbable) {
+  const {element, tabIndex} = wrapper;
 
-  if (excludeHighTabIndexes && tabIndex !== Infinity) {
-    return false;
-  }
+  if (tabIndex < 0) { return false; }
+  if (excludeHighTabIndexes && tabIndex !== Infinity) { return false; }
+  if (excludeNaturalTabIndexes && tabIndex === Infinity) { return false; }
 
-  if (excludeNaturalTabIndexes && tabIndex == Infinity) {
-    return false;
-  }
+  if (isElementHiddenOrDisabled(wrapper.element)) { return false; }
 
   return true;
 }
 
-export function getTabbable(root: HTMLElement, excludeHighTabIndexes?: boolean, excludeNaturalTabIndexes?: boolean): HTMLElement[] {
+export interface SpecGetTabbable {
+  root: HTMLElement;
+  excludeHighTabIndexes?: boolean;
+  excludeNaturalTabIndexes?: boolean;
+};
+
+export function getTabbable({root, excludeHighTabIndexes, excludeNaturalTabIndexes}: SpecGetTabbable): HTMLElement[] {
   return Array.from(root.querySelectorAll([
     'input', 'select', 'button',
     'a[href]', 'area[href]',
     'textarea',
     '[tabindex]'
   ].join(', ')))
-  .map((element: HTMLElement, index: number) => { return {
-    element,
-    index,
-    tabIndex: getTabIndexForSorting(element)
-  }; })
-  .filter(wrapper => filterSortingTabIndex(wrapper.tabIndex, excludeHighTabIndexes, excludeNaturalTabIndexes))
-  .filter(wrapper => !isElementHiddenOrDisabled(wrapper.element))
+  .map((element: HTMLElement, index: number): TabbableWrapper => { return {element, index, tabIndex: getTabIndexForSorting(element) }; })
+  .filter(wrapper => filterPotentialTabbable({wrapper, excludeHighTabIndexes, excludeNaturalTabIndexes}))
   .sort((a, b) => a.tabIndex === b.tabIndex ? a.index - b.index : a.tabIndex - b.tabIndex)
   .map(wrapper => wrapper.element);
 }
 
-export function findFirstFocusable(
-  element: HTMLElement,
-  reverse?: boolean,
-  excludeHighTabIndexes?: boolean,
-  excludeNaturalTabIndexes?: boolean
-): HTMLElement {
-  if (!isDefined(reverse)) { reverse = false; }
-
-  const children = getTabbable(element, excludeHighTabIndexes, excludeNaturalTabIndexes);
-  const index = reverse ? children.length - 1 : 0;
-
-  return children[index];
+export interface SpecFindFocusable {
+  root: HTMLElement;
+  excludeHighTabIndexes?: boolean;
+  excludeNaturalTabIndexes?: boolean;
 }
 
-export function focusFirst(container: HTMLElement, reverse?: boolean, excludeHighTabIndexes?: boolean, excludeNaturalTabIndexes?: boolean) {
-  if (!isDefined(reverse)) { reverse = false; }
+export interface SpecFindFirstFocusable extends SpecFindFocusable {
+  reverse?: boolean;
+}
 
-  const element = findFirstFocusable(container, reverse, excludeHighTabIndexes, excludeNaturalTabIndexes);
+export function findFirstFocusable(spec: SpecFindFirstFocusable): HTMLElement {
+  const children = getTabbable(spec);
+  return children[spec.reverse ? children.length - 1 : 0];
+}
+
+export function focusFirst(spec: SpecFindFirstFocusable) {
+  const element = findFirstFocusable(spec);
   if (isDefined(element)) { element.focus(); }
 }
 
-export function focusLast(container: HTMLElement, excludeHighTabIndexes?: boolean, excludeNaturalTabIndexes?: boolean) {
-  return focusFirst(container, true, excludeHighTabIndexes, excludeNaturalTabIndexes);
+export function focusLast({root, excludeHighTabIndexes, excludeNaturalTabIndexes}: SpecFindFocusable) {
+  return focusFirst({root, excludeHighTabIndexes, excludeNaturalTabIndexes, reverse: true});
 }
 
 
@@ -99,23 +99,19 @@ export function focusLast(container: HTMLElement, excludeHighTabIndexes?: boolea
 
 export function hideOtherElements(element: HTMLElement) {
   const attribute = 'aria-hidden';
-  const attributeValue = 'true';
 
-  const {body} = document;
   const parent = element.parentElement;
 
-  const hiddenElements =
-      Array.from(parent.children).filter(child => child !== element && !isDefined(child.getAttribute(attribute)));
-  hiddenElements.forEach(hiddenElement => hiddenElement.setAttribute(attribute, attributeValue));
+  const hiddenElements = Array.from(parent.children)
+    .filter(child => child !== element && !isDefined(child.getAttribute(attribute)));
+  hiddenElements.forEach(hiddenElement => hiddenElement.setAttribute(attribute, 'true'));
 
-  const revertParentSiblings = parent === body ? () => {} : hideOtherElements(parent);
+  const revertParentSiblings = parent === document.body ? () => {} : hideOtherElements(parent);
 
-  const revert = () => {
+  return () => {
     hiddenElements.forEach(hiddenElement => hiddenElement.removeAttribute(attribute));
     revertParentSiblings();
   };
-
-  return revert;
 }
 
 
@@ -125,9 +121,7 @@ export function hideOtherElements(element: HTMLElement) {
 ////////////////////////////////////////////////////////////////////////////////
 
 export function createFocusInterceptor({onIntercept, tabIndex}) {
-  if (!isDefined(tabIndex)) {
-    tabIndex = 0;
-  }
+  if (!isDefined(tabIndex)) { tabIndex = 0; }
 
   const element = document.createElement('div');
 
@@ -145,34 +139,34 @@ export function createFocusInterceptor({onIntercept, tabIndex}) {
 
 export type InsertPosition = 'beforebegin' | 'afterbegin' | 'beforeend' | 'afterend';
 
-export interface InterceptorDescription {
+export interface SpecInterceptor {
   anchor: HTMLElement;
   position: InsertPosition;
   tabIndex?: number;
-  setFocus: (element: HTMLElement) => any;
+  setFocus: ({root: HTMLElement}) => any;
 }
 
 export function trapFocusInside(element: HTMLElement): () => any {
   const {body} = document;
+  // all interceptors are added in order relatively to their reference.
+  // So if 3 'afterbegin' are added under the same root, they will appear in reverse order
   const interceptors = [
-    {anchor: body, position: 'afterbegin', setFocus: (element) => focusFirst(element, false, true) },
-    {anchor: body, position: 'afterbegin', tabIndex: 1, setFocus: (element) => focusLast(element, true) },
-    {anchor: body, position: 'afterbegin', tabIndex: 1, setFocus: focusFirst },
-    {anchor: element, position: 'beforebegin', setFocus: (element) => focusLast(element, false, true)},
-    {anchor: element, position: 'afterend', setFocus: focusFirst},
-    {anchor: body, position: 'beforeend', setFocus: focusLast}
-  ].map(({anchor, position, tabIndex, setFocus}: InterceptorDescription) => {
-    const interceptor = createFocusInterceptor({onIntercept: () => setFocus(element), tabIndex});
+    {anchor: body   , position: 'afterbegin' ,              setFocus: ({root}) => focusFirst({root, excludeHighTabIndexes   : true}) },
+    {anchor: body   , position: 'afterbegin' , tabIndex: 1, setFocus: ({root}) => focusLast ({root, excludeHighTabIndexes   : true}) },
+    {anchor: body   , position: 'afterbegin' , tabIndex: 1, setFocus:             focusFirst                                         },
+    {anchor: element, position: 'beforebegin',              setFocus: ({root}) => focusLast ({root, excludeNaturalTabIndexes: true}) },
+    {anchor: element, position: 'afterend'   ,              setFocus:             focusFirst                                         },
+    {anchor: body   , position: 'beforeend'  ,              setFocus:             focusLast                                          }
+  ].map(({anchor, position, tabIndex, setFocus}: SpecInterceptor) => {
+    const interceptor = createFocusInterceptor({onIntercept: () => setFocus({root: element}), tabIndex});
     anchor.insertAdjacentElement(position, interceptor);
     return interceptor;
   });
 
   const revertHiddenElements = hideOtherElements(element);
 
-  const revert = () => {
+  return () => {
     interceptors.forEach(interceptor => interceptor.remove());
     revertHiddenElements();
   };
-
-  return revert;
 }
