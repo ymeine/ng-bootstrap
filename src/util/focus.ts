@@ -75,8 +75,6 @@ export function findFirstFocusable(
   if (!isDefined(reverse)) { reverse = false; }
 
   const children = getTabbable(element, excludeHighTabIndexes, excludeNaturalTabIndexes);
-  console.log('tabbable elements');
-  console.log(children);
   const index = reverse ? children.length - 1 : 0;
 
   return children[index];
@@ -84,14 +82,6 @@ export function findFirstFocusable(
 
 export function focusFirst(container: HTMLElement, reverse?: boolean, excludeHighTabIndexes?: boolean, excludeNaturalTabIndexes?: boolean) {
   if (!isDefined(reverse)) { reverse = false; }
-
-  if (reverse) {
-    console.log('focusing last');
-  } else {
-    console.log('focusing first');
-  }
-  console.log('active element');
-  console.log(document.activeElement);
 
   const element = findFirstFocusable(container, reverse, excludeHighTabIndexes, excludeNaturalTabIndexes);
   if (isDefined(element)) { element.focus(); }
