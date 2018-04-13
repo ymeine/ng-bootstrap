@@ -161,8 +161,6 @@ export function createFocusInterceptor({onIntercept, tabIndex}) {
   return element;
 }
 
-export type InsertPosition = 'beforebegin' | 'afterbegin' | 'beforeend' | 'afterend';
-
 export interface SpecInterceptor {
   anchor: HTMLElement;
   position: InsertPosition;
@@ -174,14 +172,14 @@ export function trapFocusInside(element: HTMLElement): () => any {
   const {body} = document;
   // all interceptors are added in order relatively to their reference.
   // So if 3 'afterbegin' are added under the same root, they will appear in reverse order
-  const interceptors = [
+  const interceptors = ([
     {anchor: body   , position: 'afterbegin' ,              setFocus: ({root}) => focusFirst({root, excludeHighTabIndexes   : true}) },
     {anchor: body   , position: 'afterbegin' , tabIndex: 1, setFocus: ({root}) => focusLast ({root, excludeHighTabIndexes   : true}) },
     {anchor: body   , position: 'afterbegin' , tabIndex: 1, setFocus:             focusFirst                                         },
     {anchor: element, position: 'beforebegin',              setFocus: ({root}) => focusLast ({root, excludeNaturalTabIndexes: true}) },
     {anchor: element, position: 'afterend'   ,              setFocus:             focusFirst                                         },
     {anchor: body   , position: 'beforeend'  ,              setFocus:             focusLast                                          }
-  ].map(({anchor, position, tabIndex, setFocus}: SpecInterceptor) => {
+  ] as SpecInterceptor[]).map(({anchor, position, tabIndex, setFocus}) => {
     const interceptor = createFocusInterceptor({onIntercept: () => setFocus({root: element}), tabIndex});
     anchor.insertAdjacentElement(position, interceptor);
     return interceptor;
