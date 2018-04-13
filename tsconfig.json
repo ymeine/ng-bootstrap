@@ -11,7 +11,8 @@
     "baseUrl": "./node_modules",
     "paths": {
       "@ng-bootstrap/ng-bootstrap": ["../src/index"]
-    }
+    },
+    "downlevelIteration": true
   },
   "include": [
     "src/**/*.ts"
