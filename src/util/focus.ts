@@ -59,12 +59,11 @@ export interface SpecFilterTabbable {
   notDisplayedCache: Map<HTMLElement, boolean>;
 };
 
-function filterPotentialTabbable({wrapper, excludeHighTabIndexes, excludeNaturalTabIndexes, notDisplayedCache}: SpecFilterTabbable) {
+function filterPotentialTabbable({wrapper, notDisplayedCache}: SpecFilterTabbable) {
   const {element, tabIndex} = wrapper;
 
   if (tabIndex < 0) { return false; }
-  if (excludeHighTabIndexes && tabIndex !== Infinity) { return false; }
-  if (excludeNaturalTabIndexes && tabIndex === Infinity) { return false; }
+  if (tabIndex !== Infinity) { return false; }
 
   if (isElementHiddenOrDisabled(wrapper.element, notDisplayedCache)) { return false; }
 
@@ -73,11 +72,9 @@ function filterPotentialTabbable({wrapper, excludeHighTabIndexes, excludeNatural
 
 export interface SpecGetTabbable {
   root: HTMLElement;
-  excludeHighTabIndexes?: boolean;
-  excludeNaturalTabIndexes?: boolean;
 };
 
-export function getTabbable({root, excludeHighTabIndexes, excludeNaturalTabIndexes}: SpecGetTabbable): HTMLElement[] {
+export function getTabbable({root}: SpecGetTabbable): HTMLElement[] {
   const notDisplayedCache = new Map();
   return Array.from(root.querySelectorAll([
     'input', 'select', 'button',
@@ -86,15 +83,12 @@ export function getTabbable({root, excludeHighTabIndexes, excludeNaturalTabIndex
     '[tabindex]'
   ].join(', ')))
   .map((element: HTMLElement, index: number): TabbableWrapper => { return {element, index, tabIndex: getTabIndexForSorting(element) }; })
-  .filter(wrapper => filterPotentialTabbable({wrapper, excludeHighTabIndexes, excludeNaturalTabIndexes, notDisplayedCache}))
-  .sort((a, b) => a.tabIndex === b.tabIndex ? a.index - b.index : a.tabIndex - b.tabIndex)
+  .filter(wrapper => filterPotentialTabbable({wrapper, notDisplayedCache}))
   .map(wrapper => wrapper.element);
 }
 
 export interface SpecFindFocusable {
   root: HTMLElement;
-  excludeHighTabIndexes?: boolean;
-  excludeNaturalTabIndexes?: boolean;
 }
 
 export interface SpecFindFirstFocusable extends SpecFindFocusable {
@@ -111,8 +105,8 @@ export function focusFirst(spec: SpecFindFirstFocusable) {
   if (isDefined(element)) { element.focus(); }
 }
 
-export function focusLast({root, excludeHighTabIndexes, excludeNaturalTabIndexes}: SpecFindFocusable) {
-  return focusFirst({root, excludeHighTabIndexes, excludeNaturalTabIndexes, reverse: true});
+export function focusLast({root}: SpecFindFocusable) {
+  return focusFirst({root, reverse: true});
 }
 
 
@@ -170,15 +164,11 @@ export interface SpecInterceptor {
 
 export function trapFocusInside(element: HTMLElement): () => any {
   const {body} = document;
-  // all interceptors are added in order relatively to their reference.
-  // So if 3 'afterbegin' are added under the same root, they will appear in reverse order
   const interceptors = ([
-    {anchor: body   , position: 'afterbegin' ,              setFocus: ({root}) => focusFirst({root, excludeHighTabIndexes   : true}) },
-    {anchor: body   , position: 'afterbegin' , tabIndex: 1, setFocus: ({root}) => focusLast ({root, excludeHighTabIndexes   : true}) },
-    {anchor: body   , position: 'afterbegin' , tabIndex: 1, setFocus:             focusFirst                                         },
-    {anchor: element, position: 'beforebegin',              setFocus: ({root}) => focusLast ({root, excludeNaturalTabIndexes: true}) },
-    {anchor: element, position: 'afterend'   ,              setFocus:             focusFirst                                         },
-    {anchor: body   , position: 'beforeend'  ,              setFocus:             focusLast                                          }
+    {anchor: body   , position: 'afterbegin' ,  setFocus: focusFirst },
+    {anchor: element, position: 'beforebegin',  setFocus: focusLast  },
+    {anchor: element, position: 'afterend'   ,  setFocus: focusFirst },
+    {anchor: body   , position: 'beforeend'  ,  setFocus: focusLast  }
   ] as SpecInterceptor[]).map(({anchor, position, tabIndex, setFocus}) => {
     const interceptor = createFocusInterceptor({onIntercept: () => setFocus({root: element}), tabIndex});
     anchor.insertAdjacentElement(position, interceptor);
