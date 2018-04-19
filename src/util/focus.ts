@@ -1,5 +1,6 @@
 import {DOCUMENT} from '@angular/common';
 import {
+  NgZone,
   Injectable,
   Directive, ElementRef, Input, Inject,
   OnChanges, SimpleChanges,
@@ -50,7 +51,7 @@ export function getTabIndex(element: HTMLElement): number {
   return isDefined(value) ? parseInt(value, 10) : element.tabIndex;
 }
 
-export function isElementNotDisplayed(element: any, notDisplayedCache: Map<HTMLElement, boolean>): boolean {
+export function isElementNotDisplayed(element: any, document, notDisplayedCache: Map<HTMLElement, boolean>): boolean {
   if (element === document.documentElement) { return false; }
 
   let notDisplayedState;
@@ -62,7 +63,7 @@ export function isElementNotDisplayed(element: any, notDisplayedCache: Map<HTMLE
     } else {
       const parent = element.parentNode;
       if (isDefined(parent)) {
-        notDisplayedState = isElementNotDisplayed(parent, notDisplayedCache);
+        notDisplayedState = isElementNotDisplayed(parent, document, notDisplayedCache);
       }
     }
     notDisplayedCache.set(element, notDisplayedState);
@@ -71,21 +72,21 @@ export function isElementNotDisplayed(element: any, notDisplayedCache: Map<HTMLE
   return notDisplayedState;
 }
 
-export function isElementHiddenOrDisabled(element: any, notDisplayedCache: Map<HTMLElement, boolean>): boolean {
+export function isElementHiddenOrDisabled(element: any, document, notDisplayedCache: Map<HTMLElement, boolean>): boolean {
   if (element.disabled) { return true; }
   if (element.tagName === 'input' && element.type === 'hidden') { return true; }
-  if (isElementNotDisplayed(element, notDisplayedCache)) { return true; }
+  if (isElementNotDisplayed(element, document, notDisplayedCache)) { return true; }
   if (window.getComputedStyle(element).visibility === 'hidden') { return true; }
 
   return false;
 }
 
-function createPotentialTabbableFilter() {
+function createPotentialTabbableFilter(document) {
   const notDisplayedCache = new Map();
 
   return element => ({
     value: element,
-    exclude: getTabIndex(element) !== 0 || isElementHiddenOrDisabled(element, notDisplayedCache),
+    exclude: getTabIndex(element) !== 0 || isElementHiddenOrDisabled(element, document, notDisplayedCache),
   });
 }
 
@@ -100,7 +101,7 @@ export function getPotentialTabbable(root: HTMLElement): HTMLElement[] {
 
 export function focusFirstFound(root: HTMLElement, document, reverse?: boolean) {
   safeFocus(
-    (reverse ? getLast : getFirst)<HTMLElement>(getPotentialTabbable(root), createPotentialTabbableFilter()),
+    (reverse ? getLast : getFirst)<HTMLElement>(getPotentialTabbable(root), createPotentialTabbableFilter(document)),
     document
   );
 }
@@ -114,7 +115,7 @@ export function focusLast(root: HTMLElement, document)  { focusFirstFound(root, 
 // aria-hidden
 ////////////////////////////////////////////////////////////////////////////////
 
-export function hideOtherElements(element: HTMLElement) {
+export function hideOtherElements(element: HTMLElement, document) {
   const attribute = 'aria-hidden';
 
   const parent = element.parentElement;
@@ -123,7 +124,7 @@ export function hideOtherElements(element: HTMLElement) {
     .filter(child => child !== element && !isDefined(child.getAttribute(attribute)));
   hiddenElements.forEach(hiddenElement => hiddenElement.setAttribute(attribute, 'true'));
 
-  const revertParentSiblings = parent === document.body ? () => {} : hideOtherElements(parent);
+  const revertParentSiblings = parent === document.body ? () => {} : hideOtherElements(parent, document);
 
   return () => {
     hiddenElements.forEach(hiddenElement => hiddenElement.removeAttribute(attribute));
@@ -137,14 +138,14 @@ export function hideOtherElements(element: HTMLElement) {
 // Intercepting
 ////////////////////////////////////////////////////////////////////////////////
 
-export function createFocusInterceptor(onIntercept) {
+export function createFocusInterceptor(onIntercept, ngZone: NgZone) {
   const element = document.createElement('div');
 
   element.classList.add('sr-only');
   element.setAttribute('aria-hidden', 'true');
 
   element.tabIndex = 0;
-  element.addEventListener('focus', onIntercept);
+  ngZone.runOutsideAngular(() => element.addEventListener('focus', onIntercept));
 
   return element;
 }
@@ -155,7 +156,7 @@ interface SpecInterceptor {
   setFocus: (root: HTMLElement, document) => any;
 }
 
-export function trapFocusInside(element: HTMLElement, document): () => any {
+export function trapFocusInside(element: HTMLElement, document, ngZone: NgZone): () => any {
   const {body} = document;
   const interceptors = ([
     {anchor: body   , position: 'afterbegin' ,  setFocus: focusFirst },
@@ -163,12 +164,12 @@ export function trapFocusInside(element: HTMLElement, document): () => any {
     {anchor: element, position: 'afterend'   ,  setFocus: focusFirst },
     {anchor: body   , position: 'beforeend'  ,  setFocus: focusLast  }
   ] as SpecInterceptor[]).map(({anchor, position, setFocus}) => {
-    const interceptor = createFocusInterceptor(() => setFocus(element, document));
+    const interceptor = createFocusInterceptor(() => setFocus(element, document), ngZone);
     anchor.insertAdjacentElement(position, interceptor);
     return interceptor;
   });
 
-  const revertHiddenElements = hideOtherElements(element);
+  const revertHiddenElements = hideOtherElements(element, document);
 
   let previouslyFocused = null;
   if (!element.contains(document.activeElement)) {
@@ -180,7 +181,7 @@ export function trapFocusInside(element: HTMLElement, document): () => any {
     interceptors.forEach(interceptor => interceptor.parentElement.removeChild(interceptor));
     revertHiddenElements();
     if (!safeFocus(previouslyFocused, document)) {
-      document.body.focus();
+      body.focus();
     }
   };
 }
@@ -193,7 +194,7 @@ export function trapFocusInside(element: HTMLElement, document): () => any {
 
 @Injectable()
 export class FocusTrap {
-  trap(element: HTMLElement, document): () => any { return trapFocusInside(element, document); }
+  trap(element: HTMLElement, document, ngZone: NgZone): () => any { return trapFocusInside(element, document, ngZone); }
 }
 
 
@@ -207,14 +208,14 @@ export class FocusTrapDirective implements OnChanges, OnDestroy {
   @Input('ngbFocusTrap') trapped = true;
   private _revert: () => any = null;
 
-  constructor(private _element: ElementRef, private _focusTrap: FocusTrap, @Inject(DOCUMENT) private _document) {}
+  constructor(private _element: ElementRef, private _focusTrap: FocusTrap, @Inject(DOCUMENT) private _document, private _ngZone: NgZone) {}
   ngOnChanges(changes: SimpleChanges) { if (changes['trapped']) { this.update(); } }
   ngOnDestroy() { this.revert(); }
 
   private update() { if (!this.isTrapped) { this.revert(); } else { this.trap(); } }
 
   private get isTrapped(): boolean { return !(this.trapped === false); }
-  private trap() { this._revert = this._focusTrap.trap(this._element.nativeElement, this._document); }
+  private trap() { this._revert = this._focusTrap.trap(this._element.nativeElement, this._document, this._ngZone); }
   private revert() {
     if (isDefined(this._revert)) {
       this._revert();
