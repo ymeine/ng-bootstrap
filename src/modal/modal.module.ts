@@ -1,6 +1,6 @@
 import {NgModule, ModuleWithProviders} from '@angular/core';
 
-import {FocusTrap} from '../util/focus';
+import {FocusTrap, FocusTrapDirective} from '../util/focus';
 
 import {NgbModalBackdrop} from './modal-backdrop';
 import {NgbModalWindow} from './modal-window';
@@ -12,7 +12,7 @@ export {NgbModalRef, NgbActiveModal} from './modal-ref';
 export {ModalDismissReasons} from './modal-dismiss-reasons';
 
 @NgModule({
-  declarations: [NgbModalBackdrop, NgbModalWindow],
+  declarations: [NgbModalBackdrop, NgbModalWindow, FocusTrapDirective],
   entryComponents: [NgbModalBackdrop, NgbModalWindow],
   providers: [NgbModal]
 })

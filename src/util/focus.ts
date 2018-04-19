@@ -1,4 +1,11 @@
-import {Injectable} from '@angular/core';
+import {DOCUMENT} from '@angular/common';
+import {
+  Injectable,
+  Directive, ElementRef, Input, Inject,
+  OnChanges, SimpleChanges,
+  OnDestroy,
+  AfterViewInit,
+} from '@angular/core';
 
 import {isDefined} from './util';
 
@@ -29,6 +36,14 @@ export function getLast<T, M = T>(collection: T[], filter: CollectionIteratorFil
 ////////////////////////////////////////////////////////////////////////////////
 // Focusing
 ////////////////////////////////////////////////////////////////////////////////
+
+export function safeFocus(element: HTMLElement, document): boolean {
+  if (element && isDefined(element['focus']) && document.body.contains(element)) {
+    element.focus();
+    return true;
+  }
+  return false;
+}
 
 export function getTabIndex(element: HTMLElement): number {
   const value = element.getAttribute('tabindex');
@@ -83,13 +98,15 @@ export function getPotentialTabbable(root: HTMLElement): HTMLElement[] {
   ].join(', ')));
 }
 
-export function focusFirstFound(root: HTMLElement, reverse?: boolean) {
-  const element = (reverse ? getLast : getFirst)<HTMLElement>(getPotentialTabbable(root), createPotentialTabbableFilter());
-  if (isDefined(element)) { element.focus(); }
+export function focusFirstFound(root: HTMLElement, document, reverse?: boolean) {
+  safeFocus(
+    (reverse ? getLast : getFirst)<HTMLElement>(getPotentialTabbable(root), createPotentialTabbableFilter()),
+    document
+  );
 }
 
-export function focusFirst(root: HTMLElement) { focusFirstFound(root);       }
-export function focusLast(root: HTMLElement)  { focusFirstFound(root, true); }
+export function focusFirst(root: HTMLElement, document) { focusFirstFound(root, document);       }
+export function focusLast(root: HTMLElement, document)  { focusFirstFound(root, document, true); }
 
 
 
@@ -123,10 +140,7 @@ export function hideOtherElements(element: HTMLElement) {
 export function createFocusInterceptor(onIntercept) {
   const element = document.createElement('div');
 
-  const style = element.style;
-  style.width = '0';
-  style.height = '0';
-  style.position = 'fixed';
+  element.classList.add('sr-only');
   element.setAttribute('aria-hidden', 'true');
 
   element.tabIndex = 0;
@@ -138,10 +152,10 @@ export function createFocusInterceptor(onIntercept) {
 interface SpecInterceptor {
   anchor: HTMLElement;
   position: InsertPosition;
-  setFocus: (root: HTMLElement) => any;
+  setFocus: (root: HTMLElement, document) => any;
 }
 
-export function trapFocusInside(element: HTMLElement): () => any {
+export function trapFocusInside(element: HTMLElement, document): () => any {
   const {body} = document;
   const interceptors = ([
     {anchor: body   , position: 'afterbegin' ,  setFocus: focusFirst },
@@ -149,16 +163,25 @@ export function trapFocusInside(element: HTMLElement): () => any {
     {anchor: element, position: 'afterend'   ,  setFocus: focusFirst },
     {anchor: body   , position: 'beforeend'  ,  setFocus: focusLast  }
   ] as SpecInterceptor[]).map(({anchor, position, setFocus}) => {
-    const interceptor = createFocusInterceptor(() => setFocus(element));
+    const interceptor = createFocusInterceptor(() => setFocus(element, document));
     anchor.insertAdjacentElement(position, interceptor);
     return interceptor;
   });
 
   const revertHiddenElements = hideOtherElements(element);
 
+  let previouslyFocused = null;
+  if (!element.contains(document.activeElement)) {
+    previouslyFocused = document.activeElement;
+    focusFirst(element, document);
+  }
+
   return () => {
-    interceptors.forEach(interceptor => interceptor.remove());
+    interceptors.forEach(interceptor => interceptor.parentElement.removeChild(interceptor));
     revertHiddenElements();
+    if (!safeFocus(previouslyFocused, document)) {
+      document.body.focus();
+    }
   };
 }
 
@@ -170,8 +193,32 @@ export function trapFocusInside(element: HTMLElement): () => any {
 
 @Injectable()
 export class FocusTrap {
-  trap(element: HTMLElement): () => any { return trapFocusInside(element); }
+  trap(element: HTMLElement, document): () => any { return trapFocusInside(element, document); }
+}
 
-  focusFirst(root: HTMLElement) { focusFirst(root); }
-  focusLast(root: HTMLElement)  { focusLast(root);  }
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Service
+////////////////////////////////////////////////////////////////////////////////
+
+@Directive({selector: '[ngbFocusTrap]'})
+export class FocusTrapDirective implements OnChanges, OnDestroy {
+  @Input('ngbFocusTrap') trapped = true;
+  private _revert: () => any = null;
+
+  constructor(private _element: ElementRef, private _focusTrap: FocusTrap, @Inject(DOCUMENT) private _document) {}
+  ngOnChanges(changes: SimpleChanges) { if (changes['trapped']) { this.update(); } }
+  ngOnDestroy() { this.revert(); }
+
+  private update() { if (!this.isTrapped) { this.revert(); } else { this.trap(); } }
+
+  private get isTrapped(): boolean { return !(this.trapped === false); }
+  private trap() { this._revert = this._focusTrap.trap(this._element.nativeElement, this._document); }
+  private revert() {
+    if (isDefined(this._revert)) {
+      this._revert();
+      this._revert = null;
+    }
+  }
 }
