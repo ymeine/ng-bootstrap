@@ -54,11 +54,6 @@ export function getTabIndex(element: HTMLElement): number {
   return isDefined(value) ? parseInt(value, 10) : element.tabIndex;
 }
 
-export function getTabIndexForSorting(element: HTMLElement): number {
-  const value = getTabIndex(element);
-  return value === 0 ? Infinity : value;
-}
-
 export function isElementNotDisplayed(element: any, notDisplayedCache: Map<HTMLElement, boolean>): boolean {
   if (element === document.documentElement) { return false; }
 
@@ -89,34 +84,12 @@ export function isElementHiddenOrDisabled(element: any, notDisplayedCache: Map<H
   return false;
 }
 
-export interface TabbableWrapper {
-  element: HTMLElement;
-  index: number;
-  tabIndex: number;
-}
-
-export interface SpecFilterTabbable {
-  wrapper: TabbableWrapper;
-  notDisplayedCache: Map<HTMLElement, boolean>;
-};
-
-function isActualTabbable({wrapper, notDisplayedCache}: SpecFilterTabbable) {
-  const {element, tabIndex} = wrapper;
-
-  if (tabIndex < 0) { return false; }
-  if (tabIndex !== Infinity) { return false; }
-
-  if (isElementHiddenOrDisabled(element, notDisplayedCache)) { return false; }
-
-  return true;
-}
-
 function potentialTabbableFilter() {
   const notDisplayedCache = new Map();
 
-  return (element, index) => ({
+  return element => ({
     value: element,
-    exclude: !isActualTabbable({wrapper: {element, index, tabIndex: getTabIndexForSorting(element)}, notDisplayedCache}),
+    exclude: getTabIndex(element) !== 0 || isElementHiddenOrDisabled(element, notDisplayedCache),
   });
 }
 
@@ -129,27 +102,13 @@ export function getPotentialTabbable(root: HTMLElement): HTMLElement[] {
   ].join(', ')));
 }
 
-export interface SpecFindFocusable {
-  root: HTMLElement;
-}
-
-export interface SpecFindFirstFocusable extends SpecFindFocusable {
-  reverse?: boolean;
-}
-
-export function findFirstFocusable(spec: SpecFindFirstFocusable): HTMLElement {
-  const getter = spec.reverse ? getLast : getFirst;
-  return getter<HTMLElement>(getPotentialTabbable(spec.root), potentialTabbableFilter());
-}
-
-export function focusFirst(spec: SpecFindFirstFocusable) {
-  const element = findFirstFocusable(spec);
+export function focusFirstFound(root: HTMLELement, reverse?: boolean) {
+  const element = (reverse ? getLast : getFirst)<HTMLElement>(getPotentialTabbable(root), potentialTabbableFilter());
   if (isDefined(element)) { element.focus(); }
 }
 
-export function focusLast({root}: SpecFindFocusable) {
-  return focusFirst({root, reverse: true});
-}
+export function focusFirst(root: HTMLElement) { focusFirstFound(root);       }
+export function focusLast(root: HTMLElement)  { focusFirstFound(root, true); }
 
 
 
@@ -180,9 +139,7 @@ export function hideOtherElements(element: HTMLElement) {
 // Intercepting
 ////////////////////////////////////////////////////////////////////////////////
 
-export function createFocusInterceptor({onIntercept, tabIndex}) {
-  if (!isDefined(tabIndex)) { tabIndex = 0; }
-
+export function createFocusInterceptor(onIntercept) {
   const element = document.createElement('div');
 
   const style = element.style;
@@ -190,18 +147,16 @@ export function createFocusInterceptor({onIntercept, tabIndex}) {
   style.height = '0';
   element.setAttribute('aria-hidden', 'true');
 
-  element.tabIndex = tabIndex;
   style.position = 'fixed';
   element.addEventListener('focus', onIntercept);
 
   return element;
 }
 
-export interface SpecInterceptor {
+interface SpecInterceptor {
   anchor: HTMLElement;
   position: InsertPosition;
-  tabIndex?: number;
-  setFocus: ({root: HTMLElement}) => any;
+  setFocus: (root: HTMLElement) => any;
 }
 
 export function trapFocusInside(element: HTMLElement): () => any {
@@ -211,8 +166,8 @@ export function trapFocusInside(element: HTMLElement): () => any {
     {anchor: element, position: 'beforebegin',  setFocus: focusLast  },
     {anchor: element, position: 'afterend'   ,  setFocus: focusFirst },
     {anchor: body   , position: 'beforeend'  ,  setFocus: focusLast  }
-  ] as SpecInterceptor[]).map(({anchor, position, tabIndex, setFocus}) => {
-    const interceptor = createFocusInterceptor({onIntercept: () => setFocus({root: element}), tabIndex});
+  ] as SpecInterceptor[]).map(({anchor, position, setFocus}) => {
+    const interceptor = createFocusInterceptor(() => setFocus(element));
     anchor.insertAdjacentElement(position, interceptor);
     return interceptor;
   });
