@@ -1,5 +1,7 @@
 import {NgModule, ModuleWithProviders} from '@angular/core';
 
+import {FocusTrap} from '../util/focus';
+
 import {NgbModalBackdrop} from './modal-backdrop';
 import {NgbModalWindow} from './modal-window';
 import {NgbModalStack} from './modal-stack';
@@ -15,5 +17,5 @@ export {ModalDismissReasons} from './modal-dismiss-reasons';
   providers: [NgbModal]
 })
 export class NgbModalModule {
-  static forRoot(): ModuleWithProviders { return {ngModule: NgbModalModule, providers: [NgbModal, NgbModalStack]}; }
+  static forRoot(): ModuleWithProviders { return {ngModule: NgbModalModule, providers: [NgbModal, NgbModalStack, FocusTrap]}; }
 }

@@ -1,3 +1,5 @@
+import {Injectable} from '@angular/core';
+
 import {isDefined} from './util';
 
 
@@ -81,7 +83,7 @@ export function getPotentialTabbable(root: HTMLElement): HTMLElement[] {
   ].join(', ')));
 }
 
-export function focusFirstFound(root: HTMLELement, reverse?: boolean) {
+export function focusFirstFound(root: HTMLElement, reverse?: boolean) {
   const element = (reverse ? getLast : getFirst)<HTMLElement>(getPotentialTabbable(root), createPotentialTabbableFilter());
   if (isDefined(element)) { element.focus(); }
 }
@@ -124,9 +126,10 @@ export function createFocusInterceptor(onIntercept) {
   const style = element.style;
   style.width = '0';
   style.height = '0';
+  style.position = 'fixed';
   element.setAttribute('aria-hidden', 'true');
 
-  style.position = 'fixed';
+  element.tabIndex = 0;
   element.addEventListener('focus', onIntercept);
 
   return element;
@@ -157,4 +160,18 @@ export function trapFocusInside(element: HTMLElement): () => any {
     interceptors.forEach(interceptor => interceptor.remove());
     revertHiddenElements();
   };
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Service
+////////////////////////////////////////////////////////////////////////////////
+
+@Injectable()
+export class FocusTrap {
+  trap(element: HTMLElement): () => any { return trapFocusInside(element); }
+
+  focusFirst(root: HTMLElement) { focusFirst(root); }
+  focusLast(root: HTMLElement)  { focusLast(root);  }
 }

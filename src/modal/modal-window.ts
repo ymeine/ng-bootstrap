@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 
 import {ModalDismissReasons} from './modal-dismiss-reasons';
-import {trapFocusInside, focusFirst} from '../util/focus';
+import {FocusTrap} from '../util/focus';
 
 @Component({
   selector: 'ngb-modal-window',
@@ -44,7 +44,7 @@ export class NgbModalWindow implements OnInit,
 
   @Output('dismiss') dismissEvent = new EventEmitter();
 
-  constructor(@Inject(DOCUMENT) document, private _elRef: ElementRef, private _renderer: Renderer2) {
+  constructor(@Inject(DOCUMENT) document, private _elRef: ElementRef, private _renderer: Renderer2, private _focusTrap: FocusTrap) {
     this._document = document;
   }
 
@@ -65,12 +65,12 @@ export class NgbModalWindow implements OnInit,
   ngOnInit() {
     this._elWithFocus = this._document.activeElement;
     this._renderer.addClass(this._document.body, 'modal-open');
-    this._revertFocusTrap = trapFocusInside(this._elRef.nativeElement);
+    this._revertFocusTrap = this._focusTrap.trap(this._elRef.nativeElement);
   }
 
   ngAfterViewInit() {
     if (!this._elRef.nativeElement.contains(document.activeElement)) {
-      focusFirst({root: this._elRef.nativeElement});
+      this._focusTrap.focusFirst(this._elRef.nativeElement);
     }
   }
 
