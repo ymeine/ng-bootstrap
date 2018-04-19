@@ -6,41 +6,20 @@ import {isDefined} from './util';
 // Iterating
 ////////////////////////////////////////////////////////////////////////////////
 
-export function* forwardIndex(size: number): IterableIterator<number> {
-  for (let index = 0; index < size; index++) { yield index; }
-}
-
-export function* backwardIndex(size: number): IterableIterator<number> {
-  for (let index = size - 1; index >= 0; index--) { yield index; }
-}
-
-export function indexGenerator(size: number, reverse?: boolean): IterableIterator<number> {
-  return (!reverse ? forwardIndex : backwardIndex)(size);
-}
-
-export interface SpecFilteredCollectionIterator<T> {
-  collection: T[];
-  reverse: boolean;
-}
-
 export type CollectionIteratorFilter<T, M = T> = (item: T, index: number, collection: T[]) => {exclude: boolean, value: M};
 
-export function* filteredCollectionIterator<T, M = T>(
-  {collection, reverse}: SpecFilteredCollectionIterator<T>,
-  filter: CollectionIteratorFilter<T, M>
-) {
-  for (let index of indexGenerator(collection.length, reverse)) {
+export function getFirst<T, M = T>(collection: T[], filter: CollectionIteratorFilter<T, M>): M {
+  for (let index = 0, length = collection.length; index < length; index++) {
     const {exclude, value} = filter(collection[index], index, collection);
-    if (!exclude) { yield value; }
+    if (!exclude) { return value; }
   }
 }
 
-export function getFirst<T, M = T>(collection: T[], filter: CollectionIteratorFilter<T, M>): M {
-  return filteredCollectionIterator<T, M>({collection, reverse: false}, filter).next().value;
-}
-
 export function getLast<T, M = T>(collection: T[], filter: CollectionIteratorFilter<T, M>): M {
-  return filteredCollectionIterator<T, M>({collection, reverse: true}, filter).next().value;
+  for (let index = collection.length - 1; index >= 0; index--) {
+    const {exclude, value} = filter(collection[index], index, collection);
+    if (!exclude) { return value; }
+  }
 }
 
 
@@ -84,7 +63,7 @@ export function isElementHiddenOrDisabled(element: any, notDisplayedCache: Map<H
   return false;
 }
 
-function potentialTabbableFilter() {
+function createPotentialTabbableFilter() {
   const notDisplayedCache = new Map();
 
   return element => ({
@@ -103,7 +82,7 @@ export function getPotentialTabbable(root: HTMLElement): HTMLElement[] {
 }
 
 export function focusFirstFound(root: HTMLELement, reverse?: boolean) {
-  const element = (reverse ? getLast : getFirst)<HTMLElement>(getPotentialTabbable(root), potentialTabbableFilter());
+  const element = (reverse ? getLast : getFirst)<HTMLElement>(getPotentialTabbable(root), createPotentialTabbableFilter());
   if (isDefined(element)) { element.focus(); }
 }
 
