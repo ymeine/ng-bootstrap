@@ -1,6 +1,6 @@
 import {TestBed, ComponentFixture, inject} from '@angular/core/testing';
 import {createGenericTestComponent} from '../test/common';
-import {createKeyboardEvent} from '../util/keys';
+import {createKeyboardEvent} from '../test/common';
 
 import {Component} from '@angular/core';
 import {By} from '@angular/platform-browser';

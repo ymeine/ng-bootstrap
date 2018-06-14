@@ -108,8 +108,8 @@ export class NgbDropdownToggle extends NgbDropdownAnchor {
 })
 export class NgbDropdown implements OnInit,
     OnDestroy {
-  private _zoneSubscription: any;
   private _escapeListener: (event: KeyboardEvent) => any;
+  private _zoneSubscription: any;
 
   @ContentChild(NgbDropdownMenu) private _menu: NgbDropdownMenu;
 
@@ -143,10 +143,10 @@ export class NgbDropdown implements OnInit,
    */
   @Output() openChange = new EventEmitter();
 
-  constructor(config: NgbDropdownConfig, private ngZone: NgZone, private changeDetector: ChangeDetectorRef) {
+  constructor(private _changeDetector: ChangeDetectorRef, config: NgbDropdownConfig, private _ngZone: NgZone) {
     this.placement = config.placement;
     this.autoClose = config.autoClose;
-    this._zoneSubscription = ngZone.onStable.subscribe(() => { this._positionMenu(); });
+    this._zoneSubscription = _ngZone.onStable.subscribe(() => { this._positionMenu(); });
   }
 
   ngOnInit() {
@@ -171,10 +171,10 @@ export class NgbDropdown implements OnInit,
       this._escapeListener = (event) => {
         if (isEscape(event)) {
           this.closeFromOutsideEsc();
-          this.changeDetector.detectChanges();
+          this._changeDetector.detectChanges();
         }
       };
-      this.ngZone.runOutsideAngular(() => document.addEventListener('keyup', this._escapeListener));
+      this._ngZone.runOutsideAngular(() => document.addEventListener('keyup', this._escapeListener));
     }
   }
 
