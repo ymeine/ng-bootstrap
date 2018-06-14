@@ -1,6 +1,5 @@
 import {TestBed, ComponentFixture, inject} from '@angular/core/testing';
 import {createGenericTestComponent} from '../test/common';
-import {createKeyboardEvent} from '../test/common';
 
 import {Component} from '@angular/core';
 import {By} from '@angular/platform-browser';
@@ -18,6 +17,26 @@ function getDropdownEl(tc) {
 
 function getMenuEl(tc) {
   return tc.querySelector(`[ngbDropdownMenu]`);
+}
+
+enum Key {
+  Escape = 27
+}
+
+interface FakeEvent extends Event {
+  which: number;
+  keyCode: number;
+  key: string;
+}
+;
+
+function createFakeEscapeKeyUpEvent(): Event {
+  const event = new Event('keyup', {bubbles: true}) as FakeEvent;
+  const code = Key.Escape;
+  event.which = code;
+  event.keyCode = code;
+  event.key = 'Escape';
+  return event;
 }
 
 const jasmineMatchers = {
@@ -378,7 +397,7 @@ describe('ngb-dropdown-toggle', () => {
       fixture.detectChanges();
       expect(compiled).toBeShown();
 
-      getElementForEventDispatch({root: compiled}).dispatchEvent(createKeyboardEvent({type: 'keyup', name: 'Escape'}));
+      getElementForEventDispatch({root: compiled}).dispatchEvent(createFakeEscapeKeyUpEvent());
       fixture.detectChanges();
 
       const expectation = expect(compiled);

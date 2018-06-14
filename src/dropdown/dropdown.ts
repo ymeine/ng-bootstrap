@@ -15,7 +15,10 @@ import {
 } from '@angular/core';
 import {NgbDropdownConfig} from './dropdown-config';
 import {positionElements, PlacementArray, Placement} from '../util/positioning';
-import {isEscape} from '../util/keys';
+
+enum Key {
+  Escape = 27
+}
 
 /**
  */
@@ -169,9 +172,11 @@ export class NgbDropdown implements OnInit,
       this._positionMenu();
       this.openChange.emit(true);
       this._escapeListener = (event) => {
-        if (isEscape(event)) {
-          this.closeFromOutsideEsc();
-          this._changeDetector.detectChanges();
+        switch (event.which) {
+          case Key.Escape:
+            this.closeFromOutsideEsc();
+            this._changeDetector.detectChanges();
+            break;
         }
       };
       this._ngZone.runOutsideAngular(() => document.addEventListener('keyup', this._escapeListener));
