@@ -1,6 +1,5 @@
 import {TestBed, ComponentFixture, async, inject} from '@angular/core/testing';
 import {createGenericTestComponent} from '../test/common';
-import {createKeyboardEvent} from '../util/keys';
 
 import {Component, Injectable} from '@angular/core';
 import {By} from '@angular/platform-browser';
@@ -14,6 +13,24 @@ import {NgbTimeStruct} from './ngb-time-struct';
 
 const createTestComponent = (html: string) =>
     createGenericTestComponent(html, TestComponent) as ComponentFixture<TestComponent>;
+
+enum Key {
+  ArrowUp = 38,
+  ArrowDown = 40
+}
+
+interface FakeEvent extends Event {
+  which: number;
+  keyCode: number;
+  key: string;
+}
+
+export function createFakeKeyDownEvent(code: Key): Event {
+  const event = new Event('keydown', {bubbles: true}) as FakeEvent;
+  event.which = code;
+  event.keyCode = code;
+  return event;
+}
 
 function getTimepicker(el: HTMLElement) {
   return el.querySelector('ngb-timepicker');
@@ -1379,7 +1396,7 @@ describe('ngb-timepicker', () => {
          await fixture.whenStable();
 
          const fireKeyAndCheck = ({target, key, time}) => {
-           target.dispatchEvent(createKeyboardEvent({type: 'keydown', name: key}));
+           target.dispatchEvent(createFakeKeyDownEvent(key));
            // target.triggerEventHandler('change', createChangeEvent('11'));
            fixture.detectChanges();
            expectToDisplayTime(fixture.nativeElement, `${time.hour}:${time.minute < 10 ? '0' : ''}${time.minute}`);
@@ -1393,10 +1410,10 @@ describe('ngb-timepicker', () => {
          expectToDisplayTime(fixture.nativeElement, '10:59');
          expect(fixture.componentInstance.model).toEqual({hour: 10, minute: 59, second: 0});
 
-         fireKeyAndCheck({target: hoursInput, key: 'ArrowUp', time: {hour: 11, minute: 59, second: 0}});
-         fireKeyAndCheck({target: hoursInput, key: 'ArrowDown', time: {hour: 10, minute: 59, second: 0}});
-         fireKeyAndCheck({target: minutesInput, key: 'ArrowUp', time: {hour: 11, minute: 0, second: 0}});
-         fireKeyAndCheck({target: minutesInput, key: 'ArrowDown', time: {hour: 10, minute: 59, second: 0}});
+         fireKeyAndCheck({target: hoursInput, key: Key.ArrowUp, time: {hour: 11, minute: 59, second: 0}});
+         fireKeyAndCheck({target: hoursInput, key: Key.ArrowDown, time: {hour: 10, minute: 59, second: 0}});
+         fireKeyAndCheck({target: minutesInput, key: Key.ArrowUp, time: {hour: 11, minute: 0, second: 0}});
+         fireKeyAndCheck({target: minutesInput, key: Key.ArrowDown, time: {hour: 10, minute: 59, second: 0}});
        }));
   });
 });
