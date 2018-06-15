@@ -13,6 +13,9 @@ import {
   OnDestroy,
   ChangeDetectorRef
 } from '@angular/core';
+import {DOCUMENT} from '@angular/common';
+import {Subject, fromEvent} from 'rxjs';
+import {filter, takeUntil} from 'rxjs/operators';
 import {NgbDropdownConfig} from './dropdown-config';
 import {positionElements, PlacementArray, Placement} from '../util/positioning';
 
@@ -111,7 +114,7 @@ export class NgbDropdownToggle extends NgbDropdownAnchor {
 })
 export class NgbDropdown implements OnInit,
     OnDestroy {
-  private _escapeListener: (event: KeyboardEvent) => any;
+  private _closed$ = new Subject();
   private _zoneSubscription: any;
 
   @ContentChild(NgbDropdownMenu) private _menu: NgbDropdownMenu;
@@ -146,7 +149,9 @@ export class NgbDropdown implements OnInit,
    */
   @Output() openChange = new EventEmitter();
 
-  constructor(private _changeDetector: ChangeDetectorRef, config: NgbDropdownConfig, private _ngZone: NgZone) {
+  constructor(
+      private _changeDetector: ChangeDetectorRef, config: NgbDropdownConfig, @Inject(DOCUMENT) private _document: any,
+      private _ngZone: NgZone) {
     this.placement = config.placement;
     this.autoClose = config.autoClose;
     this._zoneSubscription = _ngZone.onStable.subscribe(() => { this._positionMenu(); });
@@ -171,15 +176,13 @@ export class NgbDropdown implements OnInit,
       this._open = true;
       this._positionMenu();
       this.openChange.emit(true);
-      this._escapeListener = (event) => {
-        switch (event.which) {
-          case Key.Escape:
-            this.closeFromOutsideEsc();
-            this._changeDetector.detectChanges();
-            break;
-        }
-      };
-      this._ngZone.runOutsideAngular(() => document.addEventListener('keyup', this._escapeListener));
+      this._ngZone.runOutsideAngular(
+          () => fromEvent<KeyboardEvent>(this._document, 'keyup')
+                    .pipe(takeUntil(this._closed$), filter(e => e.which === Key.Escape))
+                    .subscribe(() => {
+                      this.closeFromOutsideEsc();
+                      this._changeDetector.detectChanges();
+                    }));
     }
   }
 
@@ -190,7 +193,7 @@ export class NgbDropdown implements OnInit,
     if (this._open) {
       this._open = false;
       this.openChange.emit(false);
-      document.removeEventListener('keyup', this._escapeListener);
+      this._closed$.next();
     }
   }
 
