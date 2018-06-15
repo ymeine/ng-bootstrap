@@ -1397,15 +1397,12 @@ describe('ngb-timepicker', () => {
 
          const fireKeyAndCheck = ({target, key, time}) => {
            target.dispatchEvent(createFakeKeyDownEvent(key));
-           // target.triggerEventHandler('change', createChangeEvent('11'));
            fixture.detectChanges();
            expectToDisplayTime(fixture.nativeElement, `${time.hour}:${time.minute < 10 ? '0' : ''}${time.minute}`);
            expect(fixture.componentInstance.model).toEqual(time);
          };
 
-         const inputs = Array.from(getInputs(fixture.nativeElement));
-         //  const inputs = fixture.debugElement.queryAll(By.css('input'));
-         const[hoursInput, minutesInput] = inputs;
+         const [hoursInput, minutesInput] = Array.from(getInputs(fixture.nativeElement));
 
          expectToDisplayTime(fixture.nativeElement, '10:59');
          expect(fixture.componentInstance.model).toEqual({hour: 10, minute: 59, second: 0});
