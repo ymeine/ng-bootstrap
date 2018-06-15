@@ -101,7 +101,7 @@ export class AutoCloseService {
     return () => this.unsubscribe(subscriptionSpec);
   }
 
-  public unsubscribe(subscriptionSpec: SubscriptionSpec) {
+  private unsubscribe(subscriptionSpec: SubscriptionSpec) {
     this.subscriptions = this.subscriptions.filter(item => item !== subscriptionSpec);
   }
 
@@ -313,53 +313,11 @@ export class AutoCloseService {
       {keyEvent, mouseEvent, close,
 
        getAutoClose, getElementsInside, getTogglingElement}: SubscriptionSpecFactorySpec): SubscriptionSpec {
-    return Object.assign(
-        {
-          close,
-          keyEvent,
-          mouseEvent,
-
-          isTargetInside: this.isTargetInsideFactory(getElementsInside),
-          isTargetTogglingElement: this.isTargetTogglingElementFactory(getTogglingElement)
-        },
-        this.shouldCloseFactory(getAutoClose));
-  }
-
-  public isTargetTogglingElementFactory(getTogglingElement?: SubscriptionSpecFactorySpec['getTogglingElement']):
-      SubscriptionSpec['isTargetTogglingElement'] {
-    if (!isDefined(getTogglingElement)) {
-      return () => false;
-    }
-
-    return (target: HTMLElement) => this.safeElementContains(getTogglingElement(), target);
-  }
-
-  public isTargetInsideFactory(getElementsInside?: SubscriptionSpecFactorySpec['getElementsInside']):
-      SubscriptionSpec['isTargetInside'] {
-    if (!isDefined(getElementsInside)) {
-      return () => false;
-    }
-
-    return target => {
-      const elements = getElementsInside();
-      if (!isDefined(elements)) {
-        return false;
-      }
-      return this.arraySome(elements, element => this.safeElementContains(element, target));
-    };
-  }
-
-  public shouldCloseFactory(getAutoClose?: SubscriptionSpecFactorySpec['getAutoClose']): {
-    shouldAutoClose: SubscriptionSpec['shouldAutoClose'],
-    shouldCloseOnEscape: SubscriptionSpec['shouldCloseOnEscape'],
-    shouldCloseOnClickInside: SubscriptionSpec['shouldCloseOnClickInside'],
-    shouldCloseOnClickOutside: SubscriptionSpec['shouldCloseOnClickOutside']
-  } {
     if (!isDefined(getAutoClose)) {
       getAutoClose = () => false;
     }
 
-    const isTrueOr = (alternative: AutoCloseMode) => () => {
+    const autoCloseIsTrueOr = (alternative: AutoCloseMode) => () => {
       const autoClose = getAutoClose();
       return !!(autoClose === true || autoClose === alternative);
     };
@@ -370,10 +328,22 @@ export class AutoCloseService {
     };
 
     return {
+      close,
+      keyEvent,
+      mouseEvent,
+
+      isTargetInside: !isDefined(getElementsInside) ? () => false : target => {
+        const elements = getElementsInside();
+        return !isDefined(elements) ? false : this.arraySome(elements, element => this.safeElementContains(element, target));
+      },
+
+      isTargetTogglingElement: !isDefined(getTogglingElement) ? () => false :
+        (target: HTMLElement) => this.safeElementContains(getTogglingElement(), target),
+
       shouldAutoClose,
       shouldCloseOnEscape: shouldAutoClose,
-      shouldCloseOnClickInside: isTrueOr('inside'),
-      shouldCloseOnClickOutside: isTrueOr('outside')
+      shouldCloseOnClickInside: autoCloseIsTrueOr('inside'),
+      shouldCloseOnClickOutside: autoCloseIsTrueOr('outside')
     };
   }
 
@@ -383,11 +353,11 @@ export class AutoCloseService {
   // Utilities
   ////////////////////////////////////////////////////////////////////////////
 
-  public arraySome<T>(array: T[], predicate: (item: T, index: number, array: T[]) => boolean): boolean {
+  private arraySome<T>(array: T[], predicate: (item: T, index: number, array: T[]) => boolean): boolean {
     return array.findIndex(predicate) !== -1;
   }
 
-  public safeElementContains(element?: HTMLElement, descendant?: HTMLElement): boolean {
+  private safeElementContains(element?: HTMLElement, descendant?: HTMLElement): boolean {
     return (!isDefined(element) || !isDefined(descendant)) ? false : element.contains(descendant);
   }
 }
