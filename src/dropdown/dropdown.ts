@@ -114,7 +114,6 @@ export class NgbDropdownToggle extends NgbDropdownAnchor {
 })
 export class NgbDropdown implements OnInit,
     OnDestroy {
-  private _closed$ = new Subject();
   private _zoneSubscription: any;
 
   @ContentChild(NgbDropdownMenu) private _menu: NgbDropdownMenu;
@@ -178,7 +177,9 @@ export class NgbDropdown implements OnInit,
       this.openChange.emit(true);
       this._ngZone.runOutsideAngular(
           () => fromEvent<KeyboardEvent>(this._document, 'keyup')
-                    .pipe(takeUntil(this._closed$), filter(e => e.which === Key.Escape))
+                    .pipe(
+                        takeUntil(this.openChange.pipe(filter(open => open === false))),
+                        filter(event => event.which === Key.Escape))
                     .subscribe(() => {
                       this.closeFromOutsideEsc();
                       this._changeDetector.detectChanges();
@@ -193,7 +194,6 @@ export class NgbDropdown implements OnInit,
     if (this._open) {
       this._open = false;
       this.openChange.emit(false);
-      this._closed$.next();
     }
   }
 

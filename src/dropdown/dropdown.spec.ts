@@ -23,19 +23,12 @@ enum Key {
   Escape = 27
 }
 
-interface FakeEvent extends Event {
-  which: number;
-  keyCode: number;
-  key: string;
-}
-;
-
 function createFakeEscapeKeyUpEvent(): Event {
-  const event = new Event('keyup', {bubbles: true}) as FakeEvent;
-  const code = Key.Escape;
-  event.which = code;
-  event.keyCode = code;
-  event.key = 'Escape';
+  const key = Key.Escape;
+  const event = document.createEvent('KeyboardEvent') as any;
+  let initEvent = (event.initKeyEvent || event.initKeyboardEvent).bind(event);
+  initEvent('keyup', true, true, window, 0, 0, 0, 0, 0, key);
+  Object.defineProperties(event, {which: {get: () => key}});
   return event;
 }
 
