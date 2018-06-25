@@ -1,5 +1,6 @@
 import {TestBed, ComponentFixture, async, inject} from '@angular/core/testing';
 import {createGenericTestComponent} from '../test/common';
+import {Key} from '../util/key';
 
 import {Component, Injectable} from '@angular/core';
 import {By} from '@angular/platform-browser';
@@ -14,21 +15,11 @@ import {NgbTimeStruct} from './ngb-time-struct';
 const createTestComponent = (html: string) =>
     createGenericTestComponent(html, TestComponent) as ComponentFixture<TestComponent>;
 
-enum Key {
-  ArrowUp = 38,
-  ArrowDown = 40
-}
-
-interface FakeEvent extends Event {
-  which: number;
-  keyCode: number;
-  key: string;
-}
-
-export function createFakeKeyDownEvent(code: Key): Event {
-  const event = new Event('keydown', {bubbles: true}) as FakeEvent;
-  event.which = code;
-  event.keyCode = code;
+export function createFakeKeyDownEvent(key: Key): Event {
+  const event = document.createEvent('KeyboardEvent') as any;
+  let initEvent = (event.initKeyEvent || event.initKeyboardEvent).bind(event);
+  initEvent('keydown', true, true, window, 0, 0, 0, 0, 0, key);
+  Object.defineProperties(event, {which: {get: () => key}});
   return event;
 }
 
@@ -1383,7 +1374,7 @@ describe('ngb-timepicker', () => {
           });
     });
   });
- 
+
   describe('accessibility', () => {
     it('should increment or decrement inputs with arrow keys', async(async() => {
          const html = `<ngb-timepicker [(ngModel)]="model"></ngb-timepicker>`;
@@ -1402,7 +1393,7 @@ describe('ngb-timepicker', () => {
            expect(fixture.componentInstance.model).toEqual(time);
          };
 
-         const [hoursInput, minutesInput] = Array.from(getInputs(fixture.nativeElement));
+         const[hoursInput, minutesInput] = Array.from(getInputs(fixture.nativeElement));
 
          expectToDisplayTime(fixture.nativeElement, '10:59');
          expect(fixture.componentInstance.model).toEqual({hour: 10, minute: 59, second: 0});

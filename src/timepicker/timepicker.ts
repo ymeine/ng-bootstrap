@@ -2,14 +2,10 @@ import {Component, forwardRef, Input, OnChanges, SimpleChanges} from '@angular/c
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 
 import {isNumber, padNumber, toInteger, isDefined} from '../util/util';
+import {Key} from '../util/key';
 import {NgbTime} from './ngb-time';
 import {NgbTimepickerConfig} from './timepicker-config';
 import {NgbTimeAdapter} from './ngb-time-adapter';
-
-enum Key {
-  ArrowUp = 38,
-  ArrowDown = 40
-}
 
 const NGB_TIMEPICKER_VALUE_ACCESSOR = {
   provide: NG_VALUE_ACCESSOR,
