@@ -43,7 +43,7 @@ export interface SubscriptionInstance {
       readonly close: SubscriptionSpec['close']
 }
 
-export type Subscription = Function;
+export type SubscriptionToken = Function;
 
 
 
@@ -52,7 +52,7 @@ export type Subscription = Function;
 ////////////////////////////////////////////////////////////////////////////////
 
 export type Subscriber = {
-  (): void; toggle: () => void; subscribe: () => void; unsubscribe: () => void;
+  (): void; isSubscribed: () => boolean; toggle: () => void; subscribe: () => void; unsubscribe: () => void;
 };
 
 
@@ -69,8 +69,8 @@ export interface SubscriptionSpecFactorySpec {
   mouseEvent?: SubscriptionSpec['mouseEvent'];
   close: SubscriptionSpec['close'];
 
-  getAutoClose: () => AutoCloseType;
-  getElementsInside: () => HTMLElement[];
+  getAutoClose?: () => AutoCloseType;
+  getElementsInside?: () => HTMLElement[];
   getTogglingElement?: () => HTMLElement;
 }
 
@@ -102,65 +102,40 @@ export class AutoCloseService implements OnDestroy {
 
 
   ////////////////////////////////////////////////////////////////////////////
-  // Subscriptions management
+  // Subscribing management
   ////////////////////////////////////////////////////////////////////////////
 
   // tslint:disable-next-line:member-ordering
-  private subscriptions: SubscriptionSpec[] = [];
+  private subscriptions: SubscriptionInstance[] = [];
 
-  public subscribe(subscriptionSpec: SubscriptionSpec): Subscription {
+  public subscribe(subscription: SubscriptionInstance): SubscriptionToken {
     const {subscriptions} = this;
 
-    if (!subscriptions.includes(subscriptionSpec)) {
-      subscriptions.unshift(subscriptionSpec);
+    if (!subscriptions.includes(subscription)) {
+      subscriptions.unshift(subscription);
     }
 
-    return () => this.unsubscribe(subscriptionSpec);
+    return () => this.unsubscribe(subscription);
   }
 
-  private unsubscribe(subscriptionSpec: SubscriptionSpec) {
-    this.subscriptions = this.subscriptions.filter(item => item !== subscriptionSpec);
-  }
-
-  private normalizeSubscription(subscriptionSpec: SubscriptionSpec): SubscriptionInstance {
-    return {
-      keyEvent: this.withDefault(subscriptionSpec.keyEvent, 'keyup'),
-      mouseEvent: this.withDefault(subscriptionSpec.mouseEvent, 'mousedown'),
-
-      shouldAutoClose: this.withDefault(subscriptionSpec.shouldAutoClose, () => true),
-      shouldCloseOnEscape: this.withDefault(subscriptionSpec.shouldCloseOnEscape, () => true),
-
-      shouldCloseOnClickOutside: this.withDefault(subscriptionSpec.shouldCloseOnClickOutside, () => true),
-      shouldCloseOnClickInside: this.withDefault(subscriptionSpec.shouldCloseOnClickInside, () => false),
-
-      isTargetTogglingElement: this.withDefault(subscriptionSpec.isTargetTogglingElement, () => false),
-      isTargetInside: subscriptionSpec.isTargetInside,
-      close: subscriptionSpec.close
-    };
+  private unsubscribe(subscription: SubscriptionInstance) {
+    this.subscriptions = this.subscriptions.filter(item => item !== subscription);
   }
 
   public createSubscriber(subscriptionSpec: SubscriptionSpec): Subscriber {
-    let subscription: Subscription = null;
-
     const subscriptionInstance = this.normalizeSubscription(subscriptionSpec);
 
-    const isSubscribed = () => isDefined(subscription);
-    const _subscribe = () => subscription = this.subscribe(subscriptionInstance);
-    const _unsubscribe = () => (subscription(), subscription = null);
-    const _toggle = () => !isSubscribed() ? _subscribe() : _unsubscribe();
+    let subscriptionToken: SubscriptionToken = null;
+    const _isSubscribed = () => isDefined(subscriptionToken);
+    const _subscribe = () => subscriptionToken = this.subscribe(subscriptionInstance);
+    const _unsubscribe = () => (subscriptionToken(), subscriptionToken = null);
+    const _toggle = () => !_isSubscribed() ? _subscribe() : _unsubscribe();
 
     const subscriber: any = () => _toggle();
     subscriber.toggle = _toggle;
-    subscriber.subscribe = () => {
-      if (!isSubscribed()) {
-        _subscribe();
-      }
-    };
-    subscriber.unsubscribe = () => {
-      if (isSubscribed()) {
-        _unsubscribe();
-      }
-    };
+    subscriber.isSubscribed = _isSubscribed;
+    subscriber.subscribe = () => !_isSubscribed() && _subscribe();
+    subscriber.unsubscribe = () => _isSubscribed() && _unsubscribe();
 
     return subscriber;
   }
@@ -216,24 +191,21 @@ export class AutoCloseService implements OnDestroy {
       return;
     }
 
-    const oneExecuted = this.arraySome(this.subscriptions, (subscription) => {
-      let {mouseEvent, shouldAutoClose, shouldCloseOnClickOutside, isTargetTogglingElement, isTargetInside, close} =
-          subscription;
-      const target = <HTMLElement>event.target;
+    this._subscriptionExecuted =
+        this.ensureTrueFlag(this._subscriptionExecuted, this.arraySome(this.subscriptions, subscription => {
+          const {mouseEvent, shouldAutoClose, shouldCloseOnClickOutside, isTargetTogglingElement, isTargetInside,
+                 close} = subscription;
+          const target = <HTMLElement>event.target;
 
-      // note: `shouldCloseOnClickOutside` makes no sense if we can't check if
-      // target is inside/outside (i.e. if `isTargetInside` is not defined)
-      if (mouseEvent === eventType && shouldAutoClose() && !isTargetTogglingElement(target) &&
-          (!isDefined(isTargetInside) || (!isTargetInside(target) && shouldCloseOnClickOutside({event})))) {
-        close(event, {reason: 'outside_click', eventType});
-        return true;
-      }
-      return false;
-    });
-
-    if (this._subscriptionExecuted !== true) {
-      this._subscriptionExecuted = oneExecuted;
-    }
+          // note: `shouldCloseOnClickOutside` makes no sense if we can't check if
+          // target is inside/outside (i.e. if `isTargetInside` is not defined)
+          if (mouseEvent === eventType && shouldAutoClose() && !isTargetTogglingElement(target) &&
+              (!isDefined(isTargetInside) || (!isTargetInside(target) && shouldCloseOnClickOutside({event})))) {
+            close(event, {reason: 'outside_click', eventType});
+            return true;
+          }
+          return false;
+        }));
   }
 
   // A few notes:
@@ -252,32 +224,42 @@ export class AutoCloseService implements OnDestroy {
       return;
     }
 
-    const oneExecuted =
+    this._subscriptionExecuted = this.ensureTrueFlag(
+        this._subscriptionExecuted,
         this.arraySome(this.subscriptions, ({keyEvent, shouldAutoClose, shouldCloseOnEscape, close}) => {
           if (keyEvent === eventType && shouldAutoClose() && shouldCloseOnEscape({event})) {
             close(event, {reason: 'escape', eventType});
             return true;
           }
           return false;
-        });
-
-    if (this._subscriptionExecuted !== true) {
-      this._subscriptionExecuted = oneExecuted;
-    }
+        }));
   }
 
 
 
   ////////////////////////////////////////////////////////////////////////////
-  // High-level API
+  // Subscription implementation
   ////////////////////////////////////////////////////////////////////////////
 
-  public subscriptionSpecFactory(arg: SubscriptionSpecFactorySpec): SubscriptionSpec {
-    let {keyEvent, mouseEvent, close, getAutoClose, getElementsInside, getTogglingElement} = arg;
+  private normalizeSubscription(subscriptionSpec: SubscriptionSpec): SubscriptionInstance {
+    return {
+      keyEvent: this.withDefault(subscriptionSpec.keyEvent, 'keyup'),
+      mouseEvent: this.withDefault(subscriptionSpec.mouseEvent, 'mousedown'),
 
-    if (!isDefined(getAutoClose)) {
-      getAutoClose = () => false;
-    }
+      shouldAutoClose: this.withDefault(subscriptionSpec.shouldAutoClose, () => true),
+      shouldCloseOnEscape: this.withDefault(subscriptionSpec.shouldCloseOnEscape, () => true),
+
+      shouldCloseOnClickOutside: this.withDefault(subscriptionSpec.shouldCloseOnClickOutside, () => true),
+      shouldCloseOnClickInside: this.withDefault(subscriptionSpec.shouldCloseOnClickInside, () => false),
+
+      isTargetTogglingElement: this.withDefault(subscriptionSpec.isTargetTogglingElement, () => false),
+      isTargetInside: subscriptionSpec.isTargetInside,
+      close: subscriptionSpec.close
+    };
+  }
+
+  public subscriptionSpecFactory(arg: SubscriptionSpecFactorySpec): SubscriptionSpec {
+    const getAutoClose = this.withDefault(arg.getAutoClose, () => false);
 
     const autoCloseIsTrueOr = (alternative: AutoCloseMode) => () => {
       const autoClose = getAutoClose();
@@ -289,21 +271,27 @@ export class AutoCloseService implements OnDestroy {
       return autoClose === true || autoClose === 'inside' || autoClose === 'outside';
     };
 
-    return {
-      close,
-      keyEvent,
-      mouseEvent,
+    const {getElementsInside} = arg;
+    const isTargetInside = !isDefined(getElementsInside) ?
+        () => false :
+        target => {
+          const elements = getElementsInside();
+          return !isDefined(elements) ? false :
+                                        this.arraySome(elements, element => this.safeElementContains(element, target));
+        }
 
-      isTargetInside: !isDefined(getElementsInside) ?
-          () => false :
-          target => {
-            const elements = getElementsInside();
-            return !isDefined(elements) ? false : this.arraySome(
-                                                      elements, element => this.safeElementContains(element, target));
-          },
-      isTargetTogglingElement:
-          !isDefined(getTogglingElement) ? () => false : (target: HTMLElement) =>
-                                                             this.safeElementContains(getTogglingElement(), target),
+        const {getTogglingElement} = arg;
+    const isTargetTogglingElement = !isDefined(getTogglingElement) ?
+        () => false :
+        (target: HTMLElement) => this.safeElementContains(getTogglingElement(), target);
+
+    return {
+      close: arg.close,
+      keyEvent: arg.keyEvent,
+      mouseEvent: arg.mouseEvent,
+
+      isTargetInside,
+      isTargetTogglingElement,
 
       shouldAutoClose,
       shouldCloseOnEscape: shouldAutoClose,
@@ -317,6 +305,8 @@ export class AutoCloseService implements OnDestroy {
   ////////////////////////////////////////////////////////////////////////////
   // Utilities
   ////////////////////////////////////////////////////////////////////////////
+
+  private ensureTrueFlag(previousValue, newValue) { return previousValue !== true ? newValue : previousValue; }
 
   private arraySome<T>(array: T[], predicate: (item: T, index: number, array: T[]) => boolean): boolean {
     return array.findIndex(predicate) !== -1;
