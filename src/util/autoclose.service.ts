@@ -14,15 +14,33 @@ export interface SubscriptionSpec {
   keyEvent?: 'keyup' | 'keydown';
   mouseEvent?: 'mouseup' | 'mousedown';
 
-  shouldAutoClose(): boolean;
-  shouldCloseOnEscape(payload: CallbackPayload): boolean;
-  shouldCloseOnClickOutside(payload: CallbackPayload): boolean;
-  shouldCloseOnClickInside(payload: CallbackPayload): boolean;
+  shouldAutoClose?(): boolean;
+  shouldCloseOnEscape?(payload: CallbackPayload): boolean;
+  shouldCloseOnClickOutside?(payload: CallbackPayload): boolean;
+  shouldCloseOnClickInside?(payload: CallbackPayload): boolean;
 
   isTargetTogglingElement?(target: HTMLElement): boolean;
-  isTargetInside(target: HTMLElement): boolean;
+  isTargetInside?(target: HTMLElement): boolean;
 
   close(event: Event, payload: {reason: 'escape' | 'outside_click' | 'inside_click', eventType: string});
+}
+
+// For TypeScript 2.8
+// export type SubscriptionInstance = {
+//   { +readonly [P in keyof SubscriptionSpec]-?: SubscriptionSpec[P] };
+// }
+export interface SubscriptionInstance {
+  readonly keyEvent: SubscriptionSpec['keyEvent'], readonly mouseEvent: SubscriptionSpec['mouseEvent'],
+
+      readonly shouldAutoClose: SubscriptionSpec['shouldAutoClose'],
+      readonly shouldCloseOnEscape: SubscriptionSpec['shouldCloseOnEscape'],
+      readonly shouldCloseOnClickOutside: SubscriptionSpec['shouldCloseOnClickOutside'],
+      readonly shouldCloseOnClickInside: SubscriptionSpec['shouldCloseOnClickInside'],
+
+      readonly isTargetTogglingElement: SubscriptionSpec['isTargetTogglingElement'],
+      readonly isTargetInside: SubscriptionSpec['isTargetInside'],
+
+      readonly close: SubscriptionSpec['close']
 }
 
 export type Subscription = Function;
@@ -55,7 +73,6 @@ export interface SubscriptionSpecFactorySpec {
   getElementsInside: () => HTMLElement[];
   getTogglingElement?: () => HTMLElement;
 }
-;
 
 
 
@@ -105,11 +122,30 @@ export class AutoCloseService implements OnDestroy {
     this.subscriptions = this.subscriptions.filter(item => item !== subscriptionSpec);
   }
 
+  private normalizeSubscription(subscriptionSpec: SubscriptionSpec): SubscriptionInstance {
+    return {
+      keyEvent: this.withDefault(subscriptionSpec.keyEvent, 'keyup'),
+      mouseEvent: this.withDefault(subscriptionSpec.mouseEvent, 'mousedown'),
+
+      shouldAutoClose: this.withDefault(subscriptionSpec.shouldAutoClose, () => true),
+      shouldCloseOnEscape: this.withDefault(subscriptionSpec.shouldCloseOnEscape, () => true),
+
+      shouldCloseOnClickOutside: this.withDefault(subscriptionSpec.shouldCloseOnClickOutside, () => true),
+      shouldCloseOnClickInside: this.withDefault(subscriptionSpec.shouldCloseOnClickInside, () => false),
+
+      isTargetTogglingElement: this.withDefault(subscriptionSpec.isTargetTogglingElement, () => false),
+      isTargetInside: subscriptionSpec.isTargetInside,
+      close: subscriptionSpec.close
+    };
+  }
+
   public createSubscriber(subscriptionSpec: SubscriptionSpec): Subscriber {
     let subscription: Subscription = null;
 
+    const subscriptionInstance = this.normalizeSubscription(subscriptionSpec);
+
     const isSubscribed = () => isDefined(subscription);
-    const _subscribe = () => subscription = this.subscribe(subscriptionSpec);
+    const _subscribe = () => subscription = this.subscribe(subscriptionInstance);
     const _unsubscribe = () => (subscription(), subscription = null);
     const _toggle = () => !isSubscribed() ? _subscribe() : _unsubscribe();
 
@@ -138,165 +174,93 @@ export class AutoCloseService implements OnDestroy {
   // tslint:disable-next-line:member-ordering
   private _subscriptionExecuted: boolean;
 
+  // A few notes:
+  // - we handle the left click only
+  // - the click event comes last among mouse events of a same user action, so:
+  //   - it's no time to reset the `_subscriptionExecuted` flag anyways
+  //   - there's no need to update this flag at the end since there's no further event
+  // - if during a same user action a subscription already got called, we skip processing until next user action
   private onClickEvent(event: MouseEvent, eventType: string) {
-    // we handle left-click mouse events only
-    if (event.button !== 0) {
+    if (event.button !== 0 || this._subscriptionExecuted) {
       return;
     }
 
-    // during the same user action a subscription already got called, so we skip processing until next user action
-    if (this._subscriptionExecuted) {
-      return;
-    }
+    this.arraySome(this.subscriptions, ({shouldAutoClose, shouldCloseOnClickInside, isTargetInside, close}) => {
+      // note: if we can't determine if target is inside (i.e. `isTargetInside` is not defined):
+      // - we won't call subscriptions here
+      // - anyways the subscriptions would have been called in previous mouse events then
+      // note: we call filters in an order so that potentially more costly processing occurs less probably
+      if (isDefined(isTargetInside) && shouldAutoClose() && shouldCloseOnClickInside({event}) &&
+          isTargetInside(<HTMLElement>event.target)) {
+        close(event, {reason: 'inside_click', eventType});
+        return true;
+      }
 
-    const oneExecuted =
-        this.arraySome(this.subscriptions, ({shouldAutoClose, shouldCloseOnClickInside, isTargetInside, close}) => {
-          // this event handler calls subscriptions only if the event occurred inside
-          // if we can't determine this information, we don' proceed with auto close
-          // since it would already have been done anyways with the previous mouse event
-          if (!isDefined(isTargetInside)) {
-            return;
-          }
-
-          // no `shouldAutoClose` defined means should always auto close
-          if (isDefined(shouldAutoClose) && !shouldAutoClose()) {
-            return;
-          }
-
-          // if `shouldCloseOnClickInside` is not defined, by default we don't close from inside
-          if (!isDefined(shouldCloseOnClickInside) || !shouldCloseOnClickInside({event})) {
-            return;
-          }
-
-          // if target is not inside, we don't auto close
-          // (we called it last because it could be the most costly processing compared to other filters above)
-          if (!isTargetInside(<HTMLElement>event.target)) {
-            return;
-          }
-
-          close(event, {reason: 'inside_click', eventType});
-          return true;
-        });
-
-    // after the `click` event there is no other event we listen to so no need to update any flag
-    // contrary to what is done in other event handlers
+      return false;
+    });
   }
 
+  // A few notes:
+  // - we handle the left click only
+  // - for one user action, the first mouse event is `mousedown` so it's a good time to reset the
+  // `_subscriptionExecuted` flag
+  // - if during a same user action a subscription already got called, we skip processing until next user action
   private onMouseEvent(event: MouseEvent, eventType: string) {
-    // we handle left-click mouse events only
     if (event.button !== 0) {
       return;
     }
 
-    // for one user action, the first mouse event is `mousedown`
-    // so it's a good time to reset this flag
     if (eventType === 'mousedown') {
       this._subscriptionExecuted = null;
-    }
-
-    // during the same user action a subscription already got called, so we skip processing until next user action
-    if (this._subscriptionExecuted) {
+    } else if (this._subscriptionExecuted) {
       return;
     }
 
     const oneExecuted = this.arraySome(this.subscriptions, (subscription) => {
       let {mouseEvent, shouldAutoClose, shouldCloseOnClickOutside, isTargetTogglingElement, isTargetInside, close} =
           subscription;
-
-      // by default subscribers will be called on 'mousedown'
-      if (!isDefined(mouseEvent)) {
-        mouseEvent = 'mousedown';
-      }
-
-      // if subscriber's expected event is not actual event, we skip
-      if (mouseEvent !== eventType) {
-        return;
-      }
-
-      // no `shouldAutoClose` defined means should always auto close
-      if (isDefined(shouldAutoClose) && !shouldAutoClose()) {
-        return;
-      }
-
-      // now checking the target; if no filters are defined we will close unconditionally
       const target = <HTMLElement>event.target;
 
-      // if `isTargetTogglingElement` is defined, target should not be the toggling element in order to auto close
-      if (isDefined(isTargetTogglingElement) && isTargetTogglingElement(target)) {
-        return;
+      // note: `shouldCloseOnClickOutside` makes no sense if we can't check if
+      // target is inside/outside (i.e. if `isTargetInside` is not defined)
+      if (mouseEvent === eventType && shouldAutoClose() && !isTargetTogglingElement(target) &&
+          (!isDefined(isTargetInside) || (!isTargetInside(target) && shouldCloseOnClickOutside({event})))) {
+        close(event, {reason: 'outside_click', eventType});
+        return true;
       }
-
-      // in this handler we don't auto close when target is inside
-      // if `isTargetInside` is not defined, we can't check it
-      // so we consider there is no distinction between inside and outside
-      // and we close unconditionally
-      if (isDefined(isTargetInside)) {
-        if (isTargetInside(target)) {
-          return;
-        }
-        // however, if `shouldCloseOnClickOutside` is not defined
-        // we consider we should close (still provided the target is not inside)
-        if (isDefined(shouldCloseOnClickOutside) && !shouldCloseOnClickOutside({event})) {
-          return;
-        }
-      }
-
-      close(event, {reason: 'outside_click', eventType});
-      return true;
+      return false;
     });
 
-    // let's store a flag to indicate whether a subscription got called or not,
-    // for next event handlers of the same user action
     if (this._subscriptionExecuted !== true) {
       this._subscriptionExecuted = oneExecuted;
     }
   }
 
+  // A few notes:
+  // - we handle the `escape` key only
+  // - for one user action, the first keyboard event is `keydown` so it's a good time to reset the
+  // `_subscriptionExecuted` flag
+  // - if during a same user action a subscription already got called, we skip processing until next user action
   private onKeyEvent(event: KeyboardEvent, eventType: string) {
-    // we handle the `escape` key only
     if (!['Escape', 'Esc'].includes(event.key)) {
       return;
     }
 
-    // for one user action, the first keyboard event is `keydown`
-    // so it's a good time to reset this flag
     if (eventType === 'keydown') {
       this._subscriptionExecuted = null;
-    }
-
-    // during the same user action a subscription already got called, so we skip processing until next user action
-    if (this._subscriptionExecuted) {
+    } else if (this._subscriptionExecuted) {
       return;
     }
 
     const oneExecuted =
         this.arraySome(this.subscriptions, ({keyEvent, shouldAutoClose, shouldCloseOnEscape, close}) => {
-          // by default subscribers will be called on 'keyup'
-          if (!isDefined(keyEvent)) {
-            keyEvent = 'keyup';
+          if (keyEvent === eventType && shouldAutoClose() && shouldCloseOnEscape({event})) {
+            close(event, {reason: 'escape', eventType});
+            return true;
           }
-
-          // if subscriber's expected event is not actual event, we skip
-          if (keyEvent !== eventType) {
-            return;
-          }
-
-          // note: no `shouldAutoClose` defined means should always auto close
-          if (isDefined(shouldAutoClose) && !shouldAutoClose()) {
-            return;
-          }
-
-          // if `shouldCloseOnEscape` is not defined, by default we close on escape
-          if (isDefined(shouldCloseOnEscape) && !shouldCloseOnEscape({event})) {
-            return;
-          }
-
-          close(event, {reason: 'escape', eventType});
-          return true;
+          return false;
         });
 
-    // let's store a flag to indicate whether a subscription got called or not,
-    // for next event handlers of the same user action
     if (this._subscriptionExecuted !== true) {
       this._subscriptionExecuted = oneExecuted;
     }
@@ -361,4 +325,6 @@ export class AutoCloseService implements OnDestroy {
   private safeElementContains(element?: HTMLElement, descendant?: HTMLElement): boolean {
     return (!isDefined(element) || !isDefined(descendant)) ? false : element.contains(descendant);
   }
+
+  private withDefault<T>(value: T, defaultValue: T): T { return isDefined(value) ? value : defaultValue; }
 }
