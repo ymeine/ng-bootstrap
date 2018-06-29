@@ -14,14 +14,11 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import {DOCUMENT} from '@angular/common';
-import {Subject, fromEvent} from 'rxjs';
+import {fromEvent} from 'rxjs';
 import {filter, takeUntil} from 'rxjs/operators';
 import {NgbDropdownConfig} from './dropdown-config';
 import {positionElements, PlacementArray, Placement} from '../util/positioning';
-
-enum Key {
-  Escape = 27
-}
+import {Key} from '../util/key';
 
 /**
  */
