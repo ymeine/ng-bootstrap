@@ -4,7 +4,7 @@ import {NgbModalBackdrop} from './modal-backdrop';
 import {NgbModalWindow} from './modal-window';
 import {NgbModalStack} from './modal-stack';
 import {NgbModal} from './modal';
-import {Scrollbar} from '../util/scrollbar';
+import {ScrollBar} from '../util/scrollbar';
 
 export {NgbModal, NgbModalOptions} from './modal';
 export {NgbModalRef, NgbActiveModal} from './modal-ref';
@@ -17,6 +17,6 @@ export {ModalDismissReasons} from './modal-dismiss-reasons';
 })
 export class NgbModalModule {
   static forRoot(): ModuleWithProviders {
-    return {ngModule: NgbModalModule, providers: [NgbModal, NgbModalStack, Scrollbar]};
+    return {ngModule: NgbModalModule, providers: [NgbModal, NgbModalStack, ScrollBar]};
   }
 }

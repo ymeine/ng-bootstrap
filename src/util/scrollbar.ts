@@ -6,42 +6,41 @@ import {isDefined} from './util';
 
 
 @Injectable()
-export class Scrollbar {
+export class ScrollBar {
   constructor(@Inject(DOCUMENT) private _document) {}
 
-  compensateScrollbar() {
-    if (!this.isScrollbarPresent()) {
+  compensate() {
+    if (!this.isPresent()) {
       return () => {};
     }
-    const scrollbarWidth = this.getScrollbarWidth();
-    return this.adjustElementForScrollbar(scrollbarWidth);
+    const width = this.getWidth();
+    return this.adjustBody(width);
   }
 
-  adjustElementForScrollbar(scrollbarWidth: number) {
-    const element = this._document.body;
-    const userSetPadding = element.style.paddingRight;
-    const paddingAmount = parseFloat(window.getComputedStyle(element)['padding-right']);
-    element.style['padding-right'] = `${paddingAmount + scrollbarWidth}px`;
-    return () => element.style['padding-right'] = userSetPadding;
+  adjustBody(width: number) {
+    const {body} = this._document;
+    const userSetPadding = body.style.paddingRight;
+    const paddingAmount = parseFloat(window.getComputedStyle(body)['padding-right']);
+    body.style['padding-right'] = `${paddingAmount + width}px`;
+    return () => body.style['padding-right'] = userSetPadding;
   }
 
-  isScrollbarPresent(): boolean {
-    const element = this._document.body;
-    const rect = element.getBoundingClientRect();
+  isPresent(): boolean {
+    const rect = this._document.body.getBoundingClientRect();
     return rect.left + rect.right < window.innerWidth;
   }
 
-  getScrollbarWidth(): number {
+  getWidth(): number {
     const document = this._document;
-    const element = document.body;
+    const {body} = document;
 
     const measurer = document.createElement('div');
     measurer.className = 'modal-scrollbar-measure';
 
-    element.appendChild(measurer);
-    const scrollbarWidth = measurer.getBoundingClientRect().width - measurer.clientWidth;
-    element.removeChild(measurer);
+    body.appendChild(measurer);
+    const width = measurer.getBoundingClientRect().width - measurer.clientWidth;
+    body.removeChild(measurer);
 
-    return scrollbarWidth;
+    return width;
   }
 }
