@@ -674,6 +674,19 @@ describe('ngb-modal', () => {
       expect(fixture.nativeElement).not.toHaveModal();
     });
   });
+
+  describe('scrollbar', () => {
+    it('should compensate background position to avoid shifting on opening', () => {
+      const componentWrapper = TestBed.createComponent(TestScrollBarComponent);
+      const component = componentWrapper.componentInstance;
+
+      const initialPosition = component.paneLeftPosition;
+      component.open();
+      expect(component.paneLeftPosition).toBe(initialPosition);
+      component.close();
+      expect(component.paneLeftPosition).toBe(initialPosition);
+    });
+  })
 });
 
 @Component({selector: 'custom-injector-cmpt', template: 'Some content'})
@@ -753,9 +766,37 @@ class TestComponent {
   openTplIf(options?: Object) { return this.modalService.open(this.tplContentWithIf, options); }
 }
 
+@Component({
+  selector: 'test-scrollbar-cmpt',
+  template: `
+    <button (click)='open()'>Open</button>
+    <div style='width: 50%; height: 150vh'>
+      <div style='display: inline-block; width: 25%; height: 100%;'></div>
+      <div style='display: inline-block; width: 25%; height: 100%; border-left: 1px solid black;' id="pane"></div>
+    </div>
+  `
+})
+class TestScrollBarComponent {
+  modal: NgbModalRef;
+
+  constructor(private modalService: NgbModal) {}
+
+  open() {
+    this.modal = this.modalService.open('dummy');
+  }
+
+  close() {
+    this.modal.close('ok');
+  }
+
+  get paneLeftPosition() {
+    return document.querySelector('#pane').getBoundingClientRect().left;
+  }
+}
+
 @NgModule({
-  declarations: [TestComponent, CustomInjectorCmpt, DestroyableCmpt, WithActiveModalCmpt],
-  exports: [TestComponent, DestroyableCmpt],
+  declarations: [TestComponent, CustomInjectorCmpt, DestroyableCmpt, WithActiveModalCmpt, TestScrollBarComponent],
+  exports: [TestComponent, DestroyableCmpt, TestScrollBarComponent],
   imports: [CommonModule, NgbModalModule.forRoot()],
   entryComponents: [CustomInjectorCmpt, DestroyableCmpt, WithActiveModalCmpt],
   providers: [SpyService]
