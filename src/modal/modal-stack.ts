@@ -12,7 +12,7 @@ import {
 
 import {ContentRef} from '../util/popup';
 import {isDefined, isString} from '../util/util';
-import {Scrollbar} from '../util/scrollbar';
+import {ScrollBar} from '../util/scrollbar';
 
 import {NgbModalBackdrop} from './modal-backdrop';
 import {NgbModalWindow} from './modal-window';
@@ -26,13 +26,13 @@ export class NgbModalStack {
   constructor(
       private _applicationRef: ApplicationRef, private _injector: Injector,
       private _componentFactoryResolver: ComponentFactoryResolver, @Inject(DOCUMENT) private _document,
-      private _scrollbar: Scrollbar) {}
+      private _scrollBar: ScrollBar) {}
 
   open(moduleCFR: ComponentFactoryResolver, contentInjector: Injector, content: any, options): NgbModalRef {
     const containerEl =
         isDefined(options.container) ? this._document.querySelector(options.container) : this._document.body;
 
-    const revertPaddingForScrollbar = this._scrollbar.compensateScrollbar();
+    const revertPaddingForScrollBar = this._scrollBar.compensate();
 
     if (!containerEl) {
       throw new Error(`The specified modal container "${options.container || 'body'}" was not found in the DOM.`);
@@ -46,7 +46,7 @@ export class NgbModalStack {
     let windowCmptRef: ComponentRef<NgbModalWindow> = this._attachWindowComponent(containerEl, contentRef);
     let ngbModalRef: NgbModalRef = new NgbModalRef(windowCmptRef, contentRef, backdropCmptRef, options.beforeDismiss);
 
-    ngbModalRef.result.then(revertPaddingForScrollbar, revertPaddingForScrollbar);
+    ngbModalRef.result.then(revertPaddingForScrollBar, revertPaddingForScrollBar);
     activeModal.close = (result: any) => { ngbModalRef.close(result); };
     activeModal.dismiss = (reason: any) => { ngbModalRef.dismiss(reason); };
 
