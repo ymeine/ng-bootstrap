@@ -1,7 +1,5 @@
 import {Injectable, Inject} from '@angular/core';
-import {DOCUMENT} from '@angular/platform-browser';
-
-import {isDefined} from './util';
+import {DOCUMENT} from '@angular/common';
 
 
 
@@ -10,14 +8,14 @@ export class ScrollBar {
   constructor(@Inject(DOCUMENT) private _document) {}
 
   compensate() {
-    if (!this.isPresent()) {
+    if (!this._isPresent()) {
       return () => {};
     }
-    const width = this.getWidth();
-    return this.adjustBody(width);
+    const width = this._getWidth();
+    return this._adjustBody(width);
   }
 
-  adjustBody(width: number) {
+  private _adjustBody(width: number) {
     const {body} = this._document;
     const userSetPadding = body.style.paddingRight;
     const paddingAmount = parseFloat(window.getComputedStyle(body)['padding-right']);
@@ -25,12 +23,12 @@ export class ScrollBar {
     return () => body.style['padding-right'] = userSetPadding;
   }
 
-  isPresent(): boolean {
+  private _isPresent(): boolean {
     const rect = this._document.body.getBoundingClientRect();
     return rect.left + rect.right < window.innerWidth;
   }
 
-  getWidth(): number {
+  private _getWidth(): number {
     const document = this._document;
     const {body} = document;
 
