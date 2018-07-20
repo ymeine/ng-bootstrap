@@ -19,8 +19,6 @@ export type CompensationReverter = () => void;
  */
 @Injectable()
 export class ScrollBar {
-  private _width: number = null;
-
   constructor(@Inject(DOCUMENT) private _document) {}
 
   /**
@@ -30,21 +28,15 @@ export class ScrollBar {
    * @return a callback used to revert the compensation (noop if there was none,
    * otherwise a function removing the padding)
    */
-  compensate(): CompensationReverter {
-    if (!this._isPresent()) {
-      return noop;
-    }
-    const width = this._getWidth();
-    return this._adjustBody(width);
-  }
+  compensate(): CompensationReverter { return !this._isPresent() ? noop : this._adjustBody(this._getWidth()); }
 
   /**
-   * Adds a padding of the size of a scrollbar on the right of the body.
+   * Adds a padding of the given width on the right of the body.
    *
-   * @return a callback used to remove this padding
+   * @return a callback used to revert the padding to its previous value
    */
   private _adjustBody(width: number): CompensationReverter {
-    const {body} = this._document;
+    const body = this._document.body;
     const userSetPadding = body.style.paddingRight;
     const paddingAmount = parseFloat(window.getComputedStyle(body)['padding-right']);
     body.style['padding-right'] = `${paddingAmount + width}px`;
@@ -62,26 +54,19 @@ export class ScrollBar {
   }
 
   /**
-   * Calculates and returns the width of a scrollbar. Result is cached.
+   * Calculates and returns the width of a scrollbar.
    *
    * @return the width of a scrollbar on this page
    */
   private _getWidth(): number {
-    if (this._width != null) {
-      return this._width;
-    }
-
-    const document = this._document;
-    const {body} = document;
-
-    const measurer = document.createElement('div');
+    const measurer = this._document.document.createElement('div');
     measurer.className = 'modal-scrollbar-measure';
 
+    const body = this._document.body;
     body.appendChild(measurer);
     const width = measurer.getBoundingClientRect().width - measurer.clientWidth;
     body.removeChild(measurer);
 
-    this._width = width;
     return width;
   }
 }
