@@ -19,6 +19,10 @@ import {DEMO_SNIPPETS} from './demos';
         <ngbd-popover-triggers></ngbd-popover-triggers>
       </ngbd-example-box>
       <ngbd-example-box
+        demoTitle="AutoClose" [snippets]="snippets" component="popover" demo="autoclose">
+        <ngbd-popover-autoclose></ngbd-popover-autoclose>
+      </ngbd-example-box>
+      <ngbd-example-box
         demoTitle="Context and manual triggers" [snippets]="snippets" component="popover" demo="tplwithcontext">
         <ngbd-popover-tplwithcontext></ngbd-popover-tplwithcontext>
       </ngbd-example-box>
