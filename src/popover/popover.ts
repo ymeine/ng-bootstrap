@@ -124,12 +124,12 @@ export class NgbPopoverToggle implements OnDestroy {
 
   constructor(private _element: ElementRef<HTMLElement>) {}
 
-  ngOnDestroy() {
-    this._unregister();
-  }
+  ngOnDestroy() { this._unregister(); }
 
   private _unregister() {
-    if (isDefined(this._unregisterFunction)) { this._unregisterFunction(); }
+    if (isDefined(this._unregisterFunction)) {
+      this._unregisterFunction();
+    }
   }
 }
 
@@ -156,9 +156,11 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
    * clicking MouseEvent (mousedown, mouseup or click), this target will be
    * automatically registered to be excluded.
    *
-   * If using 'inside' and having some interactive elements inside the popover, also register them using registerClickableElement.
+   * If using 'inside' and having some interactive elements inside the popover, also register them using
+   * registerClickableElement.
    *
-   * To avoid using registerClickableElement directly, the directive called NgbPopoverToggle can be used when applicable.
+   * To avoid using registerClickableElement directly, the directive called NgbPopoverToggle can be used when
+   * applicable.
    */
   @Input() autoClose: boolean | 'inside' | 'outside';
   /**
