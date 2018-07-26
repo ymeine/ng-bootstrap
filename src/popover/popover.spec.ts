@@ -518,7 +518,7 @@ describe('ngb-popover', () => {
     it('should allow toggling for manual triggers', () => {
       const fixture = createTestComponent(`
                 <div ngbPopover="Great tip!" triggers="manual" #t="ngbPopover"></div>
-                <button (click)="t.toggle()">T</button>`);
+                <button (click)="t.toggle()" [ngbPopoverToggle]="t">T</button>`);
       const button = fixture.nativeElement.querySelector('button');
 
       button.click();
@@ -532,7 +532,7 @@ describe('ngb-popover', () => {
 
     it('should allow open / close for manual triggers', () => {
       const fixture = createTestComponent(`<div ngbPopover="Great tip!" triggers="manual" #t="ngbPopover"></div>
-                <button (click)="t.open()">O</button>
+                <button (click)="t.open()" [ngbPopoverToggle]="t">O</button>
                 <button (click)="t.close()">C</button>`);
       const buttons = fixture.nativeElement.querySelectorAll('button');
 
@@ -548,7 +548,7 @@ describe('ngb-popover', () => {
     it('should not throw when open called for manual triggers and open popover', () => {
       const fixture = createTestComponent(`
                 <div ngbPopover="Great tip!" triggers="manual" #t="ngbPopover"></div>
-                <button (click)="t.open()">O</button>`);
+                <button (click)="t.open()" [ngbPopoverToggle]="t">O</button>`);
       const button = fixture.nativeElement.querySelector('button');
 
       button.click();  // open
