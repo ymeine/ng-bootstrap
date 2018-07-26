@@ -95,16 +95,23 @@ export class NgbPopoverWindow {
     this._renderer.addClass(this._element.nativeElement, 'bs-popover-' + this.placement.toString());
   }
 
+  /**
+   * Tells whether the event has been triggered from this component's subtree or not.
+   *
+   * @param event the event to check
+   *
+   * @return whether the event has been triggered from this component's subtree or not.
+   */
   isEventFrom(event: Event): boolean { return this._element.nativeElement.contains(event.target as HTMLElement); }
 }
 
 /**
- * A directive to mark an element that triggers the popover opening and closing
+ * A directive to mark an element to be excluded from the automatic closing (autoClose) of the popover.
  */
 @Directive({selector: '[ngbPopoverToggle]'})
 export class NgbPopoverToggle {
   /**
-   * A reference to the `NgbPopover` instance
+   * A reference to the `NgbPopover` instance.
    */
   @Input()
   set ngbPopoverToggle(popover: NgbPopover) {
@@ -120,12 +127,26 @@ export class NgbPopoverToggle {
 @Directive({selector: '[ngbPopover]', exportAs: 'ngbPopover'})
 export class NgbPopover implements OnInit, OnDestroy, OnChanges {
   /**
-   * Indicates that popover should be closed on clicks inside, outside or both and on pressing Escape, or not at all.
+   * Indicates that popover should be closed on clicks inside the popover,
+   * outside the popover, or both, and on pressing Escape, or not at all.
    *
-   * - true (default): closed on both outside and inside clicks as well as Escape press
-   * - false: disables the autoClose feature (but triggers still apply)
-   * - 'inside': closed on inside clicks (also achievable through triggers) as well as Escape press
-   * - 'outside': closed on outside clicks as well as Escape press
+   * - true (default): closes on both outside and inside clicks as well as Escape presses
+   * - false: disables the autoClose feature (NB: triggers still apply)
+   * - 'inside': closes on inside clicks as well as Escape presses
+   * - 'outside': closes on outside clicks (sometimes also achievable through triggers)
+   * as well as Escape presses
+   *
+   * Use registerClickableElement to ignore some elements from anywhere (either inside or outside the popover).
+   *
+   * When using 'outside' or true, you MUST register any element which opens,
+   * closes or toggles the popover by using registerClickableElement.
+   * Note that if the popover's target has at least one trigger defined with a
+   * clicking MouseEvent (mousedown, mouseup or click), this target will be
+   * automatically registered to be excluded.
+   *
+   * If using 'inside' and having some interactive elements inside the popover, also register them using registerClickableElement.
+   *
+   * To avoid using registerClickableElement directly, the directive called NgbPopoverToggle can be used when applicable.
    */
   @Input() autoClose: boolean | 'inside' | 'outside';
   /**
@@ -256,8 +277,11 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
   }
 
   /**
-   * Registers an html element outside of the popover as clickable.
-   * Clicking on this element will not close the popover.
+   * Registers an HTML element outside of the popover as clickable.
+   *
+   * Clicking on this element will not close the popover when [autoClose]="'outside'" is used.
+   *
+   * @param element the element to register as clickable
    */
   registerClickableElement(element: HTMLElement) { this._clickableElements.add(element); }
 
@@ -321,7 +345,7 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
             .some(
                 trigger => !trigger.isManual() &&
                     (togglerEvents.includes(trigger.open) || togglerEvents.includes(trigger.close)))) {
-      this._clickableElements.add(this._elementRef.nativeElement);
+      this.registerClickableElement(this._elementRef.nativeElement);
     }
   }
 
