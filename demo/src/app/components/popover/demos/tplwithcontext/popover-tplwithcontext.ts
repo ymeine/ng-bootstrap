@@ -6,17 +6,17 @@ import {Component, ViewChild} from '@angular/core';
   templateUrl: './popover-tplwithcontext.html'
 })
 export class NgbdPopoverTplwithcontext {
-  greeting = {};
+  greeting: string;
   name = 'World';
 
   @ViewChild('p') public popover: NgbPopover;
 
-  public changeGreeting(greeting: any): void {
+  public changeGreeting(greeting: string): void {
     const isOpen = this.popover.isOpen();
     this.popover.close();
     if (greeting !== this.greeting || !isOpen) {
       this.greeting = greeting;
-      this.popover.open(greeting);
+      this.popover.open({greeting});
     }
   }
 }

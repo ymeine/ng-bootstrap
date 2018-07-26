@@ -6,17 +6,17 @@ import {Component, ViewChild} from '@angular/core';
   templateUrl: './tooltip-tplwithcontext.html'
 })
 export class NgbdTooltipTplwithcontext {
-  greeting = {};
+  greeting: string;
   name = 'World';
 
   @ViewChild('t') public tooltip: NgbTooltip;
 
-  public changeGreeting(greeting: any): void {
+  public changeGreeting(greeting: string): void {
     const isOpen = this.tooltip.isOpen();
     this.tooltip.close();
     if (greeting !== this.greeting || !isOpen) {
       this.greeting = greeting;
-      this.tooltip.open(greeting);
+      this.tooltip.open({greeting});
     }
   }
 }
