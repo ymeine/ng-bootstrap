@@ -27,6 +27,7 @@ import {listenToTriggers, parseTriggers} from '../util/triggers';
 import {positionElements, Placement, PlacementArray} from '../util/positioning';
 import {PopupService} from '../util/popup';
 import {Key} from '../util/key';
+import {isDefined} from '../util/util';
 
 import {NgbPopoverConfig} from './popover-config';
 
@@ -109,16 +110,27 @@ export class NgbPopoverWindow {
  * A directive to mark an element to be excluded from the automatic closing (autoClose) of the popover.
  */
 @Directive({selector: '[ngbPopoverToggle]'})
-export class NgbPopoverToggle {
+export class NgbPopoverToggle implements OnDestroy {
+  private _unregisterFunction: Function;
+
   /**
    * A reference to the `NgbPopover` instance.
    */
   @Input()
   set ngbPopoverToggle(popover: NgbPopover) {
-    popover.registerClickableElement(this._element.nativeElement);
+    this._unregister();
+    this._unregisterFunction = popover.registerClickableElement(this._element.nativeElement);
   };
 
   constructor(private _element: ElementRef<HTMLElement>) {}
+
+  ngOnDestroy() {
+    this._unregister();
+  }
+
+  private _unregister() {
+    if (isDefined(this._unregisterFunction)) { this._unregisterFunction(); }
+  }
 }
 
 /**
@@ -282,8 +294,13 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
    * Clicking on this element will not close the popover when [autoClose]="'outside'" is used.
    *
    * @param element the element to register as clickable
+   *
+   * @return a function to unregister the element.
    */
-  registerClickableElement(element: HTMLElement) { this._clickableElements.add(element); }
+  registerClickableElement(element: HTMLElement): Function {
+    this._clickableElements.add(element);
+    return () => this._clickableElements.delete(element);
+  }
 
   private _shouldCloseFromClick(event: MouseEvent) {
     if (event.button !== 2 && !this._isEventFromClickableElement(event)) {
