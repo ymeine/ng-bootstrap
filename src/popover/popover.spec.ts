@@ -1,12 +1,18 @@
 import {TestBed, ComponentFixture, inject} from '@angular/core/testing';
-import {createGenericTestComponent} from '../test/common';
+import {createGenericTestComponent, createKeyEvent} from '../test/common';
 
 import {By} from '@angular/platform-browser';
 import {Component, ViewChild, ChangeDetectionStrategy, Injectable, OnDestroy} from '@angular/core';
 
+import {Key} from '../util/key';
+
 import {NgbPopoverModule} from './popover.module';
 import {NgbPopoverWindow, NgbPopover} from './popover';
 import {NgbPopoverConfig} from './popover-config';
+
+function dispatchEscapeKeyUpEvent() {
+  document.dispatchEvent(createKeyEvent(Key.Escape));
+};
 
 @Injectable()
 class SpyService {
@@ -569,6 +575,326 @@ describe('ngb-popover', () => {
       button.click();  // close
       fixture.detectChanges();
       expect(getWindow(fixture.nativeElement)).toBeNull();
+    });
+  });
+
+  describe('autoClose', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({declarations: [TestComponent], imports: [NgbPopoverModule.forRoot()]});
+    });
+
+    it('should not close when autoClose is false', () => {
+      const fixture = createTestComponent(`
+        <ng-template #popoverContent><div id="popover">Popover content</div></ng-template>
+        <div
+          id="target"
+          #popover="ngbPopover"
+          [ngbPopover]="popoverContent"
+          triggers="manual"
+          [autoClose]="false"
+          (click)="popover.open()"
+        >
+          Target with popover
+        </div>
+        <div id="outside">Element outside</div>
+      `);
+      const select = selector => fixture.nativeElement.querySelector(selector);
+      const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();
+
+      const outside = select('#outside');
+      const target = select('#target');
+      let popover;
+      const open = () => {
+        target.click();
+        fixture.detectChanges();
+        expectToBeOpen();
+        popover = select('#popover');
+      };
+
+      open();
+
+      dispatchEscapeKeyUpEvent();
+      fixture.detectChanges();
+      expectToBeOpen();
+
+      outside.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+
+      popover.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+
+      target.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+    });
+
+    it('should close on clicks inside the popover and on Escape when autoClose is "inside"', () => {
+      const fixture = createTestComponent(`
+        <ng-template #popoverContent><div id="popover">Popover content</div></ng-template>
+        <div
+          id="target"
+          #popover="ngbPopover"
+          [ngbPopover]="popoverContent"
+          triggers="manual"
+          autoClose="inside"
+          (click)="popover.open()"
+        >
+          Target with popover
+        </div>
+        <div id="outside">Element outside</div>
+      `);
+      const select = selector => fixture.nativeElement.querySelector(selector);
+      const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();
+      const expectToBeClosed = () => expect(getWindow(fixture.nativeElement)).toBeNull();
+
+      const outside = select('#outside');
+      const target = select('#target');
+      let popover;
+      const open = () => {
+        target.click();
+        fixture.detectChanges();
+        expectToBeOpen();
+        popover = select('#popover');
+      };
+
+      open();
+
+      dispatchEscapeKeyUpEvent();
+      fixture.detectChanges();
+      expectToBeClosed();
+      open();
+
+      popover.click();
+      fixture.detectChanges();
+      expectToBeClosed();
+      open();
+
+      outside.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+
+      target.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+    });
+
+    it('should close on clicks outside the popover and on Escape when autoClose is "outside"', () => {
+      const fixture = createTestComponent(`
+        <ng-template #popoverContent><div id="popover">Popover content</div></ng-template>
+        <div
+          id="target"
+          #popover="ngbPopover"
+          [ngbPopover]="popoverContent"
+          triggers="manual"
+          autoClose="outside"
+          (click)="popover.open()"
+          [ngbPopoverToggle]="popover"
+        >
+          Target with popover
+        </div>
+        <div id="outside">Element outside</div>
+      `);
+      const select = selector => fixture.nativeElement.querySelector(selector);
+      const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();
+      const expectToBeClosed = () => expect(getWindow(fixture.nativeElement)).toBeNull();
+
+      const outside = select('#outside');
+      const target = select('#target');
+      let popover;
+      const open = () => {
+        target.click();
+        fixture.detectChanges();
+        expectToBeOpen();
+        popover = select('#popover');
+      };
+
+      open();
+
+      dispatchEscapeKeyUpEvent();
+      fixture.detectChanges();
+      expectToBeClosed();
+      open();
+
+      outside.click();
+      fixture.detectChanges();
+      expectToBeClosed();
+      open();
+
+      popover.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+
+      target.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+    });
+
+    it('should close on clicks anywhere and on Escape when autoClose is true', () => {
+      const fixture = createTestComponent(`
+        <ng-template #popoverContent><div id="popover">Popover content</div></ng-template>
+        <div
+          id="target"
+          #popover="ngbPopover"
+          [ngbPopover]="popoverContent"
+          triggers="manual"
+          [autoClose]="true"
+          (click)="popover.open()"
+          [ngbPopoverToggle]="popover"
+        >
+          Target with popover
+        </div>
+        <div id="outside">Element outside</div>
+      `);
+      const select = selector => fixture.nativeElement.querySelector(selector);
+      const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();
+      const expectToBeClosed = () => expect(getWindow(fixture.nativeElement)).toBeNull();
+
+      const outside = select('#outside');
+      const target = select('#target');
+      let popover;
+      const open = () => {
+        target.click();
+        fixture.detectChanges();
+        expectToBeOpen();
+        popover = select('#popover');
+      };
+
+      open();
+
+      dispatchEscapeKeyUpEvent();
+      fixture.detectChanges();
+      expectToBeClosed();
+      open();
+
+      outside.click();
+      fixture.detectChanges();
+      expectToBeClosed();
+      open();
+
+      popover.click();
+      fixture.detectChanges();
+      expectToBeClosed();
+      open();
+
+      target.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+    });
+
+    it('should implicitly ignore popover target when using a trigger with a click: for toggler', () => {
+      const fixture = createTestComponent(`
+        <ng-template #popoverContent><div id="popover">Popover content</div></ng-template>
+        <div
+          id="target"
+          [ngbPopover]="popoverContent"
+          triggers="keydown:keyup click"
+          [autoClose]="true"
+        >
+          Target with popover
+        </div>
+        <div id="outside">Element outside</div>
+      `);
+      const select = selector => fixture.nativeElement.querySelector(selector);
+      const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();
+      const expectToBeClosed = () => expect(getWindow(fixture.nativeElement)).toBeNull();
+
+      const target = select('#target');
+      const open = () => {
+        target.click();
+        fixture.detectChanges();
+        expectToBeOpen();
+      };
+
+      open();
+
+      target.click();
+      fixture.detectChanges();
+      expectToBeClosed();
+    });
+
+    it('should implicitly ignore popover target when using a trigger with a click: for opener', () => {
+      const fixture = createTestComponent(`
+        <ng-template #popoverContent><div id="popover">Popover content</div></ng-template>
+        <div
+          id="target"
+          [ngbPopover]="popoverContent"
+          triggers="keydown:keyup click:keyup"
+          [autoClose]="true"
+        >
+          Target with popover
+        </div>
+        <div id="outside">Element outside</div>
+      `);
+      const select = selector => fixture.nativeElement.querySelector(selector);
+      const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();
+
+      const target = select('#target');
+      const open = () => {
+        target.click();
+        fixture.detectChanges();
+        expectToBeOpen();
+      };
+
+      open();
+
+      target.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+    });
+
+    it('should explicitly ignore manually marked elements', () => {
+      const fixture = createTestComponent(`
+        <ng-template #popoverContent>
+          <div id="popover-ignored" [ngbPopoverToggle]="popover">Popover content</div>
+          <div id="popover-closer">Close me</div>
+        </ng-template>
+        <div
+          id="target"
+          [ngbPopover]="popoverContent"
+          triggers="manual"
+          [autoClose]="true"
+          (click)="popover.open()"
+          [ngbPopoverToggle]="popover"
+        >
+          Target with popover
+        </div>
+        <div id="outside" [ngbPopoverToggle]="popover">Element outside</div>
+      `);
+      const select = selector => fixture.nativeElement.querySelector(selector);
+      const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();
+      const expectToBeClosed = () => expect(getWindow(fixture.nativeElement)).toBeNull();
+
+      const outside = select('#outside');
+      const target = select('#target');
+      let popoverIgnored;
+      let popoverCloser;
+      const open = () => {
+        target.click();
+        fixture.detectChanges();
+        expectToBeOpen();
+        popoverIgnored = select('#popover-ignored');
+        popoverCloser = select('#popover-closer');
+      };
+
+      open();
+
+      outside.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+
+      target.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+
+      popoverIgnored.click();
+      fixture.detectChanges();
+      expectToBeOpen();
+
+      popoverCloser.click();
+      fixture.detectChanges();
+      expectToBeClosed();
     });
   });
 
