@@ -1,14 +1,14 @@
 import {NgModule, ModuleWithProviders} from '@angular/core';
 
-import {NgbPopover, NgbPopoverWindow, NgbPopoverToggle} from './popover';
+import {NgbPopover, NgbPopoverWindow, NgbPopoverIgnoreAutoClose} from './popover';
 
 export {NgbPopover} from './popover';
 export {NgbPopoverConfig} from './popover-config';
 export {Placement} from '../util/positioning';
 
 @NgModule({
-  declarations: [NgbPopover, NgbPopoverWindow, NgbPopoverToggle],
-  exports: [NgbPopover, NgbPopoverToggle],
+  declarations: [NgbPopover, NgbPopoverWindow, NgbPopoverIgnoreAutoClose],
+  exports: [NgbPopover, NgbPopoverIgnoreAutoClose],
   entryComponents: [NgbPopoverWindow]
 })
 export class NgbPopoverModule {

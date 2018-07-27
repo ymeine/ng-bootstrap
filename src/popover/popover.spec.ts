@@ -524,7 +524,7 @@ describe('ngb-popover', () => {
     it('should allow toggling for manual triggers', () => {
       const fixture = createTestComponent(`
                 <div ngbPopover="Great tip!" triggers="manual" #t="ngbPopover"></div>
-                <button (click)="t.toggle()" [ngbPopoverToggle]="t">T</button>`);
+                <button (click)="t.toggle()" [ngbPopoverIgnoreAutoClose]="t">T</button>`);
       const button = fixture.nativeElement.querySelector('button');
 
       button.click();
@@ -538,7 +538,7 @@ describe('ngb-popover', () => {
 
     it('should allow open / close for manual triggers', () => {
       const fixture = createTestComponent(`<div ngbPopover="Great tip!" triggers="manual" #t="ngbPopover"></div>
-                <button (click)="t.open()" [ngbPopoverToggle]="t">O</button>
+                <button (click)="t.open()" [ngbPopoverIgnoreAutoClose]="t">O</button>
                 <button (click)="t.close()">C</button>`);
       const buttons = fixture.nativeElement.querySelectorAll('button');
 
@@ -554,7 +554,7 @@ describe('ngb-popover', () => {
     it('should not throw when open called for manual triggers and open popover', () => {
       const fixture = createTestComponent(`
                 <div ngbPopover="Great tip!" triggers="manual" #t="ngbPopover"></div>
-                <button (click)="t.open()" [ngbPopoverToggle]="t">O</button>`);
+                <button (click)="t.open()" [ngbPopoverIgnoreAutoClose]="t">O</button>`);
       const button = fixture.nativeElement.querySelector('button');
 
       button.click();  // open
@@ -690,7 +690,7 @@ describe('ngb-popover', () => {
           triggers="manual"
           autoClose="outside"
           (click)="popover.open()"
-          [ngbPopoverToggle]="popover"
+          [ngbPopoverIgnoreAutoClose]="popover"
         >
           Target with popover
         </div>
@@ -741,7 +741,7 @@ describe('ngb-popover', () => {
           triggers="manual"
           [autoClose]="true"
           (click)="popover.open()"
-          [ngbPopoverToggle]="popover"
+          [ngbPopoverIgnoreAutoClose]="popover"
         >
           Target with popover
         </div>
@@ -847,7 +847,7 @@ describe('ngb-popover', () => {
     it('should explicitly ignore manually marked elements', () => {
       const fixture = createTestComponent(`
         <ng-template #popoverContent>
-          <div id="popover-ignored" [ngbPopoverToggle]="popover">Popover content</div>
+          <div id="popover-ignored" [ngbPopoverIgnoreAutoClose]="popover">Popover content</div>
           <div id="popover-closer">Close me</div>
         </ng-template>
         <div
@@ -856,11 +856,11 @@ describe('ngb-popover', () => {
           triggers="manual"
           [autoClose]="true"
           (click)="popover.open()"
-          [ngbPopoverToggle]="popover"
+          [ngbPopoverIgnoreAutoClose]="popover"
         >
           Target with popover
         </div>
-        <div id="outside" [ngbPopoverToggle]="popover">Element outside</div>
+        <div id="outside" [ngbPopoverIgnoreAutoClose]="popover">Element outside</div>
       `);
       const select = selector => fixture.nativeElement.querySelector(selector);
       const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();

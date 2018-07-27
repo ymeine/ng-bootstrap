@@ -109,17 +109,17 @@ export class NgbPopoverWindow {
 /**
  * A directive to mark an element to be excluded from the automatic closing (autoClose) of the popover.
  */
-@Directive({selector: '[ngbPopoverToggle]'})
-export class NgbPopoverToggle implements OnDestroy {
+@Directive({selector: '[ngbPopoverIgnoreAutoClose]'})
+export class NgbPopoverIgnoreAutoClose implements OnDestroy {
   private _unregisterFunction: Function;
 
   /**
    * A reference to the `NgbPopover` instance.
    */
   @Input()
-  set ngbPopoverToggle(popover: NgbPopover) {
+  set ngbPopoverIgnoreAutoClose(popover: NgbPopover) {
     this._unregister();
-    this._unregisterFunction = popover.registerClickableElement(this._element.nativeElement);
+    this._unregisterFunction = popover.registerAutoCloseIgnoredElement(this._element.nativeElement);
   };
 
   constructor(private _element: ElementRef<HTMLElement>) {}
@@ -208,7 +208,7 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
    */
   @Output() hidden = new EventEmitter();
 
-  private _clickableElements = new Set<HTMLElement>();
+  private _autoCloseIgnoredElements = new Set<HTMLElement>();
   private _ngbPopoverWindowId = `ngb-popover-${nextId++}`;
   private _popupService: PopupService<NgbPopoverWindow>;
   private _windowRef: ComponentRef<NgbPopoverWindow>;
@@ -299,9 +299,9 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
    *
    * @return a function to unregister the element.
    */
-  registerClickableElement(element: HTMLElement): Function {
-    this._clickableElements.add(element);
-    return () => this._clickableElements.delete(element);
+  registerAutoCloseIgnoredElement(element: HTMLElement): Function {
+    this._autoCloseIgnoredElements.add(element);
+    return () => this._autoCloseIgnoredElements.delete(element);
   }
 
   private _shouldCloseFromClick(event: MouseEvent) {
@@ -318,7 +318,7 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
   }
 
   private _isEventFromClickableElement(event: MouseEvent) {
-    return Array.from(this._clickableElements).some(element => element.contains(event.target as HTMLElement));
+    return Array.from(this._autoCloseIgnoredElements).some(element => element.contains(event.target as HTMLElement));
   }
 
   private _isEventFromPopover(event: MouseEvent) {
@@ -364,7 +364,7 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
             .some(
                 trigger => !trigger.isManual() &&
                     (togglerEvents.includes(trigger.open) || togglerEvents.includes(trigger.close)))) {
-      this.registerClickableElement(this._elementRef.nativeElement);
+      this.registerAutoCloseIgnoredElement(this._elementRef.nativeElement);
     }
   }
 
