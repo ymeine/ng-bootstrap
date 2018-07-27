@@ -107,33 +107,6 @@ export class NgbPopoverWindow {
 }
 
 /**
- * A directive to mark an element to be excluded from the automatic closing (autoClose) of the popover.
- */
-@Directive({selector: '[ngbPopoverIgnoreAutoClose]'})
-export class NgbPopoverIgnoreAutoClose implements OnDestroy {
-  private _unregisterFunction: Function;
-
-  /**
-   * A reference to the `NgbPopover` instance.
-   */
-  @Input()
-  set ngbPopoverIgnoreAutoClose(popover: NgbPopover) {
-    this._unregister();
-    this._unregisterFunction = popover.registerAutoCloseIgnoredElement(this._element.nativeElement);
-  };
-
-  constructor(private _element: ElementRef<HTMLElement>) {}
-
-  ngOnDestroy() { this._unregister(); }
-
-  private _unregister() {
-    if (isDefined(this._unregisterFunction)) {
-      this._unregisterFunction();
-    }
-  }
-}
-
-/**
  * A lightweight, extensible directive for fancy popover creation.
  */
 @Directive({selector: '[ngbPopover]', exportAs: 'ngbPopover'})
@@ -147,20 +120,6 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
    * - 'inside': closes on inside clicks as well as Escape presses
    * - 'outside': closes on outside clicks (sometimes also achievable through triggers)
    * as well as Escape presses
-   *
-   * Use registerClickableElement to ignore some elements from anywhere (either inside or outside the popover).
-   *
-   * When using 'outside' or true, you MUST register any element which opens,
-   * closes or toggles the popover by using registerClickableElement.
-   * Note that if the popover's target has at least one trigger defined with a
-   * clicking MouseEvent (mousedown, mouseup or click), this target will be
-   * automatically registered to be excluded.
-   *
-   * If using 'inside' and having some interactive elements inside the popover, also register them using
-   * registerClickableElement.
-   *
-   * To avoid using registerClickableElement directly, the directive called NgbPopoverToggle can be used when
-   * applicable.
    */
   @Input() autoClose: boolean | 'inside' | 'outside';
   /**
@@ -276,11 +235,16 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
 
       if (this.autoClose) {
         this._ngZone.runOutsideAngular(() => {
+          let justOpened = true;
+          requestAnimationFrame(() => justOpened = false);
+
           const escapes$ = fromEvent<KeyboardEvent>(this._document, 'keyup')
                                .pipe(takeUntil(this.hidden), filter(event => event.which === Key.Escape));
 
           const clicks$ = fromEvent<MouseEvent>(this._document, 'click')
-                              .pipe(takeUntil(this.hidden), filter(event => this._shouldCloseFromClick(event)));
+                              .pipe(
+                                  takeUntil(this.hidden), filter(() => !justOpened),
+                                  filter(event => this._shouldCloseFromClick(event)));
 
           race<Event>([escapes$, clicks$]).subscribe(() => this._ngZone.run(() => this.close()));
         });
@@ -288,20 +252,6 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
 
       this.shown.emit();
     }
-  }
-
-  /**
-   * Registers an HTML element outside of the popover as clickable.
-   *
-   * Clicking on this element will not close the popover when [autoClose]="'outside'" is used.
-   *
-   * @param element the element to register as clickable
-   *
-   * @return a function to unregister the element.
-   */
-  registerAutoCloseIgnoredElement(element: HTMLElement): Function {
-    this._autoCloseIgnoredElements.add(element);
-    return () => this._autoCloseIgnoredElements.delete(element);
   }
 
   private _shouldCloseFromClick(event: MouseEvent) {
@@ -358,14 +308,6 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
     this._unregisterListenersFn = listenToTriggers(
         this._renderer, this._elementRef.nativeElement, this.triggers, this.open.bind(this), this.close.bind(this),
         this.toggle.bind(this));
-
-    const togglerEvents = ['mousedown', 'mouseup', 'click'];
-    if (parseTriggers(this.triggers)
-            .some(
-                trigger => !trigger.isManual() &&
-                    (togglerEvents.includes(trigger.open) || togglerEvents.includes(trigger.close)))) {
-      this.registerAutoCloseIgnoredElement(this._elementRef.nativeElement);
-    }
   }
 
   ngOnChanges(changes: SimpleChanges) {

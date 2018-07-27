@@ -58,7 +58,7 @@
 </button>
 
 <p>
-  The following one will close on clicks from anywhere, except its explicit/external toggling element, and on <code>Escape</code> presses.
+  The following one will close on clicks from anywhere and on <code>Escape</code> presses, and plays nicely with the external toggling element.
 </p>
 
 <button
@@ -79,7 +79,6 @@
   type="button"
   class="btn btn-outline-secondary mr-2"
 
-  [ngbPopoverIgnoreAutoClose]="popoverManual"
   (click)="popoverManual.toggle()"
 >
   Click to toggle the popover
