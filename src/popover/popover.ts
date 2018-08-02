@@ -23,11 +23,10 @@ import {DOCUMENT} from '@angular/common';
 import {fromEvent, race} from 'rxjs';
 import {filter, takeUntil} from 'rxjs/operators';
 
-import {listenToTriggers, parseTriggers} from '../util/triggers';
+import {listenToTriggers} from '../util/triggers';
 import {positionElements, Placement, PlacementArray} from '../util/positioning';
 import {PopupService} from '../util/popup';
 import {Key} from '../util/key';
-import {isDefined} from '../util/util';
 
 import {NgbPopoverConfig} from './popover-config';
 
@@ -112,8 +111,7 @@ export class NgbPopoverWindow {
 @Directive({selector: '[ngbPopover]', exportAs: 'ngbPopover'})
 export class NgbPopover implements OnInit, OnDestroy, OnChanges {
   /**
-   * Indicates that popover should be closed on clicks inside the popover,
-   * outside the popover, or both, and on pressing Escape, or not at all.
+   * Indicates whether the popover should be closed on Escape key and inside/outside clicks.
    *
    * - true (default): closes on both outside and inside clicks as well as Escape presses
    * - false: disables the autoClose feature (NB: triggers still apply)
@@ -167,7 +165,6 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
    */
   @Output() hidden = new EventEmitter();
 
-  private _autoCloseIgnoredElements = new Set<HTMLElement>();
   private _ngbPopoverWindowId = `ngb-popover-${nextId++}`;
   private _popupService: PopupService<NgbPopoverWindow>;
   private _windowRef: ComponentRef<NgbPopoverWindow>;
@@ -235,6 +232,10 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
 
       if (this.autoClose) {
         this._ngZone.runOutsideAngular(() => {
+          // prevents automatic closing right after an opening by putting a guard for the time of one event handling
+          // pass
+          // use case: click event would reach an element opening the popover first, then reach the autoClose handler
+          // which would close it
           let justOpened = true;
           requestAnimationFrame(() => justOpened = false);
 
@@ -252,28 +253,6 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
 
       this.shown.emit();
     }
-  }
-
-  private _shouldCloseFromClick(event: MouseEvent) {
-    if (event.button !== 2 && !this._isEventFromClickableElement(event)) {
-      if (this.autoClose === true) {
-        return true;
-      } else if (this.autoClose === 'inside' && this._isEventFromPopover(event)) {
-        return true;
-      } else if (this.autoClose === 'outside' && !this._isEventFromPopover(event)) {
-        return true
-      }
-    }
-    return false;
-  }
-
-  private _isEventFromClickableElement(event: MouseEvent) {
-    return Array.from(this._autoCloseIgnoredElements).some(element => element.contains(event.target as HTMLElement));
-  }
-
-  private _isEventFromPopover(event: MouseEvent) {
-    const popup = this._windowRef.instance;
-    return popup ? popup.isEventFrom(event) : false;
   }
 
   /**
@@ -321,5 +300,23 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
     this.close();
     this._unregisterListenersFn();
     this._zoneSubscription.unsubscribe();
+  }
+
+  private _shouldCloseFromClick(event: MouseEvent) {
+    if (event.button !== 2) {
+      if (this.autoClose === true) {
+        return true;
+      } else if (this.autoClose === 'inside' && this._isEventFromPopover(event)) {
+        return true;
+      } else if (this.autoClose === 'outside' && !this._isEventFromPopover(event)) {
+        return true
+      }
+    }
+    return false;
+  }
+
+  private _isEventFromPopover(event: MouseEvent) {
+    const popup = this._windowRef.instance;
+    return popup ? popup.isEventFrom(event) : false;
   }
 }

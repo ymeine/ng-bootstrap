@@ -1,85 +1,41 @@
-<p>
-  As for some other popup-based widgets, you can set the popover to auto close upon some events.
-</p>
+<p>As for some other popup-based widgets, you can set the popover to close automatically upon some events.</p>
+<p>In the following examples, they will all close on <code>Escape</code> as well as:</p>
 
-<p>
-  The following one will close on clicks outside the popover, and on <code>Escape</code> presses.
-</p>
+<ul>
+  <li>
+    click inside:
+    <button
+      type="button" class="btn btn-outline-secondary" popoverTitle="Pop title"
+      [autoClose]="'inside'" ngbPopover="Click inside or press Escape to close"
+    >
+        Click to toggle
+    </button>
+  </li>
 
-<button
-  type="button"
-  class="btn btn-outline-secondary"
-  popoverTitle="Pop title"
+  <li>
+    click outside:
+    <button
+      type="button" class="btn btn-outline-secondary" popoverTitle="Pop title"
+      [autoClose]="'outside'" ngbPopover="Click outside or press Escape to close"
+    >
+      Click to toggle
+    </button>
+  </li>
 
-  [autoClose]="'outside'"
-  ngbPopover="Click outside or press Escape to close"
+  <li>
+      all clicks:
+      <button
+        type="button" class="btn btn-outline-secondary" popoverTitle="Pop title"
+        [autoClose]="true" ngbPopover="Click anywhere or press Escape to close (try the toggling element too)"
+        #popover3="ngbPopover"
+      >
+          Click to toggle
+      </button>
 
-  triggers="manual"
-  #popoverManualOpening1="ngbPopover"
-  (mouseenter)="popoverManualOpening1.open()"
->
-    Hover to open
-</button>
+      &nbsp;
 
-<p>
-  The following one will close on clicks inside the popover, and on <code>Escape</code> presses.
-</p>
-
-<button
-  type="button"
-  class="btn btn-outline-secondary"
-  popoverTitle="Pop title"
-
-  [autoClose]="'inside'"
-  ngbPopover="Click inside or press Escape to close"
-
-  triggers="manual"
-  #popoverManualOpening2="ngbPopover"
-  (mouseenter)="popoverManualOpening2.open()"
->
-    Hover to open
-</button>
-
-<p>
-  The following one will close on clicks from anywhere, except its implicit toggling element (defined by <code>triggers</code>), and on <code>Escape</code> presses.
-</p>
-
-<button
-  type="button"
-  class="btn btn-outline-secondary"
-  popoverTitle="Pop title"
-
-  [autoClose]="true"
-  ngbPopover="Click anywhere or press Escape to close (try the toggling element too)"
-
-  triggers="click"
->
-    Click to toggle
-</button>
-
-<p>
-  The following one will close on clicks from anywhere and on <code>Escape</code> presses, and plays nicely with the external toggling element.
-</p>
-
-<button
-  type="button"
-  class="btn btn-outline-secondary"
-  popoverTitle="Pop title"
-
-  [autoClose]="true"
-  ngbPopover="Click anywhere or press Escape to close (try the external toggling element too)"
-
-  triggers="manual"
-  #popoverManual="ngbPopover"
->
-    I have a popover
-</button>
-
-<button
-  type="button"
-  class="btn btn-outline-secondary mr-2"
-
-  (click)="popoverManual.toggle()"
->
-  Click to toggle the popover
-</button>
+      <button type="button" class="btn btn-outline-secondary mr-2" (click)="popover3.toggle()">
+        Click to toggle the external popover
+      </button>
+    </li>
+</ul>
