@@ -3,18 +3,18 @@ import {CommonModule} from '@angular/common';
 
 import {NgbHighlight} from './highlight';
 import {NgbTypeaheadWindow} from './typeahead-window';
-import {NgbTypeahead} from './typeahead';
+import {NgbTypeahead, NgbTypeaheadWindowNotFound} from './typeahead';
 
 export {NgbHighlight} from './highlight';
 export {NgbTypeaheadWindow} from './typeahead-window';
 export {NgbTypeaheadConfig} from './typeahead-config';
-export {NgbTypeahead, NgbTypeaheadSelectItemEvent} from './typeahead';
+export {NgbTypeahead, NgbTypeaheadSelectItemEvent, NgbTypeaheadWindowNotFound} from './typeahead';
 
 @NgModule({
-  declarations: [NgbTypeahead, NgbHighlight, NgbTypeaheadWindow],
+  declarations: [NgbTypeahead, NgbHighlight, NgbTypeaheadWindow, NgbTypeaheadWindowNotFound],
   exports: [NgbTypeahead, NgbHighlight],
   imports: [CommonModule],
-  entryComponents: [NgbTypeaheadWindow]
+  entryComponents: [NgbTypeaheadWindow, NgbTypeaheadWindowNotFound]
 })
 export class NgbTypeaheadModule {
   /**

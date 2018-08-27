@@ -1,5 +1,6 @@
 import {
   ComponentFactoryResolver,
+  Component,
   ComponentRef,
   Directive,
   ElementRef,
@@ -49,6 +50,24 @@ export interface NgbTypeaheadSelectItemEvent {
 
 let nextWindowId = 0;
 
+@Component({
+  selector: 'ngb-typeahead-window-not-found',
+  exportAs: 'ngbTypeaheadWindowNotFound',
+  host: {'class': 'dropdown-menu show', '[id]': 'id'},
+  template: `
+    <ng-template [ngTemplateOutlet]="template"></ng-template>
+  `
+})
+export class NgbTypeaheadWindowNotFound {
+  @Input() id: string;
+  @Input() template: TemplateRef<any>;
+
+  // next() {}
+  // previous() {}
+  // getActive(): any { return null; }
+  // hasActive(): boolean { return false; }
+}
+
 /**
  * NgbTypeahead directive provides a simple way of creating powerful typeaheads from any text input
  */
@@ -75,11 +94,13 @@ let nextWindowId = 0;
 export class NgbTypeahead implements ControlValueAccessor,
     OnInit, OnDestroy {
   private _popupService: PopupService<NgbTypeaheadWindow>;
+  private _popupServiceNotFound: PopupService<NgbTypeaheadWindowNotFound>;
   private _subscription: Subscription;
   private _inputValueBackup: string;
   private _valueChanges: Observable<string>;
   private _resubscribeTypeahead: BehaviorSubject<any>;
   private _windowRef: ComponentRef<NgbTypeaheadWindow>;
+  private _windowNotFoundRef: ComponentRef<NgbTypeaheadWindowNotFound>;
   private _zoneSubscription: any;
 
   /**
@@ -117,6 +138,8 @@ export class NgbTypeahead implements ControlValueAccessor,
    * is undefined so you need to explicitly bind it to a desired "this" target.
    */
   @Input() ngbTypeahead: (text: Observable<string>) => Observable<any[]>;
+
+  @Input() notFoundTemplate: TemplateRef<any>;
 
   /**
    * A function to format a given result before display. This function should return a formatted string without any
@@ -168,12 +191,15 @@ export class NgbTypeahead implements ControlValueAccessor,
     this._resubscribeTypeahead = new BehaviorSubject(null);
 
     this._popupService = new PopupService<NgbTypeaheadWindow>(
-        NgbTypeaheadWindow, _injector, _viewContainerRef, _renderer, componentFactoryResolver);
+      NgbTypeaheadWindow, _injector, _viewContainerRef, _renderer, componentFactoryResolver);
+    this._popupServiceNotFound = new PopupService<NgbTypeaheadWindowNotFound>(
+      NgbTypeaheadWindowNotFound, _injector, _viewContainerRef, _renderer, componentFactoryResolver);
 
     this._zoneSubscription = ngZone.onStable.subscribe(() => {
       if (this.isPopupOpen()) {
+        const openWindow = this._windowRef != null ? this._windowRef : this._windowNotFoundRef;
         positionElements(
-            this._elementRef.nativeElement, this._windowRef.location.nativeElement, this.placement,
+            this._elementRef.nativeElement, openWindow.location.nativeElement, this.placement,
             this.container === 'body');
       }
     });
@@ -228,10 +254,13 @@ export class NgbTypeahead implements ControlValueAccessor,
     }
   }
 
+  private _isResultsPopupOpen(): boolean { return this._windowRef != null; }
+  private _isNotFoundPopupOpen(): boolean { return this._windowNotFoundRef != null; }
+
   /**
    * Returns true if the typeahead popup window is displayed
    */
-  isPopupOpen() { return this._windowRef != null; }
+  isPopupOpen(): boolean { return this._isResultsPopupOpen() || this._isNotFoundPopupOpen(); }
 
   handleBlur() {
     this._resubscribeTypeahead.next(null);
@@ -239,43 +268,50 @@ export class NgbTypeahead implements ControlValueAccessor,
   }
 
   handleKeyDown(event: KeyboardEvent) {
-    if (!this.isPopupOpen()) {
-      return;
-    }
-
-    if (Key[toString(event.which)]) {
-      switch (event.which) {
-        case Key.ArrowDown:
-          event.preventDefault();
-          this._windowRef.instance.next();
-          this._showHint();
-          break;
-        case Key.ArrowUp:
-          event.preventDefault();
-          this._windowRef.instance.prev();
-          this._showHint();
-          break;
-        case Key.Enter:
-        case Key.Tab:
-          const result = this._windowRef.instance.getActive();
-          if (isDefined(result)) {
+    if (this._isResultsPopupOpen()) {
+      if (Key[toString(event.which)]) {
+        switch (event.which) {
+          case Key.ArrowDown:
             event.preventDefault();
-            event.stopPropagation();
-            this._selectResult(result);
-          }
-          this._closePopup();
-          break;
-        case Key.Escape:
-          event.preventDefault();
-          this._resubscribeTypeahead.next(null);
-          this.dismissPopup();
-          break;
+            this._windowRef.instance.next();
+            this._showHint();
+            break;
+          case Key.ArrowUp:
+            event.preventDefault();
+            this._windowRef.instance.prev();
+            this._showHint();
+            break;
+          case Key.Enter:
+          case Key.Tab:
+            const result = this._windowRef.instance.getActive();
+            if (isDefined(result)) {
+              event.preventDefault();
+              event.stopPropagation();
+              this._selectResult(result);
+            }
+            this._closePopup();
+            break;
+          case Key.Escape:
+            event.preventDefault();
+            this._resubscribeTypeahead.next(null);
+            this.dismissPopup();
+            break;
+        }
+      }
+    } else if (this._isNotFoundPopupOpen()) {
+      if (Key[toString(event.which)]) {
+        switch (event.which) {
+          case Key.Escape:
+            event.preventDefault();
+            this._closePopupNotFound();
+            break;
+        }
       }
     }
   }
 
   private _openPopup() {
-    if (!this.isPopupOpen()) {
+    if (!this._isResultsPopupOpen()) {
       this._inputValueBackup = this._elementRef.nativeElement.value;
       this._windowRef = this._popupService.open();
       this._windowRef.instance.id = this.popupId;
@@ -288,9 +324,27 @@ export class NgbTypeahead implements ControlValueAccessor,
     }
   }
 
+  private _openPopupNotFound() {
+    if (this.notFoundTemplate != null && !this._isNotFoundPopupOpen()) {
+      this._windowNotFoundRef = this._popupServiceNotFound.open();
+      this._windowNotFoundRef.instance.id = this.popupId;
+      this._windowNotFoundRef.instance.template = this.notFoundTemplate;
+
+      if (this.container === 'body') {
+        window.document.querySelector(this.container).appendChild(this._windowNotFoundRef.location.nativeElement);
+      }
+    }
+  }
+
   private _closePopup() {
     this._popupService.close();
     this._windowRef = null;
+    this.activeDescendant = undefined;
+  }
+
+  private _closePopupNotFound() {
+    this._popupServiceNotFound.close();
+    this._windowNotFoundRef = null;
     this.activeDescendant = undefined;
   }
 
@@ -336,8 +390,17 @@ export class NgbTypeahead implements ControlValueAccessor,
   private _subscribeToUserInput(userInput$: Observable<any[]>): Subscription {
     return userInput$.subscribe((results) => {
       if (!results || results.length === 0) {
-        this._closePopup();
+        if (this._isResultsPopupOpen()) {
+          this._closePopup();
+        }
+        if (this._elementRef.nativeElement.value !== '' && !this._isNotFoundPopupOpen()) {
+          this._openPopupNotFound();
+        }
+        if (this._elementRef.nativeElement.value === '' && this._isNotFoundPopupOpen()) {
+          this._closePopupNotFound();
+        }
       } else {
+        this._closePopupNotFound();
         this._openPopup();
         this._windowRef.instance.focusFirst = this.focusFirst;
         this._windowRef.instance.results = results;
