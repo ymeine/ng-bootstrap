@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { NgbdDemoList } from '../demo-list';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ngbd-widget-demo
       *ngFor="let demo of demos"
