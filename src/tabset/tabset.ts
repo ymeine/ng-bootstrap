@@ -7,10 +7,14 @@ import {
   TemplateRef,
   ContentChild,
   AfterContentChecked,
+  AfterViewInit,
   Output,
-  EventEmitter
+  EventEmitter,
+  Renderer2,
+  ElementRef
 } from '@angular/core';
 import {NgbTabsetConfig} from './tabset-config';
+import { Transition, TransitionOptions } from '../util/transition/ngbTransition';
 
 let nextId = 0;
 
@@ -47,6 +51,11 @@ export class NgbTab {
    * Allows toggling disabled state of a given state. Disabled tabs can't be selected.
    */
   @Input() disabled = false;
+
+  /**
+   * A flag telling if the panel is currently animated
+   */
+  transitionRunning = false;
 
   titleTpl: NgbTabTitle | null;
   contentTpl: NgbTabContent | null;
@@ -95,7 +104,7 @@ export interface NgbTabChangeEvent {
       <li class="nav-item" *ngFor="let tab of tabs">
         <a [id]="tab.id" class="nav-link" [class.active]="tab.id === activeId" [class.disabled]="tab.disabled"
           href (click)="select(tab.id); $event.preventDefault()" role="tab" [attr.tabindex]="(tab.disabled ? '-1': undefined)"
-          [attr.aria-controls]="(!destroyOnHide || tab.id === activeId ? tab.id + '-panel' : null)"
+          [attr.aria-controls]="(!destroyOnHide || tab.id === activeId ? 'ngb-panel-' + tab.id : null)"
           [attr.aria-expanded]="tab.id === activeId" [attr.aria-disabled]="tab.disabled">
           {{tab.title}}<ng-template [ngTemplateOutlet]="tab.titleTpl?.templateRef"></ng-template>
         </a>
@@ -104,10 +113,10 @@ export interface NgbTabChangeEvent {
     <div class="tab-content">
       <ng-template ngFor let-tab [ngForOf]="tabs">
         <div
-          class="tab-pane {{tab.id === activeId ? 'active' : null}}"
-          *ngIf="!destroyOnHide || tab.id === activeId"
+          class="tab-pane fade"
+          *ngIf="!destroyOnHide || tab.id === activeId || tab.transitionRunning"
           role="tabpanel"
-          [attr.aria-labelledby]="tab.id" id="{{tab.id}}-panel"
+          [attr.aria-labelledby]="tab.id" id="ngb-panel-{{tab.id}}"
           [attr.aria-expanded]="tab.id === activeId">
           <ng-template [ngTemplateOutlet]="tab.contentTpl?.templateRef"></ng-template>
         </div>
@@ -115,10 +124,18 @@ export interface NgbTabChangeEvent {
     </div>
   `
 })
-export class NgbTabset implements AfterContentChecked {
+export class NgbTabset implements AfterContentChecked, AfterViewInit {
+  private _fadingTransition: Transition;
+
+  /**
+   * A flag to enable/disable the animation when changing the active tab.
+   */
+  @Input() enableAnimation: boolean;
+
   justifyClass: string;
 
   @ContentChildren(NgbTab) tabs: QueryList<NgbTab>;
+
 
   /**
    * An identifier of an initially selected (active) tab. Use the "select" method to switch a tab programmatically.
@@ -161,10 +178,22 @@ export class NgbTabset implements AfterContentChecked {
    */
   @Output() tabChange = new EventEmitter<NgbTabChangeEvent>();
 
-  constructor(config: NgbTabsetConfig) {
+  constructor(config: NgbTabsetConfig, private _renderer: Renderer2, private _element: ElementRef) {
     this.type = config.type;
     this.justify = config.justify;
     this.orientation = config.orientation;
+    this.enableAnimation = config.enableAnimation;
+
+    const toggleActiveClass = (tabContentElement: HTMLElement, options: TransitionOptions) => {
+      const classList = tabContentElement.classList;
+      classList.toggle('active', options.data.direction === 'show');
+    };
+
+    this._fadingTransition = new Transition({
+      classname: 'show',
+      beforeTransitionStart: toggleActiveClass,
+      afterTransitionEnd: toggleActiveClass
+    }, this._renderer);
   }
 
   /**
@@ -180,7 +209,35 @@ export class NgbTabset implements AfterContentChecked {
           {activeId: this.activeId, nextId: selectedTab.id, preventDefault: () => { defaultPrevented = true; }});
 
       if (!defaultPrevented) {
+        const fadingTransition = this._fadingTransition;
+
+        const previousTab = this._getTabById(this.activeId);
+        previousTab.transitionRunning = true;
+
+        setTimeout(() => {
+          fadingTransition.hide(this._getPanelElement(previousTab.id), {
+            enableAnimation: false,
+            data : {
+              direction: 'hide'
+            }
+          }).then(() => {
+            previousTab.transitionRunning = false;
+          });
+        }, 0);
+
         this.activeId = selectedTab.id;
+
+        selectedTab.transitionRunning = true;
+        setTimeout(() => {
+          fadingTransition.show(this._getPanelElement(selectedTab.id), {
+            enableAnimation: this.enableAnimation,
+            data : {
+              direction: 'show'
+            }
+          }).then(() => {
+            selectedTab.transitionRunning = false;
+          });
+        }, 0);
       }
     }
   }
@@ -191,8 +248,25 @@ export class NgbTabset implements AfterContentChecked {
     this.activeId = activeTab ? activeTab.id : (this.tabs.length ? this.tabs.first.id : null);
   }
 
+  ngAfterViewInit(): void {
+    if (this.activeId != null) {
+      this._fadingTransition.show(this._getPanelElement(this.activeId), {
+        enableAnimation: false,
+        data : {
+          direction: 'show'
+        }
+      });
+    }
+  }
+
   private _getTabById(id: string): NgbTab {
     let tabsWithId: NgbTab[] = this.tabs.filter(tab => tab.id === id);
     return tabsWithId.length ? tabsWithId[0] : null;
   }
+
+  private _getPanelElement(tabId: string): HTMLElement {
+    return this._element.nativeElement.querySelector('#ngb-panel-' + tabId);
+  }
+
+
 }

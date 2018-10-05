@@ -95,8 +95,8 @@ describe('ngb-alert', () => {
   });
 
   it('should fire an event after closing a dismissible alert', () => {
-    const fixture =
-        createTestComponent('<ngb-alert [dismissible]="true" (close)="closed = true">Watch out!</ngb-alert>');
+    const fixture = createTestComponent(
+        '<ngb-alert [dismissible]="true" [enableAnimation]="false" (close)="closed = true">Watch out!</ngb-alert>');
     const alertEl = getAlertElement(fixture.nativeElement);
     const buttonEl = getCloseButton(alertEl);
 

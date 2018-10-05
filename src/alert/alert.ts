@@ -13,6 +13,8 @@ import {
 } from '@angular/core';
 
 import {NgbAlertConfig} from './alert-config';
+import { Transition, TransitionOptions } from '../util/transition/ngbTransition';
+import { NgbTransitionService } from '../util/transition/ngbTransitionService';
 
 /**
  * Alerts can be used to provide feedback messages.
@@ -21,7 +23,8 @@ import {NgbAlertConfig} from './alert-config';
   selector: 'ngb-alert',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  host: {'role': 'alert', 'class': 'alert', '[class.alert-dismissible]': 'dismissible'},
+  host:
+      {'role': 'alert', 'class': 'alert show', '[class.alert-dismissible]': 'dismissible', '[class.fade]': 'enableAnimation'},
   template: `
     <button *ngIf="dismissible" type="button" class="close" aria-label="Close" i18n-aria-label="@@ngb.alert.close"
       (click)="closeHandler()">
@@ -33,6 +36,8 @@ import {NgbAlertConfig} from './alert-config';
 })
 export class NgbAlert implements OnInit,
     OnChanges {
+  private _fadingTransition: Transition;
+
   /**
    * A flag indicating if a given alert can be dismissed (closed) by a user. If this flag is set, a close button (in a
    * form of an ×) will be displayed.
@@ -44,13 +49,27 @@ export class NgbAlert implements OnInit,
    */
   @Input() type: string;
   /**
+   * A flag to enable/disable the animation when closing.
+   */
+  @Input() enableAnimation: boolean;
+  /**
    * An event emitted when the close button is clicked. This event has no payload. Only relevant for dismissible alerts.
    */
   @Output() close = new EventEmitter<void>();
 
-  constructor(config: NgbAlertConfig, private _renderer: Renderer2, private _element: ElementRef) {
+  constructor(config: NgbAlertConfig, private _renderer: Renderer2, private _element: ElementRef,
+    private _transitionService: NgbTransitionService) {
     this.dismissible = config.dismissible;
     this.type = config.type;
+    this.enableAnimation = config.enableAnimation;
+
+
+    this._fadingTransition = new Transition({classname: 'show'}, this._renderer);
+
+    const element = _element.nativeElement;
+    _transitionService.onDestroy(element, () => {
+      return this._fadingTransition.hide(element, {enableAnimation: this.enableAnimation});
+    });
   }
 
   closeHandler() { this.close.emit(null); }

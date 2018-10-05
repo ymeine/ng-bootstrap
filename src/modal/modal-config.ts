@@ -5,6 +5,11 @@ import {Injectable, Injector} from '@angular/core';
  */
 export interface NgbModalOptions {
   /**
+   * A flag to enable/disable the animation when closing.
+   */
+  enableAnimation?: boolean;
+
+  /**
    * Sets the aria attribute aria-labelledby to a modal window.
    *
    * @since 2.2.0
@@ -73,6 +78,7 @@ export interface NgbModalOptions {
 */
 @Injectable({providedIn: 'root'})
 export class NgbModalConfig implements NgbModalOptions {
+  enableAnimation = true;
   backdrop: boolean | 'static' = true;
   keyboard = true;
 }

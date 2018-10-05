@@ -48,107 +48,119 @@ describe('ngb-tooltip-window', () => {
 
 describe('ngb-tooltip', () => {
 
+  let nextId = -1;
+
   beforeEach(() => {
     TestBed.configureTestingModule({declarations: [TestComponent, TestOnPushComponent], imports: [NgbTooltipModule]});
+    nextId++;
   });
 
   function getWindow(element) { return element.querySelector('ngb-tooltip-window'); }
 
   describe('basic functionality', () => {
 
-    it('should open and close a tooltip - default settings and content as string', () => {
-      const fixture = createTestComponent(`<div ngbTooltip="Great tip!"></div>`);
-      const directive = fixture.debugElement.query(By.directive(NgbTooltip));
-      const defaultConfig = new NgbTooltipConfig();
+    it('should open and close a tooltip - default settings and content as string', fakeAsync(() => {
+         const fixture = createTestComponent(`<div ngbTooltip="Great tip!" [enableAnimation]="false"></div>`);
+         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+         const defaultConfig = new NgbTooltipConfig();
 
-      directive.triggerEventHandler('mouseenter', {});
-      fixture.detectChanges();
-      const windowEl = getWindow(fixture.nativeElement);
+         directive.triggerEventHandler('mouseenter', {});
+         fixture.detectChanges();
+         tick(10);
+         const windowEl = getWindow(fixture.nativeElement);
 
-      expect(windowEl).toHaveCssClass('tooltip');
-      expect(windowEl).toHaveCssClass(`bs-tooltip-${defaultConfig.placement}`);
-      expect(windowEl.textContent.trim()).toBe('Great tip!');
-      expect(windowEl.getAttribute('role')).toBe('tooltip');
-      expect(windowEl.getAttribute('id')).toBe('ngb-tooltip-0');
-      expect(windowEl.parentNode).toBe(fixture.nativeElement);
-      expect(directive.nativeElement.getAttribute('aria-describedby')).toBe('ngb-tooltip-0');
+         expect(windowEl).toHaveCssClass('tooltip');
+         expect(windowEl).toHaveCssClass(`bs-tooltip-${defaultConfig.placement}`);
+         expect(windowEl.textContent.trim()).toBe('Great tip!');
+         expect(windowEl.getAttribute('role')).toBe('tooltip');
+         expect(windowEl.getAttribute('id')).toBe('ngb-tooltip-' + nextId);
+         expect(windowEl.parentNode).toBe(fixture.nativeElement);
+         expect(directive.nativeElement.getAttribute('aria-describedby')).toBe('ngb-tooltip-' + nextId);
 
-      directive.triggerEventHandler('mouseleave', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).toBeNull();
-      expect(directive.nativeElement.getAttribute('aria-describedby')).toBeNull();
-    });
+         directive.triggerEventHandler('mouseleave', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).toBeNull();
+         expect(directive.nativeElement.getAttribute('aria-describedby')).toBeNull();
+       }));
 
-    it('should open and close a tooltip - default settings and content from a template', () => {
-      const fixture = createTestComponent(`<ng-template #t>Hello, {{name}}!</ng-template><div [ngbTooltip]="t"></div>`);
-      const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+    it('should open and close a tooltip - default settings and content from a template', fakeAsync(() => {
+         const fixture = createTestComponent(`<ng-template #t>Hello, {{name}}!</ng-template><div [ngbTooltip]="t" [enableAnimation]="false"></div>`);
+         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-      directive.triggerEventHandler('mouseenter', {});
-      fixture.detectChanges();
-      const windowEl = getWindow(fixture.nativeElement);
+         directive.triggerEventHandler('mouseenter', {});
+         fixture.detectChanges();
+         tick(10);
+         const windowEl = getWindow(fixture.nativeElement);
 
-      expect(windowEl).toHaveCssClass('tooltip');
-      expect(windowEl).toHaveCssClass('bs-tooltip-top');
-      expect(windowEl.textContent.trim()).toBe('Hello, World!');
-      expect(windowEl.getAttribute('role')).toBe('tooltip');
-      expect(windowEl.getAttribute('id')).toBe('ngb-tooltip-1');
-      expect(windowEl.parentNode).toBe(fixture.nativeElement);
-      expect(directive.nativeElement.getAttribute('aria-describedby')).toBe('ngb-tooltip-1');
+         expect(windowEl).toHaveCssClass('tooltip');
+         expect(windowEl).toHaveCssClass('bs-tooltip-top');
+         expect(windowEl.textContent.trim()).toBe('Hello, World!');
+         expect(windowEl.getAttribute('role')).toBe('tooltip');
+         expect(windowEl.getAttribute('id')).toBe('ngb-tooltip-' + nextId);
+         expect(windowEl.parentNode).toBe(fixture.nativeElement);
+         expect(directive.nativeElement.getAttribute('aria-describedby')).toBe('ngb-tooltip-' + nextId);
 
-      directive.triggerEventHandler('mouseleave', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).toBeNull();
-      expect(directive.nativeElement.getAttribute('aria-describedby')).toBeNull();
-    });
+         directive.triggerEventHandler('mouseleave', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).toBeNull();
+         expect(directive.nativeElement.getAttribute('aria-describedby')).toBeNull();
+       }));
 
-    it('should open and close a tooltip - default settings, content from a template and context supplied', () => {
-      const fixture = createTestComponent(`<ng-template #t let-name="name">Hello, {{name}}!</ng-template><div [ngbTooltip]="t"></div>`);
-      const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+    it('should open and close a tooltip - default settings, content from a template and context supplied',
+       fakeAsync(() => {
+         const fixture = createTestComponent(`<ng-template #t let-name="name">Hello, {{name}}!</ng-template><div [ngbTooltip]="t" [enableAnimation]="false"></div>`);
+         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-      directive.context.tooltip.open({name: 'John'});
-      fixture.detectChanges();
-      const windowEl = getWindow(fixture.nativeElement);
+         directive.context.tooltip.open({name: 'John'});
+         fixture.detectChanges();
+         tick(10);
+         const windowEl = getWindow(fixture.nativeElement);
 
-      expect(windowEl).toHaveCssClass('tooltip');
-      expect(windowEl).toHaveCssClass('bs-tooltip-top');
-      expect(windowEl.textContent.trim()).toBe('Hello, John!');
-      expect(windowEl.getAttribute('role')).toBe('tooltip');
-      expect(windowEl.getAttribute('id')).toBe('ngb-tooltip-2');
-      expect(windowEl.parentNode).toBe(fixture.nativeElement);
-      expect(directive.nativeElement.getAttribute('aria-describedby')).toBe('ngb-tooltip-2');
+         expect(windowEl).toHaveCssClass('tooltip');
+         expect(windowEl).toHaveCssClass('bs-tooltip-top');
+         expect(windowEl.textContent.trim()).toBe('Hello, John!');
+         expect(windowEl.getAttribute('role')).toBe('tooltip');
+         expect(windowEl.getAttribute('id')).toBe('ngb-tooltip-' + nextId);
+         expect(windowEl.parentNode).toBe(fixture.nativeElement);
+         expect(directive.nativeElement.getAttribute('aria-describedby')).toBe('ngb-tooltip-' + nextId);
 
-      directive.triggerEventHandler('mouseleave', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).toBeNull();
-      expect(directive.nativeElement.getAttribute('aria-describedby')).toBeNull();
-    });
+         directive.triggerEventHandler('mouseleave', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).toBeNull();
+         expect(directive.nativeElement.getAttribute('aria-describedby')).toBeNull();
+       }));
 
-    it('should open and close a tooltip - default settings and custom class', () => {
-      const fixture = createTestComponent(`
-        <div ngbTooltip="Great tip!" tooltipClass="my-custom-class"></div>`);
-      const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+    it('should open and close a tooltip - default settings and custom class', fakeAsync(() => {
+         const fixture = createTestComponent(`
+        <div ngbTooltip="Great tip!" tooltipClass="my-custom-class" [enableAnimation]="false"></div>`);
+         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-      directive.triggerEventHandler('mouseenter', {});
-      fixture.detectChanges();
-      const windowEl = getWindow(fixture.nativeElement);
+         directive.triggerEventHandler('mouseenter', {});
+         fixture.detectChanges();
+         tick(10);
+         const windowEl = getWindow(fixture.nativeElement);
 
-      expect(windowEl).toHaveCssClass('tooltip');
-      expect(windowEl).toHaveCssClass('bs-tooltip-top');
-      expect(windowEl).toHaveCssClass('my-custom-class');
-      expect(windowEl.textContent.trim()).toBe('Great tip!');
-      expect(windowEl.getAttribute('role')).toBe('tooltip');
-      expect(windowEl.getAttribute('id')).toBe('ngb-tooltip-3');
-      expect(windowEl.parentNode).toBe(fixture.nativeElement);
-      expect(directive.nativeElement.getAttribute('aria-describedby')).toBe('ngb-tooltip-3');
+         expect(windowEl).toHaveCssClass('tooltip');
+         expect(windowEl).toHaveCssClass('bs-tooltip-top');
+         expect(windowEl).toHaveCssClass('my-custom-class');
+         expect(windowEl.textContent.trim()).toBe('Great tip!');
+         expect(windowEl.getAttribute('role')).toBe('tooltip');
+         expect(windowEl.getAttribute('id')).toBe('ngb-tooltip-' + nextId);
+         expect(windowEl.parentNode).toBe(fixture.nativeElement);
+         expect(directive.nativeElement.getAttribute('aria-describedby')).toBe('ngb-tooltip-' + nextId);
 
-      directive.triggerEventHandler('mouseleave', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).toBeNull();
-      expect(directive.nativeElement.getAttribute('aria-describedby')).toBeNull();
-    });
+         directive.triggerEventHandler('mouseleave', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).toBeNull();
+         expect(directive.nativeElement.getAttribute('aria-describedby')).toBeNull();
+       }));
 
     it('should not open a tooltip if content is falsy', () => {
-      const fixture = createTestComponent(`<div [ngbTooltip]="notExisting"></div>`);
+      const fixture = createTestComponent(`<div [ngbTooltip]="notExisting" [enableAnimation]="false"></div>`);
       const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
       directive.triggerEventHandler('mouseenter', {});
@@ -158,21 +170,24 @@ describe('ngb-tooltip', () => {
       expect(windowEl).toBeNull();
     });
 
-    it('should close the tooltip tooltip if content becomes falsy', () => {
-      const fixture = createTestComponent(`<div [ngbTooltip]="name"></div>`);
-      const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+    it('should close the tooltip tooltip if content becomes falsy', fakeAsync(() => {
+         const fixture = createTestComponent(`<div [ngbTooltip]="name" [enableAnimation]="false"></div>`);
+         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-      directive.triggerEventHandler('mouseenter', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).not.toBeNull();
+         directive.triggerEventHandler('mouseenter', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).not.toBeNull();
 
-      fixture.componentInstance.name = null;
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).toBeNull();
-    });
+         fixture.componentInstance.name = null;
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).toBeNull();
+       }));
 
     it('should not open a tooltip if [disableTooltip] flag', () => {
-      const fixture = createTestComponent(`<div [ngbTooltip]="Disabled!" [disableTooltip]="true"></div>`);
+      const fixture =
+          createTestComponent(`<div [ngbTooltip]="Disabled!" [disableTooltip]="true" [enableAnimation]="false"></div>`);
       const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
       directive.triggerEventHandler('mouseenter', {});
@@ -182,56 +197,65 @@ describe('ngb-tooltip', () => {
       expect(windowEl).toBeNull();
     });
 
-    it('should allow re-opening previously closed tooltips', () => {
-      const fixture = createTestComponent(`<div ngbTooltip="Great tip!"></div>`);
-      const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+    it('should allow re-opening previously closed tooltips', fakeAsync(() => {
+         const fixture = createTestComponent(`<div ngbTooltip="Great tip!" [enableAnimation]="false"></div>`);
+         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-      directive.triggerEventHandler('mouseenter', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).not.toBeNull();
+         directive.triggerEventHandler('mouseenter', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).not.toBeNull();
 
-      directive.triggerEventHandler('mouseleave', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).toBeNull();
+         directive.triggerEventHandler('mouseleave', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).toBeNull();
 
-      directive.triggerEventHandler('mouseenter', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).not.toBeNull();
-    });
+         directive.triggerEventHandler('mouseenter', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).not.toBeNull();
+       }));
 
-    it('should not leave dangling tooltips in the DOM', () => {
-      const fixture = createTestComponent(`<ng-template [ngIf]="show"><div ngbTooltip="Great tip!"></div></ng-template>`);
-      const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+    it('should not leave dangling tooltips in the DOM', fakeAsync(() => {
+         const fixture = createTestComponent(
+             `<ng-template [ngIf]="show"><div ngbTooltip="Great tip!" [enableAnimation]="false"></div></ng-template>`);
+         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-      directive.triggerEventHandler('mouseenter', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).not.toBeNull();
+         directive.triggerEventHandler('mouseenter', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).not.toBeNull();
 
-      fixture.componentInstance.show = false;
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).toBeNull();
-    });
+         fixture.componentInstance.show = false;
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).toBeNull();
+       }));
 
-    it('should properly cleanup tooltips with manual triggers', () => {
-      const fixture = createTestComponent(`
+    it('should properly cleanup tooltips with manual triggers', fakeAsync(() => {
+         const fixture = createTestComponent(`
             <ng-template [ngIf]="show">
-              <div ngbTooltip="Great tip!" triggers="manual" #t="ngbTooltip" (mouseenter)="t.open()"></div>
+              <div ngbTooltip="Great tip!" triggers="manual" #t="ngbTooltip" (mouseenter)="t.open()" [enableAnimation]="false"></div>
             </ng-template>`);
-      const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-      directive.triggerEventHandler('mouseenter', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).not.toBeNull();
+         directive.triggerEventHandler('mouseenter', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).not.toBeNull();
 
-      fixture.componentInstance.show = false;
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).toBeNull();
-    });
+         fixture.componentInstance.show = false;
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).toBeNull();
+       }));
 
     describe('positioning', () => {
 
       it('should use requested position', () => {
-        const fixture = createTestComponent(`<div ngbTooltip="Great tip!" placement="left"></div>`);
+        const fixture =
+            createTestComponent(`<div ngbTooltip="Great tip!" placement="left" [enableAnimation]="false"></div>`);
         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
         directive.triggerEventHandler('mouseenter', {});
@@ -244,7 +268,8 @@ describe('ngb-tooltip', () => {
       });
 
       it('should properly position tooltips when a component is using the OnPush strategy', () => {
-        const fixture = createOnPushTestComponent(`<div ngbTooltip="Great tip!" placement="left"></div>`);
+        const fixture =
+            createOnPushTestComponent(`<div ngbTooltip="Great tip!" placement="left" [enableAnimation]="false"></div>`);
         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
         directive.triggerEventHandler('mouseenter', {});
@@ -257,7 +282,8 @@ describe('ngb-tooltip', () => {
       });
 
       it('should have proper arrow placement', () => {
-        const fixture = createTestComponent(`<div ngbTooltip="Great tip!" placement="right-top"></div>`);
+        const fixture =
+            createTestComponent(`<div ngbTooltip="Great tip!" placement="right-top" [enableAnimation]="false"></div>`);
         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
         directive.triggerEventHandler('mouseenter', {});
@@ -271,8 +297,8 @@ describe('ngb-tooltip', () => {
       });
 
       it('should accept placement in array(second value of the array should be applied)', () => {
-        const fixture =
-            createTestComponent(`<div ngbTooltip="Great tip!" [placement]="['left-top','top-right']"></div>`);
+        const fixture = createTestComponent(
+            `<div ngbTooltip="Great tip!" [placement]="['left-top','top-right']" [enableAnimation]="false"></div>`);
         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
         directive.triggerEventHandler('mouseenter', {});
@@ -286,7 +312,8 @@ describe('ngb-tooltip', () => {
       });
 
       it('should apply auto placement', () => {
-        const fixture = createTestComponent(`<div ngbTooltip="Great tip!" placement="auto"></div>`);
+        const fixture =
+            createTestComponent(`<div ngbTooltip="Great tip!" placement="auto" [enableAnimation]="false"></div>`);
         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
         directive.triggerEventHandler('mouseenter', {});
@@ -303,48 +330,57 @@ describe('ngb-tooltip', () => {
 
     describe('triggers', () => {
 
-      it('should support toggle triggers', () => {
-        const fixture = createTestComponent(`<div ngbTooltip="Great tip!" triggers="click"></div>`);
-        const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+      it('should support toggle triggers', fakeAsync(() => {
+           const fixture =
+               createTestComponent(`<div ngbTooltip="Great tip!" triggers="click" [enableAnimation]="false"></div>`);
+           const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-        directive.triggerEventHandler('click', {});
-        fixture.detectChanges();
-        expect(getWindow(fixture.nativeElement)).not.toBeNull();
+           directive.triggerEventHandler('click', {});
+           fixture.detectChanges();
+           tick(10);
+           expect(getWindow(fixture.nativeElement)).not.toBeNull();
 
-        directive.triggerEventHandler('click', {});
-        fixture.detectChanges();
-        expect(getWindow(fixture.nativeElement)).toBeNull();
-      });
+           directive.triggerEventHandler('click', {});
+           fixture.detectChanges();
+           tick(10);
+           expect(getWindow(fixture.nativeElement)).toBeNull();
+         }));
 
-      it('should non-default toggle triggers', () => {
-        const fixture = createTestComponent(`<div ngbTooltip="Great tip!" triggers="mouseenter:click"></div>`);
-        const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+      it('should non-default toggle triggers', fakeAsync(() => {
+           const fixture = createTestComponent(
+               `<div ngbTooltip="Great tip!" triggers="mouseenter:click" [enableAnimation]="false"></div>`);
+           const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-        directive.triggerEventHandler('mouseenter', {});
-        fixture.detectChanges();
-        expect(getWindow(fixture.nativeElement)).not.toBeNull();
+           directive.triggerEventHandler('mouseenter', {});
+           fixture.detectChanges();
+           tick(10);
+           expect(getWindow(fixture.nativeElement)).not.toBeNull();
 
-        directive.triggerEventHandler('click', {});
-        fixture.detectChanges();
-        expect(getWindow(fixture.nativeElement)).toBeNull();
-      });
+           directive.triggerEventHandler('click', {});
+           fixture.detectChanges();
+           tick(10);
+           expect(getWindow(fixture.nativeElement)).toBeNull();
+         }));
 
-      it('should support multiple triggers', () => {
-        const fixture =
-            createTestComponent(`<div ngbTooltip="Great tip!" triggers="mouseenter:mouseleave click"></div>`);
-        const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+      it('should support multiple triggers', fakeAsync(() => {
+           const fixture = createTestComponent(
+               `<div ngbTooltip="Great tip!" triggers="mouseenter:mouseleave click" [enableAnimation]="false"></div>`);
+           const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-        directive.triggerEventHandler('mouseenter', {});
-        fixture.detectChanges();
-        expect(getWindow(fixture.nativeElement)).not.toBeNull();
+           directive.triggerEventHandler('mouseenter', {});
+           fixture.detectChanges();
+           tick(10);
+           expect(getWindow(fixture.nativeElement)).not.toBeNull();
 
-        directive.triggerEventHandler('click', {});
-        fixture.detectChanges();
-        expect(getWindow(fixture.nativeElement)).toBeNull();
-      });
+           directive.triggerEventHandler('click', {});
+           fixture.detectChanges();
+           tick(10);
+           expect(getWindow(fixture.nativeElement)).toBeNull();
+         }));
 
       it('should not use default for manual triggers', () => {
-        const fixture = createTestComponent(`<div ngbTooltip="Great tip!" triggers="manual"></div>`);
+        const fixture =
+            createTestComponent(`<div ngbTooltip="Great tip!" triggers="manual" [enableAnimation]="false"></div>`);
         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
         directive.triggerEventHandler('mouseenter', {});
@@ -352,41 +388,45 @@ describe('ngb-tooltip', () => {
         expect(getWindow(fixture.nativeElement)).toBeNull();
       });
 
-      it('should allow toggling for manual triggers', () => {
-        const fixture = createTestComponent(`
-                <div ngbTooltip="Great tip!" triggers="manual" #t="ngbTooltip"></div>
+      it('should allow toggling for manual triggers', fakeAsync(() => {
+           const fixture = createTestComponent(`
+                <div ngbTooltip="Great tip!" triggers="manual" #t="ngbTooltip" [enableAnimation]="false"></div>
                 <button (click)="t.toggle()">T</button>`);
-        const button = fixture.nativeElement.querySelector('button');
+           const button = fixture.nativeElement.querySelector('button');
 
-        button.click();
-        fixture.detectChanges();
-        expect(getWindow(fixture.nativeElement)).not.toBeNull();
+           button.click();
+           fixture.detectChanges();
+           tick(10);
+           expect(getWindow(fixture.nativeElement)).not.toBeNull();
 
-        button.click();
-        fixture.detectChanges();
-        expect(getWindow(fixture.nativeElement)).toBeNull();
-      });
+           button.click();
+           fixture.detectChanges();
+           tick(10);
+           expect(getWindow(fixture.nativeElement)).toBeNull();
+         }));
 
-      it('should allow open / close for manual triggers', () => {
-        const fixture = createTestComponent(`
-                <div ngbTooltip="Great tip!" triggers="manual" #t="ngbTooltip"></div>
+      it('should allow open / close for manual triggers', fakeAsync(() => {
+           const fixture = createTestComponent(`
+                <div ngbTooltip="Great tip!" triggers="manual" #t="ngbTooltip" [enableAnimation]="false"></div>
                 <button (click)="t.open()">O</button>
                 <button (click)="t.close()">C</button>`);
 
-        const buttons = fixture.nativeElement.querySelectorAll('button');
+           const buttons = fixture.nativeElement.querySelectorAll('button');
 
-        buttons[0].click();  // open
-        fixture.detectChanges();
-        expect(getWindow(fixture.nativeElement)).not.toBeNull();
+           buttons[0].click();  // open
+           fixture.detectChanges();
+           tick(10);
+           expect(getWindow(fixture.nativeElement)).not.toBeNull();
 
-        buttons[1].click();  // close
-        fixture.detectChanges();
-        expect(getWindow(fixture.nativeElement)).toBeNull();
-      });
+           buttons[1].click();  // close
+           fixture.detectChanges();
+           tick(10);
+           expect(getWindow(fixture.nativeElement)).toBeNull();
+         }));
 
       it('should not throw when open called for manual triggers and open tooltip', () => {
         const fixture = createTestComponent(`
-                <div ngbTooltip="Great tip!" triggers="manual" #t="ngbTooltip"></div>
+                <div ngbTooltip="Great tip!" triggers="manual" #t="ngbTooltip" [enableAnimation]="false"></div>
                 <button (click)="t.open()">O</button>`);
         const button = fixture.nativeElement.querySelector('button');
 
@@ -401,7 +441,7 @@ describe('ngb-tooltip', () => {
 
       it('should not throw when closed called for manual triggers and closed tooltip', () => {
         const fixture = createTestComponent(`
-                <div ngbTooltip="Great tip!" triggers="manual" #t="ngbTooltip"></div>
+                <div ngbTooltip="Great tip!" triggers="manual" #t="ngbTooltip" [enableAnimation]="false"></div>
                 <button (click)="t.close()">C</button>`);
 
         const button = fixture.nativeElement.querySelector('button');
@@ -415,56 +455,73 @@ describe('ngb-tooltip', () => {
 
   describe('container', () => {
 
-    it('should be appended to the element matching the selector passed to "container"', () => {
-      const selector = 'body';
-      const fixture = createTestComponent(`<div ngbTooltip="Great tip!" container="` + selector + `"></div>`);
-      const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+    it('should be appended to the element matching the selector passed to "container"', fakeAsync(() => {
+         const selector = 'body';
+         const fixture = createTestComponent(
+             `<div ngbTooltip="Great flop!" container="` + selector + `" [enableAnimation]="false"></div>`);
+         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-      directive.triggerEventHandler('mouseenter', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).toBeNull();
-      expect(getWindow(document.querySelector(selector))).not.toBeNull();
-    });
+         directive.triggerEventHandler('mouseenter', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).toBeNull();
+         expect(getWindow(document.querySelector(selector))).not.toBeNull();
 
-    it('should properly destroy tooltips when the "container" option is used', () => {
-      const selector = 'body';
-      const fixture =
-          createTestComponent(`<div *ngIf="show" ngbTooltip="Great tip!" container="` + selector + `"></div>`);
-      const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+         directive.triggerEventHandler('mouseleave', {});
+         fixture.detectChanges();
+         tick(10);
 
-      directive.triggerEventHandler('mouseenter', {});
-      fixture.detectChanges();
+       }));
 
-      expect(getWindow(document.querySelector(selector))).not.toBeNull();
-      fixture.componentRef.instance.show = false;
-      fixture.detectChanges();
-      expect(getWindow(document.querySelector(selector))).toBeNull();
-    });
+    it('should properly destroy tooltips when the "container" option is used', fakeAsync(() => {
+         const selector = 'body';
+         const fixture = createTestComponent(
+             `<div *ngIf="show" ngbTooltip="Great tip!" container="` + selector + `" [enableAnimation]="false"></div>`);
+         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+
+         directive.triggerEventHandler('mouseenter', {});
+         fixture.detectChanges();
+         tick(10);
+
+         expect(getWindow(document.querySelector(selector))).not.toBeNull();
+         fixture.componentRef.instance.show = false;
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(document.querySelector(selector))).toBeNull();
+
+         directive.triggerEventHandler('mouseleave', {});
+         fixture.detectChanges();
+         tick(10);
+
+
+       }));
   });
 
   describe('visibility', () => {
-    it('should emit events when showing and hiding tooltip', () => {
-      const fixture = createTestComponent(
-          `<div ngbTooltip="Great tip!" triggers="click" (shown)="shown()" (hidden)="hidden()"></div>`);
-      const directive = fixture.debugElement.query(By.directive(NgbTooltip));
+    it('should emit events when showing and hiding tooltip', fakeAsync(() => {
+         const fixture = createTestComponent(
+             `<div ngbTooltip="Great tip!" triggers="click" (shown)="shown()" (hidden)="hidden()" [enableAnimation]="false"></div>`);
+         const directive = fixture.debugElement.query(By.directive(NgbTooltip));
 
-      let shownSpy = spyOn(fixture.componentInstance, 'shown');
-      let hiddenSpy = spyOn(fixture.componentInstance, 'hidden');
+         let shownSpy = spyOn(fixture.componentInstance, 'shown');
+         let hiddenSpy = spyOn(fixture.componentInstance, 'hidden');
 
-      directive.triggerEventHandler('click', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).not.toBeNull();
-      expect(shownSpy).toHaveBeenCalled();
+         directive.triggerEventHandler('click', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).not.toBeNull();
+         expect(shownSpy).toHaveBeenCalled();
 
-      directive.triggerEventHandler('click', {});
-      fixture.detectChanges();
-      expect(getWindow(fixture.nativeElement)).toBeNull();
-      expect(hiddenSpy).toHaveBeenCalled();
-    });
+         directive.triggerEventHandler('click', {});
+         fixture.detectChanges();
+         tick(10);
+         expect(getWindow(fixture.nativeElement)).toBeNull();
+         expect(hiddenSpy).toHaveBeenCalled();
+       }));
 
     it('should not emit close event when already closed', () => {
       const fixture = createTestComponent(
-          `<div ngbTooltip="Great tip!" triggers="manual" (shown)="shown()" (hidden)="hidden()"></div>`);
+          `<div ngbTooltip="Great tip!" triggers="manual" (shown)="shown()" (hidden)="hidden()" [enableAnimation]="false"></div>`);
 
       let shownSpy = spyOn(fixture.componentInstance, 'shown');
       let hiddenSpy = spyOn(fixture.componentInstance, 'hidden');
@@ -483,7 +540,7 @@ describe('ngb-tooltip', () => {
 
     it('should not emit open event when already opened', () => {
       const fixture = createTestComponent(
-          `<div ngbTooltip="Great tip!" triggers="manual" (shown)="shown()" (hidden)="hidden()"></div>`);
+          `<div ngbTooltip="Great tip!" triggers="manual" (shown)="shown()" (hidden)="hidden()" [enableAnimation]="false"></div>`);
 
       let shownSpy = spyOn(fixture.componentInstance, 'shown');
       let hiddenSpy = spyOn(fixture.componentInstance, 'hidden');
@@ -496,7 +553,8 @@ describe('ngb-tooltip', () => {
     });
 
     it('should report correct visibility', () => {
-      const fixture = createTestComponent(`<div ngbTooltip="Great tip!" triggers="manual"></div>`);
+      const fixture =
+          createTestComponent(`<div ngbTooltip="Great tip!" triggers="manual" [enableAnimation]="false"></div>`);
       fixture.detectChanges();
 
       expect(fixture.componentInstance.tooltip.isOpen()).toBeFalsy();
@@ -511,12 +569,237 @@ describe('ngb-tooltip', () => {
     });
   });
 
+  describe('autoClose', () => {
+    beforeEach(() => { TestBed.configureTestingModule({declarations: [TestComponent], imports: [NgbTooltipModule]}); });
+
+    it('should not close when autoClose is false', fakeAsync(() => {
+         const fixture = createTestComponent(`
+    <ng-template #tooltipContent><div id="tooltip">Tooltip content</div></ng-template>
+    <div
+      id="target"
+      #tooltip="ngbTooltip"
+      [ngbTooltip]="tooltipContent"
+      triggers="manual"
+      [autoClose]="false"
+      (click)="tooltip.open()"
+      [enableAnimation]="false"
+    >
+      Target with tooltip
+    </div>
+    <div id="outside">Element outside</div>
+  `);
+         const select = selector => fixture.nativeElement.querySelector(selector);
+         const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();
+
+         const outside = select('#outside');
+         const target = select('#target');
+         let tooltip;
+         const open = () => {
+           target.click();
+           tick(16);
+           fixture.detectChanges();
+           expectToBeOpen();
+           tooltip = select('#tooltip');
+         };
+
+         open();
+
+         dispatchEscapeKeyUpEvent();
+         fixture.detectChanges();
+         expectToBeOpen();
+
+         outside.click();
+         fixture.detectChanges();
+         expectToBeOpen();
+
+         tooltip.click();
+         fixture.detectChanges();
+         expectToBeOpen();
+
+         target.click();
+         fixture.detectChanges();
+         expectToBeOpen();
+       }));
+
+    it('should close on clicks inside the tooltip and on Escape when autoClose is "inside"', fakeAsync(() => {
+         const fixture = createTestComponent(`
+        <ng-template #tooltipContent><div id="tooltip">Tooltip content</div></ng-template>
+        <div
+          id="target"
+          #tooltip="ngbTooltip"
+          [ngbTooltip]="tooltipContent"
+          triggers="manual"
+          autoClose="inside"
+          (click)="tooltip.open()"
+          [enableAnimation]="false"
+        >
+          Target with tooltip
+        </div>
+        <div id="outside">Element outside</div>
+      `);
+
+
+         const select = selector => fixture.nativeElement.querySelector(selector);
+         const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();
+         const expectToBeClosed = () => expect(getWindow(fixture.nativeElement)).toBeNull();
+
+         const outside = select('#outside');
+         const target = select('#target');
+         let tooltip;
+         const open = () => {
+           target.click();
+           tick(16);
+           fixture.detectChanges();
+           expectToBeOpen();
+           tooltip = select('#tooltip');
+         };
+
+         open();
+
+         dispatchEscapeKeyUpEvent();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeClosed();
+         open();
+
+         tooltip.click();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeClosed();
+         open();
+
+         outside.click();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeOpen();
+
+         target.click();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeOpen();
+       }));
+
+    it('should close on clicks outside the tooltip and on Escape when autoClose is "outside"', fakeAsync(() => {
+         const fixture = createTestComponent(`
+        <ng-template #tooltipContent><div id="tooltip">Tooltip content</div></ng-template>
+        <div
+          id="target"
+          #tooltip="ngbTooltip"
+          [ngbTooltip]="tooltipContent"
+          triggers="manual"
+          autoClose="outside"
+          (click)="tooltip.open()"
+          [enableAnimation]="false"
+        >
+          Target with tooltip
+        </div>
+        <div id="outside">Element outside</div>
+      `);
+         const select = selector => fixture.nativeElement.querySelector(selector);
+         const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();
+         const expectToBeClosed = () => expect(getWindow(fixture.nativeElement)).toBeNull();
+
+         const outside = select('#outside');
+         const target = select('#target');
+         let tooltip;
+         const open = () => {
+           target.click();
+           fixture.detectChanges();
+           tick(16);
+           expectToBeOpen();
+           tooltip = select('#tooltip');
+         };
+
+         open();
+
+         dispatchEscapeKeyUpEvent();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeClosed();
+         open();
+
+         outside.click();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeClosed();
+         open();
+
+         tooltip.click();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeOpen();
+
+         target.click();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeClosed();
+       }));
+
+    it('should close on clicks anywhere and on Escape when autoClose is true', fakeAsync(() => {
+         const fixture = createTestComponent(`
+        <ng-template #tooltipContent><div id="tooltip">Tooltip content</div></ng-template>
+        <div
+          id="target"
+          #tooltip="ngbTooltip"
+          [ngbTooltip]="tooltipContent"
+          triggers="manual"
+          [autoClose]="true"
+          (click)="tooltip.open()"
+          [enableAnimation]="false"
+        >
+          Target with tooltip
+        </div>
+        <div id="outside">Element outside</div>
+      `);
+         const select = selector => fixture.nativeElement.querySelector(selector);
+         const expectToBeOpen = () => expect(getWindow(fixture.nativeElement)).not.toBeNull();
+         const expectToBeClosed = () => expect(getWindow(fixture.nativeElement)).toBeNull();
+
+         const outside = select('#outside');
+         const target = select('#target');
+         let tooltip;
+         const open = () => {
+           target.click();
+           tick(16);
+           fixture.detectChanges();
+           expectToBeOpen();
+           tooltip = select('#tooltip');
+         };
+
+         open();
+
+         dispatchEscapeKeyUpEvent();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeClosed();
+         open();
+
+         outside.click();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeClosed();
+         open();
+
+         tooltip.click();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeClosed();
+         open();
+
+         target.click();
+         fixture.detectChanges();
+         tick(10);
+         expectToBeClosed();
+       }));
+  });
+
   describe('Custom config', () => {
     let config: NgbTooltipConfig;
 
     beforeEach(() => {
       TestBed.configureTestingModule({imports: [NgbTooltipModule]});
-      TestBed.overrideComponent(TestComponent, {set: {template: `<div ngbTooltip="Great tip!"></div>`}});
+      TestBed.overrideComponent(
+          TestComponent, {set: {template: `<div ngbTooltip="Great tip!" [enableAnimation]="false"></div>`}});
     });
 
     beforeEach(inject([NgbTooltipConfig], (c: NgbTooltipConfig) => {
@@ -552,7 +835,7 @@ describe('ngb-tooltip', () => {
     });
 
     it('should initialize inputs with provided config as provider', () => {
-      const fixture = createTestComponent(`<div ngbTooltip="Great tip!"></div>`);
+      const fixture = createTestComponent(`<div ngbTooltip="Great tip!" [enableAnimation]="false"></div>`);
       const tooltip = fixture.componentInstance.tooltip;
 
       expect(tooltip.placement).toBe(config.placement);
@@ -570,7 +853,7 @@ describe('ngb-tooltip', () => {
      */
     it('should not try to call listener cleanup function when no listeners registered', () => {
       const fixture = createTestComponent(`
-        <ng-template #tpl><div ngbTooltip="Great tip!"></div></ng-template>
+        <ng-template #tpl><div ngbTooltip="Great tip!" [enableAnimation]="false"></div></ng-template>
         <button (click)="createAndDestroyTplWithATooltip(tpl)"></button>
       `);
       const buttonEl = fixture.debugElement.query(By.css('button'));

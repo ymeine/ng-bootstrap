@@ -10,4 +10,5 @@ export class NgbTabsetConfig {
   justify: 'start' | 'center' | 'end' | 'fill' | 'justified' = 'start';
   orientation: 'horizontal' | 'vertical' = 'horizontal';
   type: 'tabs' | 'pills' = 'tabs';
+  enableAnimation = true;
 }

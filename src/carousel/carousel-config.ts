@@ -7,6 +7,7 @@ import {Injectable} from '@angular/core';
  */
 @Injectable({providedIn: 'root'})
 export class NgbCarouselConfig {
+  enableAnimation = true;
   interval = 5000;
   wrap = true;
   keyboard = true;

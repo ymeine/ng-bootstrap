@@ -1,4 +1,4 @@
-import {TestBed, ComponentFixture, inject} from '@angular/core/testing';
+import {TestBed, ComponentFixture, inject, fakeAsync, tick} from '@angular/core/testing';
 import {createGenericTestComponent} from '../test/common';
 
 import {Component} from '@angular/core';
@@ -9,6 +9,13 @@ import {NgbTabset} from './tabset';
 
 const createTestComponent = (html: string) =>
     createGenericTestComponent(html, TestComponent) as ComponentFixture<TestComponent>;
+
+function asyncDetectChanges(fixture: ComponentFixture<TestComponent>, numberOfTick) {
+  for (let i = 0; i < numberOfTick; i++) {
+    fixture.detectChanges();
+    tick(10);
+  }
+}
 
 function getTabTitles(nativeEl: HTMLElement) {
   return nativeEl.querySelectorAll('.nav-link');
@@ -60,13 +67,14 @@ describe('ngb-tabset', () => {
 
   it('should initialize inputs with default values', () => {
     const defaultConfig = new NgbTabsetConfig();
-    const tabset = new NgbTabset(new NgbTabsetConfig());
+    // const tabset = new NgbTabset(new NgbTabsetConfig());
+    const tabset = TestBed.createComponent(NgbTabset).componentInstance;
     expect(tabset.type).toBe(defaultConfig.type);
   });
 
   it('should render tabs and select first tab as active by default', () => {
     const fixture = createTestComponent(`
-      <ngb-tabset>
+      <ngb-tabset [enableAnimation]="false">
         <ngb-tab title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
         <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
       </ngb-tabset>
@@ -85,7 +93,7 @@ describe('ngb-tabset', () => {
 
   it('should have aria attributes', () => {
     const fixture = createTestComponent(`
-      <ngb-tabset>
+      <ngb-tabset [enableAnimation]="false">
         <ngb-tab title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
         <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
       </ngb-tabset>
@@ -110,7 +118,7 @@ describe('ngb-tabset', () => {
 
   it('should remove aria-controls when tab content is not in DOM', () => {
     const fixture = createTestComponent(`
-      <ngb-tabset [destroyOnHide]="true">
+      <ngb-tabset [enableAnimation]="false" [destroyOnHide]="true">
         <ngb-tab title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
         <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
       </ngb-tabset>
@@ -129,7 +137,7 @@ describe('ngb-tabset', () => {
 
   it('should have aria-controls and aria-expanded when tab content is hidden', () => {
     const fixture = createTestComponent(`
-      <ngb-tabset [destroyOnHide]="false">
+      <ngb-tabset [enableAnimation]="false" [destroyOnHide]="false">
         <ngb-tab title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
         <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
       </ngb-tabset>
@@ -148,7 +156,7 @@ describe('ngb-tabset', () => {
 
   it('should allow mix of text and HTML in tab titles', () => {
     const fixture = createTestComponent(`
-      <ngb-tabset>
+      <ngb-tabset [enableAnimation]="false">
         <ngb-tab title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
         <ngb-tab>
           <ng-template ngbTabTitle><b>bar</b></ng-template>
@@ -170,10 +178,10 @@ describe('ngb-tabset', () => {
 
   it('should not pick up titles from nested tabsets', () => {
     const testHtml = `
-    <ngb-tabset>
+    <ngb-tabset [enableAnimation]="false">
       <ngb-tab title="parent">
         <ng-template ngbTabContent>
-          <ngb-tabset>
+          <ngb-tabset [enableAnimation]="false">
             <ngb-tab>
               <ng-template ngbTabTitle>child</ng-template>
               <ng-template ngbTabContent></ng-template>
@@ -199,19 +207,19 @@ describe('ngb-tabset', () => {
 
 
   it('should not crash for empty tabsets', () => {
-    const fixture = createTestComponent(`<ngb-tabset activeId="2"></ngb-tabset>`);
+    const fixture = createTestComponent(`<ngb-tabset [enableAnimation]="false" activeId="2"></ngb-tabset>`);
     expectTabs(fixture.nativeElement, []);
   });
 
   it('should not crash for tabsets with empty tab content', () => {
-    const fixture = createTestComponent(`<ngb-tabset><ngb-tab></ngb-tab></ngb-tabset>`);
+    const fixture = createTestComponent(`<ngb-tabset [enableAnimation]="false"><ngb-tab></ngb-tab></ngb-tabset>`);
     expectTabs(fixture.nativeElement, [true]);
   });
 
 
   it('should mark the requested tab as active', () => {
     const fixture = createTestComponent(`
-      <ngb-tabset activeId="2">
+      <ngb-tabset [enableAnimation]="false" activeId="2">
         <ngb-tab title="foo" id="1"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
         <ngb-tab title="bar" id="2"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
       </ngb-tabset>
@@ -223,7 +231,7 @@ describe('ngb-tabset', () => {
 
   it('should auto-correct requested active tab id', () => {
     const fixture = createTestComponent(`
-      <ngb-tabset activeId="doesntExist">
+      <ngb-tabset [enableAnimation]="false" activeId="doesntExist">
         <ngb-tab title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
         <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
       </ngb-tabset>
@@ -235,7 +243,7 @@ describe('ngb-tabset', () => {
 
   it('should auto-correct requested active tab id for undefined ids', () => {
     const fixture = createTestComponent(`
-      <ngb-tabset [activeId]="activeTabId">
+      <ngb-tabset [enableAnimation]="false" [activeId]="activeTabId">
         <ngb-tab title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
         <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
       </ngb-tabset>
@@ -245,9 +253,9 @@ describe('ngb-tabset', () => {
   });
 
 
-  it('should change active tab on tab title click', () => {
+  it('should change active tab on tab title click', fakeAsync(() => {
     const fixture = createTestComponent(`
-      <ngb-tabset>
+      <ngb-tabset [enableAnimation]="false">
         <ngb-tab title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
         <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
       </ngb-tabset>
@@ -256,18 +264,19 @@ describe('ngb-tabset', () => {
     const tabTitles = getTabTitles(fixture.nativeElement);
 
     (<HTMLElement>tabTitles[1]).click();
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 2);
+
     expectTabs(fixture.nativeElement, [false, true]);
 
     (<HTMLElement>tabTitles[0]).click();
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 2);
     expectTabs(fixture.nativeElement, [true, false]);
-  });
+  }));
 
 
   it('should support disabled tabs', () => {
     const fixture = createTestComponent(`
-         <ngb-tabset>
+         <ngb-tabset [enableAnimation]="false">
            <ngb-tab title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
            <ngb-tab title="bar" [disabled]="true"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
          </ngb-tabset>
@@ -279,7 +288,7 @@ describe('ngb-tabset', () => {
 
   it('should not change active tab on disabled tab title click', () => {
     const fixture = createTestComponent(`
-         <ngb-tabset>
+         <ngb-tabset [enableAnimation]="false">
            <ngb-tab title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
            <ngb-tab title="bar" [disabled]="true"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
          </ngb-tabset>
@@ -295,7 +304,7 @@ describe('ngb-tabset', () => {
 
   it('should allow initially active and disabled tabs', () => {
     const fixture = createTestComponent(`
-         <ngb-tabset>
+         <ngb-tabset [enableAnimation]="false">
            <ngb-tab title="bar" [disabled]="true"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
          </ngb-tabset>
        `);
@@ -306,7 +315,7 @@ describe('ngb-tabset', () => {
 
   it('should have nav-tabs default', () => {
     const fixture = createTestComponent(`
-         <ngb-tabset>
+         <ngb-tabset [enableAnimation]="false">
            <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
          </ngb-tabset>
        `);
@@ -318,7 +327,7 @@ describe('ngb-tabset', () => {
 
   it('should have pills upon setting pills', () => {
     const fixture = createTestComponent(`
-         <ngb-tabset type="pills">
+         <ngb-tabset [enableAnimation]="false" type="pills">
            <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
          </ngb-tabset>
        `);
@@ -329,7 +338,7 @@ describe('ngb-tabset', () => {
 
   it('should allow arbitrary nav type', () => {
     const fixture = createTestComponent(`
-         <ngb-tabset type="bordered">
+         <ngb-tabset [enableAnimation]="false" type="bordered">
            <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
          </ngb-tabset>
        `);
@@ -341,7 +350,7 @@ describe('ngb-tabset', () => {
 
   it('should have the "justify-content-start" class by default', () => {
     const fixture = createTestComponent(`
-         <ngb-tabset>
+         <ngb-tabset [enableAnimation]="false">
            <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
          </ngb-tabset>
        `);
@@ -351,7 +360,7 @@ describe('ngb-tabset', () => {
 
   it('should have the "justify-content-center" class upon setting justify to center', () => {
     const fixture = createTestComponent(`
-         <ngb-tabset justify="center">
+         <ngb-tabset [enableAnimation]="false" justify="center">
            <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
          </ngb-tabset>
        `);
@@ -361,7 +370,7 @@ describe('ngb-tabset', () => {
 
   it('should have the "justify-content-end" upon setting justify to end', () => {
     const fixture = createTestComponent(`
-         <ngb-tabset justify="end">
+         <ngb-tabset [enableAnimation]="false" justify="end">
            <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
          </ngb-tabset>
        `);
@@ -371,7 +380,7 @@ describe('ngb-tabset', () => {
 
   it('should have the "nav-fill" class upon setting justify to fill', () => {
     const fixture = createTestComponent(`
-        <ngb-tabset justify="fill">
+        <ngb-tabset [enableAnimation]="false" justify="fill">
           <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
         </ngb-tabset>
       `);
@@ -381,7 +390,7 @@ describe('ngb-tabset', () => {
 
   it('should have the "nav-justified" class upon setting justify to justified', () => {
     const fixture = createTestComponent(`
-        <ngb-tabset justify="justified">
+        <ngb-tabset [enableAnimation]="false" justify="justified">
           <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
         </ngb-tabset>
       `);
@@ -391,7 +400,7 @@ describe('ngb-tabset', () => {
 
   it('should have the "justify-content-start" class upon setting orientation to horizontal', () => {
     const fixture = createTestComponent(`
-        <ngb-tabset orientation="horizontal">
+        <ngb-tabset [enableAnimation]="false" orientation="horizontal">
           <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
         </ngb-tabset>
       `);
@@ -402,7 +411,7 @@ describe('ngb-tabset', () => {
 
   it('should have the "flex-column" class upon setting orientation to vertical', () => {
     const fixture = createTestComponent(`
-        <ngb-tabset orientation="vertical">
+        <ngb-tabset [enableAnimation]="false" orientation="vertical">
           <ngb-tab title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
         </ngb-tabset>
       `);
@@ -412,9 +421,9 @@ describe('ngb-tabset', () => {
   });
 
 
-  it('should change active tab by calling select on an exported directive instance', () => {
+  it('should change active tab by calling select on an exported directive instance', fakeAsync(() => {
     const fixture = createTestComponent(`
-          <ngb-tabset #myTabSet="ngbTabset">
+          <ngb-tabset [enableAnimation]="false" #myTabSet="ngbTabset">
             <ngb-tab id="myFirstTab" title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
             <ngb-tab id="mySecondTab" title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
           </ngb-tabset>
@@ -426,19 +435,19 @@ describe('ngb-tabset', () => {
 
     // Click on a button to select the second tab
     (<HTMLElement>button[1]).click();
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 2);
     expectTabs(fixture.nativeElement, [false, true]);
 
     // Click on a button to select the first tab
     (<HTMLElement>button[0]).click();
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 2);
     expectTabs(fixture.nativeElement, [true, false]);
-  });
+  }));
 
 
-  it('should not change active tab by calling select on an exported directive instance in case of disable tab', () => {
+  it('should not change active tab by calling select on an exported directive instance in case of disable tab', fakeAsync(() => {
     const fixture = createTestComponent(`
-          <ngb-tabset #myTabSet="ngbTabset">
+          <ngb-tabset [enableAnimation]="false" #myTabSet="ngbTabset">
             <ngb-tab id="myFirstTab" title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
             <ngb-tab id="mySecondTab" title="bar" [disabled]="true"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
           </ngb-tabset>
@@ -449,13 +458,13 @@ describe('ngb-tabset', () => {
 
     // Click on a button to select the second disabled tab (should not change active tab).
     (<HTMLElement>button[0]).click();
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 2);
     expectTabs(fixture.nativeElement, [true, false], [false, true]);
-  });
+  }));
 
-  it('should not remove inactive tabs content from DOM with `destroyOnHide` flag', () => {
+  it('should not remove inactive tabs content from DOM with `destroyOnHide` flag', fakeAsync(() => {
     const fixture = createTestComponent(`
-          <ngb-tabset #myTabSet="ngbTabset" [destroyOnHide]="false">
+          <ngb-tabset [enableAnimation]="false" #myTabSet="ngbTabset" [destroyOnHide]="false">
             <ngb-tab id="myFirstTab" title="foo"><ng-template ngbTabContent>Foo</ng-template></ngb-tab>
             <ngb-tab id="mySecondTab" title="bar"><ng-template ngbTabContent>Bar</ng-template></ngb-tab>
           </ngb-tabset>
@@ -466,15 +475,15 @@ describe('ngb-tabset', () => {
 
     // Click on a button to select the second tab
     (<HTMLElement>button[0]).click();
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 2);
     let tabContents = getTabContent(fixture.nativeElement);
     expect(tabContents.length).toBe(2);
     expect(tabContents[1]).toHaveCssClass('active');
-  });
+  }));
 
-  it('should emit tab change event when switching tabs', () => {
+  it('should emit tab change event when switching tabs', fakeAsync(() => {
     const fixture = createTestComponent(`
-          <ngb-tabset #myTabSet="ngbTabset" (tabChange)="changeCallback($event)">
+          <ngb-tabset [enableAnimation]="false" #myTabSet="ngbTabset" (tabChange)="changeCallback($event)">
             <ngb-tab id="first" title="first"><ng-template ngbTabContent>First</ng-template></ngb-tab>
             <ngb-tab id="second" title="second"><ng-template ngbTabContent>Second</ng-template></ngb-tab>
           </ngb-tabset>
@@ -488,20 +497,20 @@ describe('ngb-tabset', () => {
 
     // Select the second tab -> change event
     (<HTMLElement>button[1]).click();
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 2);
     expect(fixture.componentInstance.changeCallback)
         .toHaveBeenCalledWith(jasmine.objectContaining({activeId: 'first', nextId: 'second'}));
 
     // Select the first tab again -> change event
     (<HTMLElement>button[0]).click();
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 2);
     expect(fixture.componentInstance.changeCallback)
         .toHaveBeenCalledWith(jasmine.objectContaining({activeId: 'second', nextId: 'first'}));
-  });
+  }));
 
-  it('should not emit tab change event when selecting currently active and disabled tabs', () => {
+  it('should not emit tab change event when selecting currently active and disabled tabs', fakeAsync(() => {
     const fixture = createTestComponent(`
-          <ngb-tabset #myTabSet="ngbTabset" (tabChange)="changeCallback($event)">
+          <ngb-tabset [enableAnimation]="false" #myTabSet="ngbTabset" (tabChange)="changeCallback($event)">
             <ngb-tab id="first" title="first"><ng-template ngbTabContent>First</ng-template></ngb-tab>
             <ngb-tab id="second" title="second" [disabled]="true"><ng-template ngbTabContent>Second</ng-template></ngb-tab>
           </ngb-tabset>
@@ -515,18 +524,18 @@ describe('ngb-tabset', () => {
 
     // Select the currently active tab -> no change event
     (<HTMLElement>button[0]).click();
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 2);
     expect(fixture.componentInstance.changeCallback).not.toHaveBeenCalled();
 
     // Select the disabled tab -> no change event
     (<HTMLElement>button[1]).click();
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 2);
     expect(fixture.componentInstance.changeCallback).not.toHaveBeenCalled();
-  });
+  }));
 
-  it('should cancel tab change when preventDefault() is called', () => {
+  it('should cancel tab change when preventDefault() is called', fakeAsync(() => {
     const fixture = createTestComponent(`
-          <ngb-tabset #myTabSet="ngbTabset" (tabChange)="changeCallback($event)">
+          <ngb-tabset [enableAnimation]="false" #myTabSet="ngbTabset" (tabChange)="changeCallback($event)">
             <ngb-tab id="first" title="first"><ng-template ngbTabContent>First</ng-template></ngb-tab>
             <ngb-tab id="second" title="second"><ng-template ngbTabContent>Second</ng-template></ngb-tab>
           </ngb-tabset>
@@ -544,10 +553,10 @@ describe('ngb-tabset', () => {
 
     // Select the second tab -> selection will be canceled
     (<HTMLElement>button[1]).click();
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 2);
     expect(changeEvent).toEqual(jasmine.objectContaining({activeId: 'first', nextId: 'second'}));
     expectTabs(fixture.nativeElement, [true, false]);
-  });
+  }));
 
   describe('Custom config', () => {
     let config: NgbTabsetConfig;
@@ -590,5 +599,6 @@ describe('ngb-tabset', () => {
 @Component({selector: 'test-cmp', template: ''})
 class TestComponent {
   activeTabId: string;
+  enableAnimation: false;
   changeCallback = (event: any) => {};
 }

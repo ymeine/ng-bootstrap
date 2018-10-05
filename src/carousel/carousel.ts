@@ -15,7 +15,9 @@ import {
   Output,
   PLATFORM_ID,
   QueryList,
-  TemplateRef
+  TemplateRef,
+  ElementRef,
+  Renderer2
 } from '@angular/core';
 import {isPlatformBrowser} from '@angular/common';
 
@@ -23,6 +25,7 @@ import {NgbCarouselConfig} from './carousel-config';
 
 import {merge, Subject, timer} from 'rxjs';
 import {filter, map, switchMap, takeUntil} from 'rxjs/operators';
+import { Transition, TransitionOptions } from '../util/transition/ngbTransition';
 
 let nextId = 0;
 
@@ -36,6 +39,8 @@ export class NgbSlide {
    * Will be auto-generated if not provided.
    */
   @Input() id = `ngb-slide-${nextId++}`;
+  transitionRunning = false;
+
   constructor(public tplRef: TemplateRef<any>) {}
 }
 
@@ -61,7 +66,7 @@ export class NgbSlide {
           (click)="select(slide.id); pauseOnHover && pause()"></li>
     </ol>
     <div class="carousel-inner">
-      <div *ngFor="let slide of slides" class="carousel-item" [class.active]="slide.id === activeId">
+      <div *ngFor="let slide of slides" class="carousel-item" [id]="'ngb-slide-' + slide.id">
         <ng-template [ngTemplateOutlet]="slide.tplRef"></ng-template>
       </div>
     </div>
@@ -82,6 +87,15 @@ export class NgbCarousel implements AfterContentChecked,
   private _destroy$ = new Subject<void>();
   private _start$ = new Subject<void>();
   private _stop$ = new Subject<void>();
+
+  private _activeTransition: Transition;
+  private _outTransition: Transition;
+  private _inTransition: Transition;
+
+  /**
+   * A flag to enable/disable the animation when closing.
+   */
+  @Input() enableAnimation: boolean;
 
   /**
    * The active slide id.
@@ -128,15 +142,57 @@ export class NgbCarousel implements AfterContentChecked,
    */
   @Output() slide = new EventEmitter<NgbSlideEvent>();
 
+
+
   constructor(
       config: NgbCarouselConfig, @Inject(PLATFORM_ID) private _platformId, private _ngZone: NgZone,
-      private _cd: ChangeDetectorRef) {
+      private _cd: ChangeDetectorRef, private _element: ElementRef, private _renderer: Renderer2) {
+    this.enableAnimation = config.enableAnimation;
     this.interval = config.interval;
     this.wrap = config.wrap;
     this.keyboard = config.keyboard;
     this.pauseOnHover = config.pauseOnHover;
     this.showNavigationArrows = config.showNavigationArrows;
     this.showNavigationIndicators = config.showNavigationIndicators;
+
+    this._activeTransition = new Transition({classname: 'active'}, this._renderer);
+
+    this._outTransition = new Transition({
+      beforeTransitionStart: (panelElement: HTMLElement, options: TransitionOptions) => {
+        this._renderer.addClass(panelElement, 'carousel-item-' + options.data.direction);
+      },
+      afterTransitionEnd: (panelElement: HTMLElement, options: TransitionOptions) => {
+        this._renderer.removeClass(panelElement, 'carousel-item-' + options.data.direction);
+        this._renderer.removeClass(panelElement, 'active');
+      }
+    }, this._renderer);
+
+    this._inTransition = new Transition({
+      beforeTransitionStart: (panelElement: HTMLElement, options: TransitionOptions) => {
+        let classname = options.data.direction === NgbSlideEventDirection.LEFT ?
+          'carousel-item-next' :
+          'carousel-item-prev';
+
+        this._renderer.addClass(panelElement, classname);
+
+        // Reflow
+        /* tslint:disable:no-unused-expression */
+        panelElement.offsetHeight;
+
+        this._renderer.addClass(panelElement, 'carousel-item-' + options.data.direction);
+
+      },
+      afterTransitionEnd: (panelElement: HTMLElement, options: TransitionOptions) => {
+        let classname = options.data.direction === NgbSlideEventDirection.LEFT ?
+          'carousel-item-next' :
+          'carousel-item-prev';
+        this._renderer.removeClass(panelElement, classname);
+        this._renderer.removeClass(panelElement, 'carousel-item-' + options.data.direction);
+        this._renderer.addClass(panelElement, 'active');
+      }
+    }, this._renderer);
+
+
   }
 
   ngAfterContentInit() {
@@ -159,7 +215,13 @@ export class NgbCarousel implements AfterContentChecked,
 
   ngAfterContentChecked() {
     let activeSlide = this._getSlideById(this.activeId);
+    const oldActiveId = this.activeId;
     this.activeId = activeSlide ? activeSlide.id : (this.slides.length ? this.slides.first.id : null);
+    if (this.activeId && oldActiveId !== this.activeId) {
+      setTimeout(() => {
+        this._activeTransition.show(this._getSlideElement(this.activeId), {enableAnimation: false});
+      }, 0);
+    }
   }
 
   ngOnDestroy() { this._destroy$.next(); }
@@ -199,8 +261,33 @@ export class NgbCarousel implements AfterContentChecked,
     let selectedSlide = this._getSlideById(slideIdx);
     if (selectedSlide && selectedSlide.id !== this.activeId) {
       this.slide.emit({prev: this.activeId, current: selectedSlide.id, direction: direction});
-      this._start$.next();
-      this.activeId = selectedSlide.id;
+
+      Promise.all([
+        this._outTransition.show(
+          this._getSlideElement(this.activeId),
+          {
+            enableAnimation: this.enableAnimation,
+            data: {
+              direction: direction
+            }
+          }
+        ),
+        this._inTransition.show(
+          this._getSlideElement(selectedSlide.id),
+          {
+            enableAnimation: this.enableAnimation,
+            data: {
+              direction: direction
+            }
+          }
+        )
+      ]).then(() => {
+        this._start$.next();
+        this.activeId = selectedSlide.id;
+        // Required to update the indicators
+        this._cd.detectChanges();
+      });
+
     }
 
     // we get here after the interval fires or any external API call like next(), prev() or select()
@@ -237,6 +324,11 @@ export class NgbCarousel implements AfterContentChecked,
     return isFirstSlide ? (this.wrap ? slideArr[slideArr.length - 1].id : slideArr[0].id) :
                           slideArr[currentSlideIdx - 1].id;
   }
+
+  private _getSlideElement(tabId: string): HTMLElement {
+    return this._element.nativeElement.querySelector('#ngb-slide-' + tabId);
+  }
+
 }
 
 /**

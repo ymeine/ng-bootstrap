@@ -2,14 +2,16 @@ import {TestBed, ComponentFixture} from '@angular/core/testing';
 
 import {NgbModalWindow} from './modal-window';
 import {ModalDismissReasons} from './modal-dismiss-reasons';
+import {NgbTransitionModule} from '../util/transition/transition.module';
 
 describe('ngb-modal-dialog', () => {
 
   let fixture: ComponentFixture<NgbModalWindow>;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({declarations: [NgbModalWindow]});
+    TestBed.configureTestingModule({declarations: [NgbModalWindow], imports: [NgbTransitionModule]});
     fixture = TestBed.createComponent(NgbModalWindow);
+    fixture.componentInstance.enableAnimation = false;
   });
 
   describe('basic rendering functionality', () => {

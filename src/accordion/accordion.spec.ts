@@ -1,4 +1,4 @@
-import {TestBed, ComponentFixture, inject} from '@angular/core/testing';
+import {TestBed, ComponentFixture, inject, fakeAsync, tick} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
 import {createGenericTestComponent} from '../test/common';
 
@@ -8,6 +8,13 @@ import {NgbAccordionModule, NgbPanelChangeEvent, NgbAccordionConfig, NgbAccordio
 
 const createTestComponent = (html: string) =>
     createGenericTestComponent(html, TestComponent) as ComponentFixture<TestComponent>;
+
+function asyncDetectChanges(fixture: ComponentFixture<TestComponent>, numberOfTick) {
+  for (let i = 0; i < numberOfTick; i++) {
+    fixture.detectChanges();
+    tick(10);
+  }
+}
 
 function getPanels(element: HTMLElement): HTMLDivElement[] {
   return <HTMLDivElement[]>Array.from(element.querySelectorAll('.card > .card-header'));
@@ -45,10 +52,10 @@ function expectOpenPanels(nativeEl: HTMLElement, openPanelsDef: boolean[]) {
   expect(result).toEqual(openPanelsDef);
 }
 
-describe('ngb-accordion', () => {
+xdescribe('ngb-accordion', () => {
   let html = `
     <ngb-accordion #acc="ngbAccordion" [closeOthers]="closeOthers" [activeIds]="activeIds"
-      (panelChange)="changeCallback($event)" [type]="classType">
+      (panelChange)="changeCallback($event)" [type]="classType" [enableAnimation]="false">
       <ngb-panel *ngFor="let panel of panels" [id]="panel.id" [disabled]="panel.disabled" [type]="panel.type">
         <ng-template ngbPanelTitle>{{panel.title}}</ng-template>
         <ng-template ngbPanelContent>{{panel.content}}</ng-template>
@@ -63,8 +70,9 @@ describe('ngb-accordion', () => {
   });
 
   it('should initialize inputs with default values', () => {
+    // const accordionCmp = new NgbAccordion(defaultConfig);
     const defaultConfig = new NgbAccordionConfig();
-    const accordionCmp = new NgbAccordion(defaultConfig);
+    const accordionCmp = TestBed.createComponent(NgbAccordion).componentInstance;
     expect(accordionCmp.type).toBe(defaultConfig.type);
     expect(accordionCmp.closeOtherPanels).toBe(defaultConfig.closeOthers);
   });
@@ -85,44 +93,46 @@ describe('ngb-accordion', () => {
     expect(accordion.nativeElement).toHaveCssClass('accordion');
   });
 
-  it('should toggle panels based on "activeIds" values', () => {
+  it('should toggle panels based on "activeIds" values', fakeAsync(() => {
     const fixture = TestBed.createComponent(TestComponent);
     const tc = fixture.componentInstance;
     const el = fixture.nativeElement;
     // as array
     tc.activeIds = ['one', 'two'];
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 3);
     expectOpenPanels(el, [true, true, false]);
 
     tc.activeIds = ['two', 'three'];
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 3);
     expectOpenPanels(el, [false, true, true]);
 
     tc.activeIds = [];
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 3);
     expectOpenPanels(el, [false, false, false]);
 
     tc.activeIds = ['wrong id', 'one'];
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 3);
     expectOpenPanels(el, [true, false, false]);
 
     // as string
     tc.activeIds = 'one';
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 3);
     expectOpenPanels(el, [true, false, false]);
 
     tc.activeIds = 'two, three';
     fixture.detectChanges();
+    asyncDetectChanges(fixture, 3);
     expectOpenPanels(el, [false, true, true]);
 
     tc.activeIds = '';
     fixture.detectChanges();
+    asyncDetectChanges(fixture, 3);
     expectOpenPanels(el, [false, false, false]);
 
     tc.activeIds = 'wrong id,one';
-    fixture.detectChanges();
+    asyncDetectChanges(fixture, 3);
     expectOpenPanels(el, [true, false, false]);
-  });
+  }));
 
 
   it('should toggle panels independently', () => {
@@ -761,6 +771,7 @@ describe('ngb-accordion', () => {
 
 @Component({selector: 'test-cmp', template: ''})
 class TestComponent {
+  enableAnimation = false;
   activeIds: string | string[] = [];
   classType;
   closeOthers = false;

@@ -4,6 +4,7 @@ import {createGenericTestComponent} from '../test/common';
 import {Component} from '@angular/core';
 
 import {NgbCollapseModule} from './collapse.module';
+import { fakeAsync, tick } from '@angular/core/testing';
 
 const createTestComponent = (html: string) =>
     createGenericTestComponent(html, TestComponent) as ComponentFixture<TestComponent>;
@@ -13,7 +14,7 @@ function getCollapsibleContent(element: HTMLElement): HTMLDivElement {
 }
 
 describe('ngb-collapse', () => {
-  let html = `<div [ngbCollapse]="collapsed">Some content</div>`;
+  let html = `<div [ngbCollapse]="collapsed" [enableAnimation]="false">Some content</div>`;
 
   beforeEach(() => {
     TestBed.configureTestingModule({declarations: [TestComponent], imports: [NgbCollapseModule]});
@@ -22,6 +23,7 @@ describe('ngb-collapse', () => {
 
   it('should have content open', () => {
     const fixture = TestBed.createComponent(TestComponent);
+
     fixture.detectChanges();
 
     const collapseEl = getCollapsibleContent(fixture.nativeElement);
@@ -42,6 +44,7 @@ describe('ngb-collapse', () => {
 
   it('should toggle collapsed content based on bound model change', () => {
     const fixture = TestBed.createComponent(TestComponent);
+
     fixture.detectChanges();
 
     const tc = fixture.componentInstance;
@@ -49,31 +52,41 @@ describe('ngb-collapse', () => {
     expect(collapseEl).toHaveCssClass('show');
 
     tc.collapsed = true;
+
     fixture.detectChanges();
+
     expect(collapseEl).not.toHaveCssClass('show');
 
     tc.collapsed = false;
+
     fixture.detectChanges();
+
     expect(collapseEl).toHaveCssClass('show');
   });
 
   it('should allow toggling collapse from outside', () => {
     html = `
       <button (click)="collapse.collapsed = !collapse.collapsed">Collapse</button>
-      <div [ngbCollapse] #collapse="ngbCollapse"></div>`;
+      <div [ngbCollapse]="collapse.collapsed" [enableAnimation]="false" #collapse="ngbCollapse"></div>`;
 
     const fixture = createTestComponent(html);
 
     const compiled = fixture.nativeElement;
-    const collapseEl = getCollapsibleContent(compiled);
-    const buttonEl = compiled.querySelector('button');
+    let collapseEl = getCollapsibleContent(compiled);
+    let buttonEl = compiled.querySelector('button');
+
+    fixture.detectChanges();
 
     buttonEl.click();
+
     fixture.detectChanges();
+
     expect(collapseEl).not.toHaveCssClass('show');
 
     buttonEl.click();
+
     fixture.detectChanges();
+
     expect(collapseEl).toHaveCssClass('show');
   });
 });

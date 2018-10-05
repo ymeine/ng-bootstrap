@@ -9,4 +9,5 @@ import {Injectable} from '@angular/core';
 export class NgbAccordionConfig {
   closeOthers = false;
   type: string;
+  enableAnimation = true;
 }

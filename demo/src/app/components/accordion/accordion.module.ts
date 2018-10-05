@@ -20,6 +20,7 @@ const DEMOS = {
     markup: require('!raw-loader!./demos/basic/accordion-basic.html'),
     type: NgbdAccordionBasic
   },
+/*
   static: {
     title: 'One open panel at a time',
     code: require('!!raw-loader!./demos/static/accordion-static'),
@@ -44,6 +45,7 @@ const DEMOS = {
     markup: require('!!raw-loader!./demos/config/accordion-config.html'),
     type: NgbdAccordionConfig
   }
+*/
 };
 
 export const ROUTES = [
