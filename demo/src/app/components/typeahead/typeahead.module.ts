@@ -11,6 +11,9 @@ import { NgbdTypeaheadFocus } from './demos/focus/typeahead-focus';
 import { NgbdTypeaheadFormat } from './demos/format/typeahead-format';
 import { NgbdTypeaheadHttp } from './demos/http/typeahead-http';
 import { NgbdTypeaheadTemplate } from './demos/template/typeahead-template';
+import { SECTIONS_MAP as OVERVIEW_SECTIONS_MAP, NgbdTypeaheadOverviewComponent } from './overview';
+import { SECTIONS as OVERVIEW_SECTIONS } from './overview/sections';
+import { COMPONENTS as COMMON_COMPONENTS } from './overview/common';
 
 const DEMO_DIRECTIVES = [
   NgbdTypeaheadFormat,
@@ -18,7 +21,10 @@ const DEMO_DIRECTIVES = [
   NgbdTypeaheadBasic,
   NgbdTypeaheadFocus,
   NgbdTypeaheadTemplate,
-  NgbdTypeaheadConfig
+  NgbdTypeaheadConfig,
+  NgbdTypeaheadOverviewComponent,
+  ...OVERVIEW_SECTIONS,
+  ...COMMON_COMPONENTS,
 ];
 
 const DEMOS = {
@@ -61,11 +67,13 @@ const DEMOS = {
 };
 
 export const ROUTES = [
-  { path: '', pathMatch: 'full', redirectTo: 'examples' },
+  { path: '', pathMatch: 'full', redirectTo: 'overview' },
   {
     path: '',
     component: ComponentWrapper,
+    data: { OVERVIEW_SECTIONS_MAP },
     children: [
+      { path: 'overview', component: NgbdTypeaheadOverviewComponent },
       { path: 'examples', component: NgbdExamplesPage },
       { path: 'api', component: NgbdApiPage }
     ]
@@ -82,6 +90,6 @@ export const ROUTES = [
 })
 export class NgbdTypeaheadModule {
   constructor(demoList: NgbdDemoList) {
-    demoList.register('typeahead', DEMOS);
+    demoList.register('typeahead', DEMOS, OVERVIEW_SECTIONS_MAP);
   }
 }
