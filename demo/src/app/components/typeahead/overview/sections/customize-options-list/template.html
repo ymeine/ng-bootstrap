@@ -1,0 +1,41 @@
+<p>
+  As said above, the options list can contain any kind of item, and this is handy since selecting an option will commit the actual item to the data model, allowing to store complex objects.
+</p>
+
+<p>
+  But the requirement is to be able to display those options, be it in the list of the popup or inside the input field.
+</p>
+
+
+
+<h5>Simple representation with a string</h5>
+
+<p>
+  The option item can be displayed from a string. In this case, use the property <code>resultFormatter</code> to pass a function which takes the option item (whose model is up to you) as input and returns a string as output.
+</p>
+
+<p>Pass it that way in the template: </p>
+
+<ngbd-code [lang]="snippets.resultFormatter.template.language" [code]="snippets.resultFormatter.template.code" [highlightedLines]="snippets.resultFormatter.template.highlightedLines"></ngbd-code>
+
+<p>And define it in the component: </p>
+
+<ngbd-code [lang]="snippets.resultFormatter.component.language" [code]="snippets.resultFormatter.component.code" [highlightedLines]="snippets.resultFormatter.component.highlightedLines"></ngbd-code>
+
+
+
+<h5>Complex representation with a template</h5>
+
+<p>
+  Sometimes displaying a simple string is not enough. In that case, you can use a template by using the property <code>resultFormatter</code>, which expects a template reference.
+</p>
+
+<p>
+  The template receives in its context:
+</p>
+<ul>
+  <li>the option item, as <code>result</code></li>
+  <li>the input field content (the search term), as <code>term</code></li>
+</ul>
+
+<ngbd-code [lang]="snippets.resultTemplate.html.language" [code]="snippets.resultTemplate.html.code" [highlightedLines]="snippets.resultTemplate.html.highlightedLines"></ngbd-code>

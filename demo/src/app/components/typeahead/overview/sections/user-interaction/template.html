@@ -1,0 +1,82 @@
+<h5>Edit the search term</h5>
+
+<p>
+  The classic usage of the Typeahead is to use the input to edit the search term, and trigger a search process which will spawn a new options list.
+</p>
+
+<p>
+  Apart from creating an Observable based on the <code>input</code> event of the input, the Typeahead does nothing else specific, so to edit the search term just use it as any other input.
+</p>
+
+
+
+<h5>Navigate through options in the popup</h5>
+
+<table class="table mt-4">
+  <tbody>
+    <tr>
+      <td><kbd>ArrowUp</kbd></td>
+      <td>Activate previous (above) option</td>
+    </tr>
+    <tr>
+      <td><kbd>ArrowDown</kbd></td>
+      <td>Activate next (below) option</td>
+    </tr>
+    <tr>
+      <td><code>mouseenter</code></td>
+      <td>Activate option under the mouse pointer</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  Note that starting keyboard navigation will always start from the currently activated option, no matter if activated from the keyboard or the mouse.
+</p>
+
+
+
+<h5>Select an option</h5>
+
+<p>Selecting means committing to the data model. It will display the currently selected option in the input.</p>
+
+<table class="table mt-4">
+  <tbody>
+    <tr>
+      <td><kbd>Enter</kbd></td>
+      <td>Select active option</td>
+    </tr>
+    <tr>
+      <td><code>click</code> on option in the popup</td>
+      <td>Select option under mouse pointer</td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+<h5>Dismiss the popup</h5>
+
+<p>
+  Dismissing the popup consists in closing the popup without selecting an option.
+</p>
+
+<table class="table mt-4">
+  <tbody>
+    <tr>
+      <td><kbd>Escape</kbd></td>
+      <td>Dismiss the popup, unless <code>[autoClose]</code> is <code>false</code></td>
+    </tr>
+    <tr>
+      <td><code>click</code> outside the widget</td>
+      <td>Dismiss the popup, if <code>[autoClose]</code> is <code>true</code> or <code>'outside'</code></td>
+    </tr>
+    <tr>
+      <td><code>click</code> inside the widget</td>
+      <td>Dismiss the popup, if <code>[autoClose]</code> is <code>true</code> or <code>'inside'</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  If <code>[autoClose]</code> is <code>false</code>, you will have to use the API to dismiss the popup (either calling <code>dismissPopup()</code> on the instance or spawning an empty options list from the Observable).
+</p>
