@@ -1,0 +1,25 @@
+<ng-template #operatorUrl let-url="url" let-label="label">
+  <li *ngIf="url != null">
+    <code>{{label}}</code>: <a href="{{url}}">{{url}}</a>
+  </li>
+</ng-template>
+
+<table class="table mt-4">
+  <tbody>
+    <tr *ngFor="let operator of operatorsList">
+      <td><code>{{operator.name}}</code></td>
+      <td>
+        <p *ngFor="let paragraph of operator.description" [innerHTML]="paragraph"></p>
+        <ul>
+          <ng-container *ngTemplateOutlet="operatorUrl; context: {url: operator.rxjs, label: 'rxjs-dev.firebaseapp.com'}"></ng-container>
+
+          <ng-container *ngTemplateOutlet="operatorUrl; context: {url: operator.learnrxjs, label: 'www.learnrxjs.io'}"></ng-container>
+
+          <ng-container *ngTemplateOutlet="operatorUrl; context: {url: operator.rxmarbles, label: 'rxmarbles.com'}"></ng-container>
+
+          <ng-container *ngTemplateOutlet="operatorUrl; context: {url: operator.reactivex, label: 'reactivex.io'}"></ng-container>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>

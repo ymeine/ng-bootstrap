@@ -1,0 +1,65 @@
+<ng-template #boolean let-value="value">
+    <span
+      [ngStyle]="{color: value ? 'green' : 'red'}"
+    >
+      {{value ? 'yes' : 'no'}}
+    </span>
+</ng-template>
+
+<ul>
+  <li>searching: <ng-container *ngTemplateOutlet="boolean; context: {value: searching}"></ng-container></li>
+  <li>search failed: <ng-container *ngTemplateOutlet="boolean; context: {value: searchFailed}"></ng-container></li>
+
+  <li>
+    observable events:
+    <ul>
+      <li><code>next</code>: {{counterOnNext}}</li>
+      <li><code>error</code>: {{counterOnError}}</li>
+      <li><code>complete</code>: {{counterOnComplete}}</li>
+      <li><code>unsubscribe</code>: {{counterOnUnsubscribe}}</li>
+    </ul>
+  </li>
+  <li>
+      current values:
+      <ul>
+        <li><code>value</code>: {{formattedCurrentValue}}</li>
+        <li><code>error</code>: {{formattedError}}</li>
+      </ul>
+    </li>
+</ul>
+
+<button
+  type="button"
+  class="btn btn-primary"
+  (click)="resetCountersAndValues()"
+>
+  Reset
+</button>
+
+<ngbd-typeahead-overview-common-checkbox
+  [(value)]="makeFail"
+  label="make fail"
+  id="sections-use-case-async-make-fail"
+></ngbd-typeahead-overview-common-checkbox>
+
+<div class="form-group form-inline">
+  <label>response delay:&nbsp;</label>
+  <input
+    type="number"
+    class="form-control"
+    [(ngModel)]="responseDelay"
+    step='100'
+    min='0'
+    max='5000'
+  />
+</div>
+
+<ngbd-typeahead-overview-common-debounce-customizer [(value)]="debounceTime"></ngbd-typeahead-overview-common-debounce-customizer>
+
+<input
+  type="text"
+  class="form-control"
+
+  [(ngModel)]="model"
+  [ngbTypeahead]="initializeTypeahead"
+/>

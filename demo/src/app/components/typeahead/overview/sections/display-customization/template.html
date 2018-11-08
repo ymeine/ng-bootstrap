@@ -1,0 +1,26 @@
+<ngbd-typeahead-overview-common-checkbox
+  [(value)]="useTemplate"
+  label="use custom template for options list"
+  id="sections-use-case-customization-use-template"
+></ngbd-typeahead-overview-common-checkbox>
+
+<ngbd-typeahead-overview-common-debounce-customizer [(value)]="debounceTime"></ngbd-typeahead-overview-common-debounce-customizer>
+
+<ng-template
+  #displayResult
+  let-option="result"
+  let-term="term"
+>
+    <ngb-highlight [result]="option.label" [term]="term"></ngb-highlight> ({{option.value}})
+</ng-template>
+
+<input
+  type="text"
+  class="form-control"
+  [(ngModel)]="model"
+  [ngbTypeahead]="initializeTypeahead"
+
+  [resultTemplate]="resultTemplate"
+  [resultFormatter]="resultFormatter"
+  [inputFormatter]="formatForInput"
+/>

@@ -1,0 +1,25 @@
+<ngbd-typeahead-overview-common-checkbox
+  [(value)]="openOnFocus"
+  label="open on focus"
+  id="sections-use-case-focus-open-on-focus"
+  ></ngbd-typeahead-overview-common-checkbox>
+
+  <ngbd-typeahead-overview-common-checkbox
+  [(value)]="openOnClick"
+  label="open on click"
+  id="sections-use-case-focus-open-on-click"
+></ngbd-typeahead-overview-common-checkbox>
+
+<ngbd-typeahead-overview-common-debounce-customizer [(value)]="debounceTime"></ngbd-typeahead-overview-common-debounce-customizer>
+
+<input
+  type="text"
+  class="form-control"
+
+  [(ngModel)]="model"
+  [ngbTypeahead]="initializeTypeahead"
+
+  #instance="ngbTypeahead"
+  (focus)="inputFocus$.next($event.target.value)"
+  (click)="inputClick$.next($event.target.value)"
+/>
