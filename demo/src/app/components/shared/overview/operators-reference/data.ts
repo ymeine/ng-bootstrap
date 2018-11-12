@@ -21,7 +21,7 @@ const operatorsSpecs: OperatorsSpecMap = {
     ],
     learnrxjs: 'transformation/switchmap',
     rxmarbles: true,
-    reactivex: 'flatmap',
+    // reactivex: 'flatmap',
   },
   debounceTime: {
     description: [

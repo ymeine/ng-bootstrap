@@ -47,7 +47,22 @@ function ensureArray<T>(value: T | T[]): T[] {
 }
 
 export class OperatorReference implements IOperatorReference {
+  linksCollapsed = true;
+  descriptionCollapsed = true;
+
   constructor(private _spec: OperatorReferenceSpec) {}
+
+  toggleLinksCollapsed() {
+    this.linksCollapsed = !this.linksCollapsed;
+  }
+
+  toggleDescriptionCollapsed() {
+    this.descriptionCollapsed = !this.descriptionCollapsed;
+  }
+
+  get moreLinksAvailable(): boolean {
+    return this.rxjs != null || this.reactivex != null;
+  }
 
   get name(): DefinedOperator { return this._spec.name; }
 
