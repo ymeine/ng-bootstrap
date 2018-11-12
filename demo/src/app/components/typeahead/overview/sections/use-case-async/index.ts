@@ -85,11 +85,30 @@ function search({
   });
 }
 
+type AnimatedProperty = 'searching'
+| 'searchFailed'
+| 'counterOnNext'
+| 'counterOnError'
+| 'counterOnComplete'
+| 'counterOnUnsubscribe'
+| 'currentValue'
+| 'error'
+;
+
 // 2018-11-07T17:53:13+01:00 FIXME
 // Closing the popup when launching a new search doesn't update the searching status properly
 @Component({
   selector: 'ngbd-typeahead-overview-section-use-case-async',
   templateUrl: './template.html',
+  styles: [
+    `.flash {
+      animation: blinker 2s linear;
+    }
+
+    @keyframes blinker {
+      50% { background-color: rgb(192, 192, 192); }
+    }`,
+  ]
 })
 export class NgbdTypeaheadOverviewSectionUseCaseAsyncComponent {
   model: string;
@@ -109,7 +128,26 @@ export class NgbdTypeaheadOverviewSectionUseCaseAsyncComponent {
   currentValue = [];
   error = null;
 
+  animatedProperties = new Set<AnimatedProperty>();
+
   constructor(private _changeDetector: ChangeDetectorRef) {}
+
+  animateProperties(...names: AnimatedProperty[]) {
+    names.forEach(name => this.animatedProperties.add(name));
+    this._update();
+    setTimeout(() => {
+      names.forEach(name => this.animatedProperties.delete(name));
+      this._update();
+    }, 2000);
+  }
+
+  getPropertyAnimationState(name: AnimatedProperty): string {
+    return this.isPropertyAnimated(name) ? 'invisible' : 'visible';
+  }
+
+  isPropertyAnimated(name: AnimatedProperty): boolean {
+    return this.animatedProperties.has(name);
+  }
 
   initializeTypeahead = (text$: Observable<string>): Observable<string[]> => text$.pipe(
     customDebounce(() => this.debounceTime),
@@ -124,19 +162,23 @@ export class NgbdTypeaheadOverviewSectionUseCaseAsyncComponent {
           onNext: (value) => {
             this.counterOnNext++;
             this.currentValue = value;
+            this.animateProperties('counterOnNext', 'currentValue');
             this._update();
           },
           onError: (error) => {
             this.counterOnError++;
             this.error = error;
+            this.animateProperties('counterOnError', 'error');
             this._update();
           },
           onComplete: () => {
             this.counterOnComplete++;
+            this.animateProperties('counterOnComplete');
             this._update();
           },
           onUnsubscribe: () => {
             this.counterOnUnsubscribe++;
+            this.animateProperties('counterOnUnsubscribe');
             this._update();
           },
         },
@@ -164,6 +206,17 @@ export class NgbdTypeaheadOverviewSectionUseCaseAsyncComponent {
     this.currentValue = [];
     this.error = null;
 
+    this.animateProperties(
+      'searching',
+      'searchFailed',
+      'counterOnNext',
+      'counterOnError',
+      'counterOnComplete',
+      'counterOnUnsubscribe',
+      'currentValue',
+      'error',
+    );
+
     this._update();
   }
 
@@ -183,16 +236,19 @@ export class NgbdTypeaheadOverviewSectionUseCaseAsyncComponent {
   private _onStartSearch() {
     this.searching = true;
     this.searchFailed = false;
+    this.animateProperties('searching', 'searchFailed');
     this._update();
   }
 
   private _onStopSearch() {
     this.searching = false;
+    this.animateProperties('searching');
     this._update();
   }
 
   private _onSearchFailed() {
     this.searchFailed = true;
+    this.animateProperties('searchFailed');
     this._update();
   }
 }

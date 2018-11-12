@@ -1,29 +1,42 @@
-<ng-template #boolean let-value="value">
-    <span
-      [ngStyle]="{color: value ? 'green' : 'red'}"
-    >
-      {{value ? 'yes' : 'no'}}
-    </span>
+<ng-template #booleanProperty let-value="value" let-label="label" let-name="name">
+    <li>
+      <span
+        [ngClass]="{flash: isPropertyAnimated(name)}"
+      >
+      <code>{{label}}</code>:
+        <span
+          [ngStyle]="{color: value ? 'green' : 'red'}"
+        >{{value ? 'yes' : 'no'}}</span>
+      </span>
+      </li>
+</ng-template>
+
+<ng-template #property let-value="value" let-label="label" let-name="name">
+    <li>
+      <span [ngClass]="{flash: isPropertyAnimated(name)}">
+        <code>{{label}}</code>:
+        {{value}}
+      </span>
+    </li>
 </ng-template>
 
 <ul>
-  <li>searching: <ng-container *ngTemplateOutlet="boolean; context: {value: searching}"></ng-container></li>
-  <li>search failed: <ng-container *ngTemplateOutlet="boolean; context: {value: searchFailed}"></ng-container></li>
-
+  <ng-container *ngTemplateOutlet="booleanProperty; context: {label: 'searching', value: searching, name: 'searching'}"></ng-container>
+  <ng-container *ngTemplateOutlet="booleanProperty; context: {label: 'search failed', value: searchFailed, name: 'searchFailed'}"></ng-container>
   <li>
     observable events:
     <ul>
-      <li><code>next</code>: {{counterOnNext}}</li>
-      <li><code>error</code>: {{counterOnError}}</li>
-      <li><code>complete</code>: {{counterOnComplete}}</li>
-      <li><code>unsubscribe</code>: {{counterOnUnsubscribe}}</li>
+      <ng-container *ngTemplateOutlet="property; context: {label: 'next', value: counterOnNext, name: 'counterOnNext'}"></ng-container>
+      <ng-container *ngTemplateOutlet="property; context: {label: 'error', value: counterOnError, name: 'counterOnError'}"></ng-container>
+      <ng-container *ngTemplateOutlet="property; context: {label: 'complete', value: counterOnComplete, name: 'counterOnComplete'}"></ng-container>
+      <ng-container *ngTemplateOutlet="property; context: {label: 'unsubscribe', value: counterOnUnsubscribe, name: 'counterOnUnsubscribe'}"></ng-container>
     </ul>
   </li>
   <li>
       current values:
       <ul>
-        <li><code>value</code>: {{formattedCurrentValue}}</li>
-        <li><code>error</code>: {{formattedError}}</li>
+        <ng-container *ngTemplateOutlet="property; context: {label: 'value', value: formattedCurrentValue, name: 'currentValue'}"></ng-container>
+        <ng-container *ngTemplateOutlet="property; context: {label: 'error', value: formattedError, name: 'error'}"></ng-container>
       </ul>
     </li>
 </ul>
