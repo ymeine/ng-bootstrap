@@ -1,0 +1,78 @@
+<ng-template #booleanProperty let-name="name">
+    <li>
+      <span
+        [ngClass]="{flash: properties.get(name).animated}"
+      >
+      <code>{{properties.get(name).label}}</code>:
+        <span
+          [ngStyle]="{color: properties.get(name).value ? 'green' : 'red'}"
+        >{{properties.get(name).value ? 'yes' : 'no'}}</span>
+      </span>
+      </li>
+</ng-template>
+
+<ng-template #property let-name="name">
+    <li>
+        <span [ngClass]="{flash: properties.get(name).animated}">
+          <code>{{properties.get(name).label}}</code>:
+          {{properties.get(name).formattedValue}}
+        </span>
+      </li>
+</ng-template>
+
+<ul>
+  <ng-container *ngTemplateOutlet="booleanProperty; context: {name: 'searching'}"></ng-container>
+  <ng-container *ngTemplateOutlet="booleanProperty; context: {name: 'searchFailed'}"></ng-container>
+  <li>
+    observable events:
+    <ul>
+      <ng-container *ngTemplateOutlet="property; context: {name: 'counterOnNext'}"></ng-container>
+      <ng-container *ngTemplateOutlet="property; context: {name: 'counterOnError'}"></ng-container>
+      <ng-container *ngTemplateOutlet="property; context: {name: 'counterOnComplete'}"></ng-container>
+      <ng-container *ngTemplateOutlet="property; context: {name: 'counterOnUnsubscribe'}"></ng-container>
+    </ul>
+  </li>
+  <li>
+      current values:
+      <ul>
+          <ng-container *ngTemplateOutlet="property; context: {name: 'currentValue'}"></ng-container>
+          <ng-container *ngTemplateOutlet="property; context: {name: 'error'}"></ng-container>
+      </ul>
+    </li>
+</ul>
+
+<button
+  type="button"
+  class="btn btn-primary"
+  (click)="resetProperties()"
+>
+  Reset
+</button>
+
+<ngbd-typeahead-overview-common-checkbox
+  [(value)]="makeFail"
+  label="make fail"
+  id="sections-use-case-async-make-fail"
+></ngbd-typeahead-overview-common-checkbox>
+
+<div class="form-group form-inline">
+  <label>response delay:&nbsp;</label>
+  <input
+    type="number"
+    class="form-control"
+    [(ngModel)]="responseDelay"
+    step='100'
+    min='0'
+    max='5000'
+  />
+</div>
+
+<ngbd-typeahead-overview-common-debounce-customizer [(value)]="debounceTime"></ngbd-typeahead-overview-common-debounce-customizer>
+
+<input
+  type="text"
+  class="form-control"
+
+  [(ngModel)]="model"
+  [ngbTypeahead]="initializeTypeahead"
+/>
