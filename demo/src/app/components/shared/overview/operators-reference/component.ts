@@ -17,10 +17,15 @@ import { operators } from './data';
     `.clickable {
       cursor: pointer;
     }
-    .collapseHandle {
+    .collapse-handle {
       font-family: monospace;
       cursor: pointer;
-    }`
+    }
+    .fitting-cell {
+      width: 1px;
+      white-space: nowrap;
+    }
+    `
   ],
 })
 export class NgbdOverviewOperatorsReferenceComponent {

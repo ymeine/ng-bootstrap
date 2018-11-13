@@ -1,6 +1,5 @@
 <ng-template #operatorUrl let-url="url" let-label="label">
   <li *ngIf="url != null">
-    <!-- <code>{{label}}</code>: <a href="{{url}}">{{url}}</a> -->
     <code><a href="{{url}}">{{label}}</a></code>
   </li>
 </ng-template>
@@ -8,7 +7,7 @@
 <p
   class="clickable"
   (click)="toggleWebsitesListCollapsed()"
-><span class="collapseHandle">{{websitesListCollapsed ? '[+ show]' : '[- hide]'}}</span> The following documentation websites are available: </p>
+><span class="collapse-handle">{{websitesListCollapsed ? '[+ show]' : '[- hide]'}}</span> The following documentation websites are available: </p>
 <ul [ngbCollapse]="websitesListCollapsed">
   <li>
     <code><a href="https://www.learnrxjs.io/operators/">www.learnrxjs.io</a></code>:
@@ -31,9 +30,9 @@
 <table class="table mt-4">
   <tbody>
     <tr *ngFor="let operator of operatorsList">
-      <td><code>{{operator.name}}</code></td>
+      <td class="fitting-cell"><code>{{operator.name}}</code></td>
       <td>
-        <p class="collapseHandle" (click)="operator.toggleDescriptionCollapsed()">
+        <p class="collapse-handle" (click)="operator.toggleDescriptionCollapsed()">
           {{operator.descriptionCollapsed ? '[+ show description]' : '[- hide description]'}}
         </p>
         <ng-container *ngIf="!operator.descriptionCollapsed">
@@ -44,20 +43,10 @@
           <ng-container *ngTemplateOutlet="operatorUrl; context: {url: operator.learnrxjs, label: 'www.learnrxjs.io'}"></ng-container>
 
           <ng-container *ngTemplateOutlet="operatorUrl; context: {url: operator.rxmarbles, label: 'rxmarbles.com'}"></ng-container>
-        <!-- </ul>
 
-        <p
-            *ngIf="operator.moreLinksAvailable"
-            class="collapseHandle"
-            (click)="operator.toggleLinksCollapsed()"
-        >
-          {{operator.linksCollapsed ? '[+ show more]' : '[- show less]'}}
-        </p>
-
-        <ul> -->
           <li *ngIf="operator.moreLinksAvailable">
             <span
-              class="collapseHandle"
+              class="collapse-handle"
               (click)="operator.toggleLinksCollapsed()"
             >
               {{operator.linksCollapsed ? '[+ show more]' : '[- show less]'}}
