@@ -4,4 +4,26 @@
   <li>pipes this input to an Observable chain to get a list of options</li>
   <li>handles the popup of options and option selection</li>
 </ul>
+
 <p>Graphically it's a combination of an input and a popup containing a list.</p>
+
+<p>Let's introduce some concepts: </p>
+<ul>
+  <li>the <span class="defined">search term</span>: is used as input to produce a result list</li>
+  <li>the <span class="defined">result list</span>, and the <span class="defined">result item</span>: the list given to the Tyeahead for display</li>
+  <li>the <span class="defined">options list</span>, and the <span class="defined">option item</span>: the list displayed by the Typeahead in its attached popup, coresponding 1 by 1 to the result list</li>
+  <li>the <span class="defined">input field</span>: holds a representation of the currently selected result item if any, and allows editing the search term</li>
+  <li>the <span class="defined">popup</span>: the popup attached to the input field and displaying the options list</li>
+</ul>
+
+<p>
+ TODO: make a diagram pointing out each parts (including the popup, the input, etc)
+</p>
+
+<p>
+  For the sake of the demos, the search function will always take the search term and duplicate it to build new strings, from 1 to 5 times.
+</p>
+
+<p>
+  Example: <code>ab</code> gives <code>ab</code>, <code>abab</code>, <code>ababab</code>, <code>abababab</code> and <code>ababababab</code>.
+</p>
