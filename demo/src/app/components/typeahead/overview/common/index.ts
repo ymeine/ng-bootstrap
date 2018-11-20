@@ -31,7 +31,7 @@ export function times<T>(count: number, callback: (value: number) => T): T[] {
 
 
 export function generateResults(term: string): string[] {
-  return term === '' ? [] : times(5, value => term.repeat(value + 1));
+  return term === '' ? [] : times(5, value => (new Array(value + 1)).fill(term).join('-'));
 }
 
 

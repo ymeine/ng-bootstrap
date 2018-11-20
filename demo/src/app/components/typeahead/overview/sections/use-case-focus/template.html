@@ -1,13 +1,39 @@
+<ul>
+  <li><code>search source</code>: {{searchSource}}</li>
+</ul>
+
+<button
+  type="button"
+  class="btn btn-primary"
+  (click)="resetProperties()"
+>
+  Reset
+</button>
+
 <ngbd-typeahead-overview-common-checkbox
-  [(value)]="openOnFocus"
+  [(value)]="opensOnFocus"
   label="open on focus"
-  id="sections-use-case-focus-open-on-focus"
+  id="sections-use-case-focus-opens-on-focus"
   ></ngbd-typeahead-overview-common-checkbox>
 
-  <ngbd-typeahead-overview-common-checkbox
-  [(value)]="openOnClick"
+<ngbd-typeahead-overview-common-checkbox
+  [(value)]="opensOnClick"
   label="open on click"
-  id="sections-use-case-focus-open-on-click"
+  id="sections-use-case-focus-opens-on-click"
+></ngbd-typeahead-overview-common-checkbox>
+
+<button
+  type="button"
+  class="btn btn-primary"
+  (click)="search('abc')"
+>
+  Search with search term: abc
+</button>
+
+<ngbd-typeahead-overview-common-checkbox
+  [(value)]="simulatesSearchDelay"
+  label="simulate search delay (100ms)"
+  id="sections-use-case-focus-simulates-search-delay"
 ></ngbd-typeahead-overview-common-checkbox>
 
 <ngbd-typeahead-overview-common-debounce-customizer [(value)]="debounceTime"></ngbd-typeahead-overview-common-debounce-customizer>
@@ -20,6 +46,8 @@
   [ngbTypeahead]="initializeTypeahead"
 
   #instance="ngbTypeahead"
-  (focus)="inputFocus$.next($event.target.value)"
-  (click)="inputClick$.next($event.target.value)"
+  #input
+  (focus)="onFocus($event)"
+  (click)="onClick($event)"
+  (blur)="onBlur($event)"
 />

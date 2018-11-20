@@ -33,8 +33,6 @@ export class NgbdOverviewOperatorsReferenceComponent {
 
   websitesListCollapsed = false;
 
-  operatorsMap = operators;
-
   get operatorsList(): OperatorReference[] {
     return this.operators
     .map(name => operators[name])
