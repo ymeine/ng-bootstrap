@@ -7,7 +7,7 @@ import { NgbdWidgetDemoComponent } from './examples-page/demo.component';
 import { NgbdExamplesPage } from './examples-page/examples.component';
 import { NgbdFragment } from './fragment';
 import { NgbdOverviewDirective, NgbdOverviewSectionComponent } from './overview';
-import { NgbdOverviewOperatorsReferenceComponent } from './overview/operators-reference';
+import { OPERATORS_REFERENCE_COMPONENTS } from './overview/operators-reference';
 
 export * from './demo-list';
 
@@ -21,7 +21,7 @@ export * from './demo-list';
     NgbdFragment,
     NgbdOverviewDirective,
     NgbdOverviewSectionComponent,
-    NgbdOverviewOperatorsReferenceComponent,
+    ...OPERATORS_REFERENCE_COMPONENTS,
     NgbdExamplesPage,
     NgbdApiPage,
     NgbdWidgetDemoComponent
@@ -34,7 +34,7 @@ export * from './demo-list';
     NgbdFragment,
     NgbdOverviewDirective,
     NgbdOverviewSectionComponent,
-    NgbdOverviewOperatorsReferenceComponent,
+    ...OPERATORS_REFERENCE_COMPONENTS,
     NgbdExamplesPage,
     NgbdApiPage,
     NgbdWidgetDemoComponent

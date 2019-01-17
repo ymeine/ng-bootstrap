@@ -12,7 +12,6 @@ export type DefinedOperator =
 export type URLPart = string | boolean | null | undefined;
 
 export interface PartialOperatorReferenceSpec {
-  description: string | string[];
   learnrxjs?: URLPart;
   rxmarbles?: URLPart;
   rxjs?: URLPart;
@@ -29,9 +28,14 @@ export type OperatorsSpecMap = {
 
 export type OutputURL = string | null;
 
+export interface DisplayableLink {
+  url: string;
+  label: string;
+  favorite: boolean;
+}
+
 export interface IOperatorReference {
   name: DefinedOperator;
-  description: string[];
   rxjs: OutputURL;
   learnrxjs: OutputURL;
   rxmarbles: OutputURL;
@@ -42,31 +46,10 @@ export type OperatorsMap = {
   [key in DefinedOperator]: OperatorReference;
 };
 
-function ensureArray<T>(value: T | T[]): T[] {
-  return Array.isArray(value) ? value : [value];
-}
-
 export class OperatorReference implements IOperatorReference {
-  linksCollapsed = true;
-  descriptionCollapsed = true;
-
   constructor(private _spec: OperatorReferenceSpec) {}
 
-  toggleLinksCollapsed() {
-    this.linksCollapsed = !this.linksCollapsed;
-  }
-
-  toggleDescriptionCollapsed() {
-    this.descriptionCollapsed = !this.descriptionCollapsed;
-  }
-
-  get moreLinksAvailable(): boolean {
-    return this.rxjs != null || this.reactivex != null;
-  }
-
   get name(): DefinedOperator { return this._spec.name; }
-
-  get description(): string[] { return ensureArray(this._spec.description); }
 
   private _buildUrl(
     value: URLPart,
@@ -75,6 +58,21 @@ export class OperatorReference implements IOperatorReference {
   ): OutputURL {
     if (value === undefined) { value = defaultValue; }
     return value == null || value === false ? null : buildUrl(value === true ? this.name : value);
+  }
+
+  private _buildLinks(specs: [string, OutputURL, boolean?][]): DisplayableLink[] {
+    return specs
+    .map(([label, url, favorite = false]) => ({label, url, favorite}))
+    .filter(({url}) => url != null);
+  }
+
+  get links(): DisplayableLink[] {
+    return this._buildLinks([
+      ['www.learnrxjs.io', this.learnrxjs, true],
+      ['rxmarbles.com', this.rxmarbles, true],
+      ['rxjs-dev.firebaseapp.com', this.rxjs],
+      ['reactivex.io', this.reactivex],
+    ]);
   }
 
   get learnrxjs(): OutputURL {
