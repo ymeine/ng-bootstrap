@@ -1,3 +1,120 @@
+<h5>The central piece: the Observbale</h5>
+
+<p>
+  The Typeahead is designed around a single Observable, which it subscribes to in order to get an updated results list and therefore update its popup display.
+</p>
+
+<h5>Why the Observable?</h5>
+
+<p>
+  In programming, to make two entities communicate there are many possible techniques, which we won't enumerate here.
+</p>
+<p>
+  In the context of Angular, Inputs and Outputs are the common mean of making templates communicate with the directives/components they instantiate. But this is not the most practical approach when it comes to communicate often updated and potentially asynchronous data. For that, we prefer the approach of Observables, designed mainly for this use case.
+</p>
+<p>
+  It simplifies the handling of asynchronous actions and the related data processing, as well as bypass the update of the parent template, to directly update the data of the Typeahead instance.
+</p>
+
+
+
+<h5>What is the Observable contract?</h5>
+
+<p>
+  The Typeahead expects to receive an Observable which spawns lists of strings, this list being the <span class="defined">results list</span> and the strings being the <span class="defined">result items</span>.
+</p>
+<p>
+  Anytime it receives a new list, it will:
+</p>
+<ul>
+  <li>if the list is not empty:
+    <ul>
+      <li>open the <span class="defined">popup</span> with the content of the list if it was not open</li>
+      <li>update the <span class="defined">popup</span> with the content of the list if it was already open</li>
+    </ul>
+  </li>
+  <li>if the list is empty:
+    <ul>
+      <li>close the <span class="defined">popup</span> if it was open</li>
+      <li>not do anything if the <span class="defined">popup</span> was not open anyways</li>
+    </ul>
+  </li>
+</ul>
+
+
+
+<h5>How to set up the Observable?</h5>
+
+<p>
+  The Typeahead uses a directive Input to pass a callback that it will call and expect the Observable to be returned from.
+</p>
+
+<p>
+  On the template side, the attribute used by the Typeahead to instantiate its directive is the one used to pass the input callback:
+</p>
+
+<ngbd-code [lang]="snippets.observableSetup.template.language" [code]="snippets.observableSetup.template.code"></ngbd-code>
+
+<p>
+  On the component side, the latter defines this aforementioned callback, which returns the Observable — we will detail this below, just remember it is supposed to spawn lists of strings:
+</p>
+
+<ngbd-code [lang]="snippets.observableSetup.component.language" [code]="snippets.observableSetup.component.code"></ngbd-code>
+
+
+
+<h5>The basic Observable chain</h5>
+
+<p>
+  You will learn that you can create any Observable, from any source, including events occurring on the Typeahead input, then merge them, etc. This will be detailed in another section.
+</p>
+
+<p>
+  In this basic use case, we will simply use a statically defined and synchronously available set of data, color names:
+</p>
+
+<ngbd-code [lang]="snippets.data.language" [code]="snippets.data.code"></ngbd-code>
+
+<p>
+  You may have noticed already that the callback used to provide the Observable to the Typeahead receives a single argument: another Observable. This Observable spawns strings which correspond to the <span class="defined">search term</span>, any time the <span class="defined">input field</span> value is changed — it is reacting to the <code>input</code> event of the field.
+</p>
+
+<p>
+  By leveraging the chaining feature of Observables, it becomes easier to transform the <span class="defined">search term</span> to a <span class="defined">results list</span>:
+</p>
+
+<ngbd-code [lang]="snippets.observable.mapping.language" [code]="snippets.observable.mapping.code"></ngbd-code>
+
+<p>
+  In our example, we return all the colors when the <span class="defined">search term</span> is empty, otherwise it will return all the colors starting with the pattern. The map <ngbd-overview-operator-popup name="map"></ngbd-overview-operator-popup> is the perfect operator to transform the input to an output, a 1:1 transformation.
+</p>
+
+<p>
+  Now we have a working example. However, even for a basic usage, we might want to put in place a mechanism to avoid updating the results too frequently, that is not every time the user changes the input if they change it quite fast.
+</p>
+
+<p>
+  So we would like to delay the search after the search term changed, and only if no other change occurred in the meantime, in which case we would reset the delay. This mechanism is called <em>debouncing</em>, and the <ngbd-overview-operator-popup name="debounce"></ngbd-overview-operator-popup> and <ngbd-overview-operator-popup name="debounceTime"></ngbd-overview-operator-popup> operators are the solution to this job. The latter is simpler and will implement a debounce with the given static time, while the former is more flexible and will determine the delay based on when the first value of the given Observable is emitted. In our simple case, <ngbd-overview-operator-popup name="debounceTime"></ngbd-overview-operator-popup> will be enough:
+</p>
+
+<ngbd-code [lang]="snippets.observable.debouncing.language" [code]="snippets.observable.debouncing.code"></ngbd-code>
+
+<p>
+  That way, when the user will start changing the input, we will wait for 200ms before actually returning a results list. If they change the input before those 200ms, we will start waiting again for 200ms, until the user stops changing the input for at least 200ms.
+</p>
+
+<h5>Demo</h5>
+
+<p>
+  Here is the corresponding demo.
+</p>
+<p>
+  Try typing <code>b</code>, <code>bl</code> or <code>gr</code>. Try emptying the input to see all the colors. You can also try to input something wrong like <code>z</code>, to see that the popup does not open or closes (depending on if it was already open or not).
+</p>
+<p>
+  You can also change the debounce time. Try increasing it to actually feel its effect.
+</p>
+
 <ngbd-typeahead-overview-common-debounce-customizer [(value)]="debounceTime"></ngbd-typeahead-overview-common-debounce-customizer>
 
 <input
@@ -6,7 +123,3 @@
   [(ngModel)]="model"
   [ngbTypeahead]="initializeTypeahead"
 />
-
-<p>- the interface is the observable, that's how it updates</p>
-<p>- initialization function called once, to set up the output observable</p>
-<p>- observable from string (input value) to list of strings (result)</p>

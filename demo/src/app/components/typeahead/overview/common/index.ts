@@ -42,3 +42,18 @@ export function customDebounce<T>(getTime: () => number): (observable: Observabl
     distinctUntilChanged(),
   );
 }
+
+export function fixIndent(strings) {
+  const lines = strings[0].split(/(?:\r\n)|\n|\r/);
+  lines.shift();
+  const indentLevel = /( *).*/g.exec(lines[0])[1].length;
+  return lines.map(line => line.substring(indentLevel)).join('\n');
+}
+
+export const STYLES = `
+.defined {
+  font-weight: bold;
+  font-style: italic;
+  text-decoration: underline;
+}
+`;
