@@ -1,3 +1,118 @@
+<h5>Introduction</h5>
+
+<p>
+  In the previous example, we saw that to get the whole list of colors, we had to first type something to get the popup open, then empty the input to avoid filtering.
+</p>
+
+<p>
+  This is not very intuitive nor practical. It would be better if we could open the popup with some other actions, like focusing or clicking on the input.
+</p>
+
+<p>
+  If you remember the previous section, you would have noticed that the only contract used to display a list of results is the Observable returned in the initialization function. Even though this function provides an input Observable for convenience, it is not mandatory to use it, and it is not restricted to only this one: you can use any Observable, and any combination of them, as long as they return lists of strings.
+</p>
+
+<h5>Opening on focus</h5>
+
+<p>
+  So let's start by allowing opening on focus.
+</p>
+
+<ngbd-code [lang]="snippets.focus.template.language" [code]="snippets.focus.template.code"></ngbd-code>
+
+<p>
+  We first add an event handler on the focus event, since we want to react upon focus. Then, we'll need to convert this event into something that can be plugged into the chain of Observable.
+</p>
+
+<ngbd-code [lang]="snippets.focus.component.language" [code]="snippets.focus.component.code"></ngbd-code>
+
+<p>
+  We create a Subject, which is a special Observable on which we can manually push new values. That way, we push the current value of the input field in the <code>onFocus</code> handler. That makes us have an Observable just like the one provided in the Typeahead initialization callback, except that it reacts of focus events instead of input events.
+</p>
+
+<p>
+  Therefore, the next and last step is to use this Observable in the chain of Observables. For that, we use the <ngbd-overview-operator-popup name="merge"></ngbd-overview-operator-popup> operator.
+</p>
+
+<p>
+  Now, you can see that we treat the Observable chain based on input events separately from the chain based on focus events. Indeed, processing like debouncing makes sense for the input event, where the user can type fast, but not for focus event. We eventually merge them into an Observable, which spawns values to be used for immediate search.
+</p>
+
+<p>
+  Now let's properly implement those Observable chains, so you can see the benefits of treating them separately.
+</p>
+
+<p>
+  We will need a reference to the Typeahead instance, so let's add a template variable on it:
+</p>
+
+<ngbd-code [lang]="snippets.focusDetail.template.language" [code]="snippets.focusDetail.template.code"></ngbd-code>
+
+<p>
+  And here is the component:
+</p>
+
+<ngbd-code [lang]="snippets.focusDetail.component.language" [code]="snippets.focusDetail.component.code"></ngbd-code>
+
+<p>
+  When focusing the input, we need to make sure that the popup is not already open, otherwise we would trigger an additional search, at best useless, at worst having unwanted side effects. That's why we are using <ngbd-overview-operator-popup name="filter"></ngbd-overview-operator-popup> in the Observable chain of the focus event, checking if the popup is not open already.
+</p>
+
+
+
+<h5>Opening on click</h5>
+
+<p>
+  This is the exact same principle as for the focus, so let's see the example code directly.
+</p>
+
+<p>
+  Template:
+</p>
+
+<ngbd-code [lang]="snippets.click.template.language" [code]="snippets.click.template.code"></ngbd-code>
+
+<p>
+  Component:
+</p>
+
+<ngbd-code [lang]="snippets.click.component.language" [code]="snippets.click.component.code"></ngbd-code>
+
+<p>
+  In addition to adding an event handler, a Subject, and merging it, we also needed to make sure that the search won't be triggered twice for a same user action. The case of clicking on the input is one of them: it will trigger both a <code>click</code> event and potentially a <code>focus</code> event if the input was not previously focused.
+</p>
+
+<p>
+  That is why we introduce a new private boolean, <code>_searching</code>, used to check if a search is already ongoing, and to avoid doing it twice. To update the boolean, we wrap the search operation with two operations using the <ngbd-overview-operator-popup name="tap"></ngbd-overview-operator-popup> operator: this is used to make a side effect, simply forwarding the value through the pipe. The first one sets the boolean to <code>true</code>,and the second one resets it to <code>false</code>.
+</p>
+
+
+
+<h5>Opening programatically</h5>
+
+<p>
+  The idea is the exact same, and simpler. You just have to create a new Subject, merge it along with the other Observables, and push to it whenever you want to trigger a search with a new input.
+</p>
+
+
+
+
+<h5>Custom input event vs initialization function parameter</h5>
+
+<p>
+  As you saw, we could plug on focus and click events, and use Observables to use those as inputs for searching. You could therefore think that the Observable passed to the initialization callback is useless, since it could be done on your side by adding another event handler, a Subject, and merging it. However, this input Observable is not a direct Observable on the input event, the TypeAhead widget does some pre-processing and post-processing based on that, therefore, it is better to plug into this one.
+</p>
+
+
+
+<h5>Demo</h5>
+
+<p>
+  The demo below uses several sources to trigger a search:
+</p>
+
+
+
 <ul>
   <li><code>search source</code>: {{searchSource}}</li>
 </ul>
@@ -25,9 +140,9 @@
 <button
   type="button"
   class="btn btn-primary"
-  (click)="search('abc')"
+  (click)="search('bl')"
 >
-  Search with search term: abc
+  Search with search term: bl
 </button>
 
 <ngbd-typeahead-overview-common-checkbox
@@ -51,7 +166,3 @@
   (click)="onClick($event)"
   (blur)="onBlur($event)"
 />
-
-<p>- any combination of Observable is possible</p>
-<p>- any source is possible then, as long as it gives the value</p>
-<p>- passed input observable is for convenience, it can be created manually like any other (see focus example)</p>

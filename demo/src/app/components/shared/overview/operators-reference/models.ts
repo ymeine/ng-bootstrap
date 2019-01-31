@@ -4,6 +4,7 @@ export type DefinedOperator =
 | 'debounceTime'
 | 'distinctUntilChanged'
 | 'map'
+| 'filter'
 | 'catchError'
 | 'debounce'
 | 'timer'

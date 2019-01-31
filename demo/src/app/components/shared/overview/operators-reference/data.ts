@@ -41,6 +41,11 @@ const operatorsSpecs: OperatorsSpecMap = {
     rxmarbles: true,
     reactivex: true,
   },
+  filter: {
+    learnrxjs: 'filtering/filter',
+    rxmarbles: true,
+    reactivex: true,
+  },
   catchError: {
     learnrxjs: 'error_handling/catch',
     reactivex: 'catch',
