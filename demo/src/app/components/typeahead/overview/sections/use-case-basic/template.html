@@ -1,8 +1,10 @@
-<h5>The central piece: the Observbale</h5>
+<h5>The central piece: the Observable</h5>
 
 <p>
-  The Typeahead is designed around a single Observable, which it subscribes to in order to get an updated results list and therefore update its popup display.
+  The Typeahead is designed around a single Observable, to which it subscribes in order to get an updated list of results and therefore update its popup display.
 </p>
+
+
 
 <h5>Why the Observable?</h5>
 
@@ -10,7 +12,7 @@
   In programming, to make two entities communicate there are many possible techniques, which we won't enumerate here.
 </p>
 <p>
-  In the context of Angular, Inputs and Outputs are the common mean of making templates communicate with the directives/components they instantiate. But this is not the most practical approach when it comes to communicate often updated and potentially asynchronous data. For that, we prefer the approach of Observables, designed mainly for this use case.
+  In the context of Angular, Inputs and Outputs are the common mean of making templates communicate with the directives/components they instantiate. But this is not the most practical approach when it comes to communicate often-updated and potentially asynchronous data. For that, we prefer the approach of Observables, designed mainly for this use case.
 </p>
 <p>
   It simplifies the handling of asynchronous actions and the related data processing, as well as bypass the update of the parent template, to directly update the data of the Typeahead instance.
@@ -50,7 +52,7 @@
 </p>
 
 <p>
-  On the template side, the attribute used by the Typeahead to instantiate its directive is the one used to pass the input callback:
+  On the template side, the property used by the Typeahead to instantiate its directive is the one used to pass the input callback:
 </p>
 
 <ngbd-code [lang]="snippets.observableSetup.template.language" [code]="snippets.observableSetup.template.code"></ngbd-code>
@@ -70,7 +72,7 @@
 </p>
 
 <p>
-  In this basic use case, we will simply use a statically defined and synchronously available set of data, color names:
+  In this basic use case, we will simply use a statically defined and synchronously available set of data — color names:
 </p>
 
 <ngbd-code [lang]="snippets.data.language" [code]="snippets.data.code"></ngbd-code>
@@ -86,22 +88,40 @@
 <ngbd-code [lang]="snippets.observable.mapping.language" [code]="snippets.observable.mapping.code"></ngbd-code>
 
 <p>
-  In our example, we return all the colors when the <span class="defined">search term</span> is empty, otherwise it will return all the colors starting with the pattern. The map <ngbd-overview-operator-popup name="map"></ngbd-overview-operator-popup> is the perfect operator to transform the input to an output, a 1:1 transformation.
+  In our example, we return all the colors when the <span class="defined">search term</span> is empty, otherwise we return all the colors starting with the pattern. <ngbd-overview-operator-popup name="map"></ngbd-overview-operator-popup> is the perfect operator to transform an input to an output: it's a 1:1 transformation.
+</p>
+
+
+
+<h5>Debouncing</h5>
+
+<p>
+  Now we have a working example. However, even for a basic usage, we might want to put in place a mechanism to avoid updating the results too frequently, that is not every time the user changes the input if they change it quite fast or if it is not relevant.
 </p>
 
 <p>
-  Now we have a working example. However, even for a basic usage, we might want to put in place a mechanism to avoid updating the results too frequently, that is not every time the user changes the input if they change it quite fast.
-</p>
-
-<p>
-  So we would like to delay the search after the search term changed, and only if no other change occurred in the meantime, in which case we would reset the delay. This mechanism is called <em>debouncing</em>, and the <ngbd-overview-operator-popup name="debounce"></ngbd-overview-operator-popup> and <ngbd-overview-operator-popup name="debounceTime"></ngbd-overview-operator-popup> operators are the solution to this job. The latter is simpler and will implement a debounce with the given static time, while the former is more flexible and will determine the delay based on when the first value of the given Observable is emitted. In our simple case, <ngbd-overview-operator-popup name="debounceTime"></ngbd-overview-operator-popup> will be enough:
+  So we would like to delay the search after the input changed, and only if no other change occurred in the meantime, in which case we would reset the delay. This mechanism is called <em>debouncing</em>, and the <ngbd-overview-operator-popup name="debounce"></ngbd-overview-operator-popup> and <ngbd-overview-operator-popup name="debounceTime"></ngbd-overview-operator-popup> operators are the solution to this job. The latter is simpler and will implement a debounce with the given static time, while the former is more flexible and will determine the delay based on when the first value of the given Observable is emitted. In our simple case, <ngbd-overview-operator-popup name="debounceTime"></ngbd-overview-operator-popup> will be enough:
 </p>
 
 <ngbd-code [lang]="snippets.observable.debouncing.language" [code]="snippets.observable.debouncing.code"></ngbd-code>
 
 <p>
-  That way, when the user will start changing the input, we will wait for 200ms before actually returning a results list. If they change the input before those 200ms, we will start waiting again for 200ms, until the user stops changing the input for at least 200ms.
+  That way, when the user will start changing the input, we will wait for 200ms before actually returning a list of results. If they change the input before those 200ms, we will start waiting again for 200ms, until the user stops changing the input for at least 200ms.
 </p>
+
+<p>
+  This however leads to an additional issue, for which the operator <ngbd-overview-operator-popup name="distinctUntilChanged"></ngbd-overview-operator-popup> comes to the rescue: it will avoid triggering a search twice if the value remains the same as previously.
+</p>
+
+<p>
+  With debouncing, a user could modify the input and put it back to its default value without leaving the time to have an actual search triggered, thanks to debouncing. But once the delay is reached, and the search needs to be done, we should avoid redoing it if the value didn't change eventually. That's what <ngbd-overview-operator-popup name="distinctUntilChanged"></ngbd-overview-operator-popup> is made for.
+</p>
+
+<p>
+  This is important to place this operator after the debouncing! Because without the delay of the debounce, <ngbd-overview-operator-popup name="distinctUntilChanged"></ngbd-overview-operator-popup> will remember some inputs as if they had been processed and will therefore ignore them, even if they have actually not been processed because of the debouncing.
+</p>
+
+
 
 <h5>Demo</h5>
 

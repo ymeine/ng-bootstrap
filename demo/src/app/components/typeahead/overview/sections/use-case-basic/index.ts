@@ -14,11 +14,10 @@ import {
   customDebounce,
   fixIndent,
   STYLES,
+  COLORS,
 } from '../../common';
 
 
-
-const COLORS = ['black', 'white', 'red', 'green', 'yellow', 'blue', 'brown', 'orange', 'pink', 'purple', 'grey'];
 
 @Component({
   selector: 'ngbd-typeahead-overview-section-use-case-basic',
@@ -46,6 +45,7 @@ export class NgbdTypeaheadOverviewSectionUseCaseBasicComponent {
         language: 'typescript',
         code: fixIndent`
           export class MyComponent {
+            // ...
             initializeTypeahead = (text$: Observable<string>): Observable<string[]> =>
               text$.pipe(
                 // ...
@@ -82,12 +82,13 @@ export class NgbdTypeaheadOverviewSectionUseCaseBasicComponent {
       debouncing: {
         language: 'typescript',
         code: fixIndent`
-          import {map, /* ===> */ debounceTime /* <=== */} from 'rxjs/operators';
+          import {map, /* ===> */ debounceTime, distinctUntilChanged /* <=== */} from 'rxjs/operators';
           // ...
           initializeTypeahead = (text$: Observable<string>): Observable<string[]> =>
             text$.pipe(
               // ===>
               debounceTime(200),
+              distinctUntilChanged(),
               // <===
               map(pattern => pattern.length === 0
                 ? COLORS

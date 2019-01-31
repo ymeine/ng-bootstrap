@@ -57,3 +57,5 @@ export const STYLES = `
   text-decoration: underline;
 }
 `;
+
+export const COLORS = ['black', 'white', 'red', 'green', 'yellow', 'blue', 'brown', 'orange', 'pink', 'purple', 'grey'];
