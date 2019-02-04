@@ -47,7 +47,7 @@ export const increment = (value: number) => value + 1;
     }`,
   ]
 })
-export class NgbdTypeaheadOverviewSectionUseCaseAsyncComponent {
+export class NgbdTypeaheadOverviewSectionUseCaseRemoteComponent {
   model: string;
   debounceTime = 200;
 
