@@ -61,7 +61,7 @@ type SearchSource = 'programmatic' | 'input' | 'click' | 'focus';
   templateUrl: './template.html',
   styles: [STYLES],
 })
-export class NgbdTypeaheadOverviewSectionUseCaseFocusComponent {
+export class NgbdTypeaheadOverviewSectionUseCaseEventsComponent {
   model: string;
   debounceTime = 200;
 
