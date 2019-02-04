@@ -57,7 +57,7 @@ const alwaysTap = <T>(callback: AlwaysTapCallback<T>): AlwaysTapOutput<T> => (ob
 type SearchSource = 'programmatic' | 'input' | 'click' | 'focus';
 
 @Component({
-  selector: 'ngbd-typeahead-overview-section-use-case-focus',
+  selector: 'ngbd-typeahead-overview-section-use-case-events',
   templateUrl: './template.html',
   styles: [STYLES],
 })

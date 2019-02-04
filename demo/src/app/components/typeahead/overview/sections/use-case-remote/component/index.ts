@@ -35,7 +35,7 @@ export const increment = (value: number) => value + 1;
 // 2018-11-07T17:53:13+01:00 FIXME
 // Closing the popup when launching a new search doesn't update the searching status properly
 @Component({
-  selector: 'ngbd-typeahead-overview-section-use-case-async',
+  selector: 'ngbd-typeahead-overview-section-use-case-remote',
   templateUrl: './template.html',
   styles: [
     `.flash {

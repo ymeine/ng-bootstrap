@@ -18,3 +18,12 @@ export const SECTIONS = [
   NgbdTypeaheadOverviewSectionUseCaseRemoteComponent,
   NgbdTypeaheadOverviewSectionDisplayCustomizationComponent,
 ];
+
+export const SECTIONS_MAP = {
+  'introduction': 'Introduction',
+  'use-case-basic': 'Use case: basic usage',
+  'use-case-events': 'Use case: open on focus & other events',
+  'use-case-remote': 'Use case: remotely fetched results',
+  'display-customization': 'Customize display',
+  'operators': 'RxJS operators references',
+};
