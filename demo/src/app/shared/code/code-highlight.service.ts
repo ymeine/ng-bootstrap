@@ -3,6 +3,8 @@ import {Injectable} from '@angular/core';
 import * as prism from 'prismjs';
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-bash';
+import 'prismjs/plugins/line-highlight/prism-line-highlight';
+import 'prismjs/plugins/line-numbers/prism-line-numbers';
 
 // Prism tries to highlight the whole document on DOMContentLoad.
 // Unfortunately with webpack the only way of disabling it
@@ -13,8 +15,7 @@ prism.hooks.add('before-highlightall', (env) => {
 
 @Injectable()
 export class CodeHighlightService {
-
-  highlight(code: string, lang: string) {
-    return prism.highlight(code.trim(), prism.languages[lang]);
+  highlightElement(element: HTMLElement) {
+    prism.highlightElement(element);
   }
 }

@@ -12,12 +12,16 @@ import {
 
 import {
   customDebounce,
-  times,
+  getResults,
 } from '../../common';
+
+import { SNIPPETS } from './snippets';
+
+
 
 interface Option {
   label: string;
-  value: number;
+  value: string;
 }
 
 
@@ -34,12 +38,14 @@ export class NgbdTypeaheadOverviewSectionDisplayCustomizationComponent {
 
   useTemplate = true;
 
+  snippets = SNIPPETS;
+
   initializeTypeahead = (text$: Observable<string>): Observable<Option[]> => text$.pipe(
     customDebounce(() => this.debounceTime),
-    map(term => term === '' ? [] : times(5, value => ({
-      label: term.repeat(value + 1),
-      value: value + 1,
-    }))),
+    map(term => getResults(term).map(color => ({
+        label: `color: ${color}`,
+        value: color,
+      }))),
   )
 
   formatForInput(option: Option): string {

@@ -1,11 +1,14 @@
 export type DefinedOperator =
   'tap'
+| 'of'
 | 'switchMap'
+| 'flatMap'
 | 'debounceTime'
 | 'distinctUntilChanged'
 | 'map'
 | 'filter'
 | 'catchError'
+| 'throwError'
 | 'debounce'
 | 'timer'
 ;

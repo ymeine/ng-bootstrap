@@ -11,10 +11,20 @@ const operatorsSpecs: OperatorsSpecMap = {
     learnrxjs: 'utility/do',
     reactivex: 'do',
   },
+  of: {
+    rxjs: 'index/function/of',
+    learnrxjs: 'creation/of',
+    rxmarbles: true,
+  },
   switchMap: {
     learnrxjs: 'transformation/switchmap',
     rxmarbles: true,
     // reactivex: 'flatmap',
+  },
+  flatMap: {
+    learnrxjs: 'transformation/flatmap',
+    rxmarbles: true,
+    reactivex: true,
   },
   debounceTime: {
     learnrxjs: 'filtering/debouncetime',
@@ -49,6 +59,11 @@ const operatorsSpecs: OperatorsSpecMap = {
   catchError: {
     learnrxjs: 'error_handling/catch',
     reactivex: 'catch',
+  },
+  throwError: {
+    rxjs: 'index/function/throwError',
+    learnrxjs: 'creation/throw',
+    reactivex: 'empty-never-throw',
   },
 };
 

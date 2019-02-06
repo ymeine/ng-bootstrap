@@ -16,6 +16,7 @@ import {
 
 import {
   customDebounce,
+  STYLES,
 } from '../../../common';
 
 import {
@@ -25,6 +26,8 @@ import {
 import {
   search,
 } from '../search';
+
+import { SNIPPETS } from './snippets';
 
 
 
@@ -38,6 +41,7 @@ export const increment = (value: number) => value + 1;
   selector: 'ngbd-typeahead-overview-section-use-case-remote',
   templateUrl: './template.html',
   styles: [
+    STYLES,
     `.flash {
       animation: blinker 2s linear;
     }
@@ -55,6 +59,8 @@ export class NgbdTypeaheadOverviewSectionUseCaseRemoteComponent {
   responseDelay = 2000;
 
   properties: PropertiesMap;
+
+  snippets = SNIPPETS;
 
   constructor(changeDetector: ChangeDetectorRef) {
     this.properties = new PropertiesMap({

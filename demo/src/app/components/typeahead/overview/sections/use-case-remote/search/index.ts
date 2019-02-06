@@ -11,7 +11,7 @@ import {
 } from 'rxjs/operators';
 
 import {
-  generateResults,
+  getResults,
 } from '../../../common';
 
 import {
@@ -35,7 +35,7 @@ export function search({
   const observable = of(term).pipe(
     delay(delayTime),
     mergeMap(value => !fail ? of(value) : throwError(new Error('Search failed'))),
-    map(generateResults),
+    map(getResults),
   );
   return wrapObservable({
     observable,

@@ -29,7 +29,7 @@ import {
 import {
   customDebounce,
   STYLES,
-  COLORS,
+  getResults,
 } from '../../common';
 
 import {SNIPPETS} from './snippets';
@@ -126,7 +126,7 @@ export class NgbdTypeaheadOverviewSectionUseCaseEventsComponent {
         this.searchSource = source;
         this._update();
       }),
-      map(({term}) => this._getResults(term)),
+      map(({term}) => getResults(term)),
       delayWhen(() => this.simulatesSearchDelay ? timer(100) : of()),
       alwaysTap(() => this._searching = false),
     );
@@ -153,12 +153,6 @@ export class NgbdTypeaheadOverviewSectionUseCaseEventsComponent {
   }
 
   private _update() { this._changeDetector.detectChanges(); }
-
-  private _getResults(term: string): string[] {
-    return term === ''
-      ? COLORS
-      : COLORS.filter(color => color.startsWith(term));
-  }
 
   private _isOpen(): boolean { return this._instance.isPopupOpen(); }
   private _isClosed(): boolean { return !this._isOpen(); }

@@ -1,3 +1,49 @@
+<h5>ToC</h5>
+
+<ul>
+  <li>the goal is the separation between model and presentation</li>
+  <li>there are two outputs (display): the input and the options list items</li>
+  <li>there is one input: the result list items</li>
+  <li>the input for research is always the content of the input, so the conversation between the option and the value inside the input is important for further input changes</li>
+</ul>
+
+
+
+<h5>Introduction</h5>
+
+<p>
+  To change a bit from data workflow management, let's talk about data model and visual display.
+</p>
+
+<h5>Result item vs Option item</h5>
+
+<p>
+  To remind you, we made a distinction between the <span class="defined">result item</span> and the <span class="defined">option item</span>. There is an important difference between the two:
+</p>
+<ul>
+  <li>the <span class="defined">result item</span> is part of the data model, and holds the whole piece of data that you wanna keep and be able to select. This can be more complex than a string.</li>
+  <li>the <span class="defined">option item</span> is what is visually shown in the <span class="defined">popup</span>. It is a visual representation of the <span class="defined">result item</span>.</li>
+</ul>
+
+<p>
+  The conversion from <span class="defined">result item</span> to <span class="defined">option item</span> for display is what we call <em>formatting</em>.
+</p>
+
+<p>
+  The <span class="defined">option item</span> can be represented by a string. In this case, use the property <code>resultFormatter</code>. It expects a reference to a function taking the <span class="defined">result item</span> as input (the type depending on your use case), and returning a string in output:
+</p>
+
+<ngbd-code [lang]="snippets.model.language" [code]="snippets.model.code" [highlightedLines]="snippets.model.highlightedLines"></ngbd-code>
+<ngbd-code [lang]="snippets.data.language" [code]="snippets.data.code" [highlightedLines]="snippets.data.highlightedLines"></ngbd-code>
+<ngbd-code [lang]="snippets.resultFormatter.template.language" [code]="snippets.resultFormatter.template.code" [highlightedLines]="snippets.resultFormatter.template.highlightedLines"></ngbd-code>
+<ngbd-code [lang]="snippets.resultFormatter.component.language" [code]="snippets.resultFormatter.component.code" [highlightedLines]="snippets.resultFormatter.component.highlightedLines"></ngbd-code>
+
+
+
+<h5>Demo</h5>
+
+<h6>Options</h6>
+
 <ngbd-typeahead-overview-common-checkbox
   [(value)]="useTemplate"
   label="use custom template for options list"
@@ -14,6 +60,8 @@
     <ngb-highlight [result]="option.label" [term]="term"></ngb-highlight> ({{option.value}})
 </ng-template>
 
+<h6>Typeahead</h6>
+
 <input
   type="text"
   class="form-control"
@@ -24,8 +72,3 @@
   [resultFormatter]="resultFormatter"
   [inputFormatter]="formatForInput"
 />
-
-<p>- the goal is the separation between model and presentation</p>
-<p>- there are two outputs (display): the input and the options list items</p>
-<p>- there is one input: the result list items</p>
-<p>- the input for research is always the content of the input, so the conversation between the option and the value inside the input is important for further input changes</p>

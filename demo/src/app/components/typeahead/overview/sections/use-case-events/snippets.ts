@@ -1,25 +1,43 @@
-import {fixIndent} from '../../common';
+import {Snippet} from '../../common';
 
 
 
 export const SNIPPETS = {
   focus: {
-    template: {
+    template: Snippet({
       language: 'html',
-      code: fixIndent`
+      highlightedLines: '4',
+      code: `
         <input
           type="text"
           [ngbTypeahead]="initializeTypeahead"
           (focus)="onFocus($event)"
         />
       `,
-    },
-    component: {
+    }),
+    subject: Snippet({
       language: 'typescript',
-      code: fixIndent`
-        import {Subject, merge} from 'rxjs';
+      highlightedLines: '1, 4, 7',
+      code: `
+        import {Subject} from 'rxjs';
 
-        // ...
+        export class MyComponent {
+          private _inputFocus$ = new Subject<string>();
+
+          onFocus(event: Event) {
+            this._inputFocus$.next((event.target as HTMLInputElement).value);
+          }
+        }
+      `,
+    }),
+    full: Snippet({
+      language: 'typescript',
+      highlightedLines: '3, 14, 15, 17-19',
+      code: `
+        import {
+          Subject,
+          merge,
+        } from 'rxjs';
 
         export class MyComponent {
           private _inputFocus$ = new Subject<string>();
@@ -38,54 +56,60 @@ export const SNIPPETS = {
           }
         }
       `,
-    },
-  },
-  focusDetail: {
-    template: {
-      language: 'html',
-      code: fixIndent`
-        <input
-          type="text"
-          [ngbTypeahead]="initializeTypeahead"
-          (focus)="onFocus($event)"
-          #instance="ngbTypeahead"
-        />
-      `,
-    },
-    component: {
-      language: 'typescript',
-      code: fixIndent`
-        import {Subject, merge} from 'rxjs';
-        import {map, debounceTime, distinctUntilChanged, filter} from 'rxjs/operators';
+    }),
+    detail: {
+      template: Snippet({
+        language: 'html',
+        highlightedLines: '5',
+        code: `
+          <input
+            type="text"
+            [ngbTypeahead]="initializeTypeahead"
+            (focus)="onFocus($event)"
+            #instance="ngbTypeahead"
+          />
+        `,
+      }),
+      component: Snippet({
+        language: 'typescript',
+        highlightedLines: '6, 10-11, 20',
+        code: `
+          import {Subject, merge} from 'rxjs';
+          import {
+            map,
+            debounceTime,
+            distinctUntilChanged,
+            filter,
+          } from 'rxjs/operators';
 
-        // ...
+          export class MyComponent {
+            // to get the reference to the Typeahead instance
+            @ViewChild('instance') private _instance: NgbTypeahead;
 
-        export class MyComponent {
-          // to get the reference to the Typeahead instance
-          @ViewChild('instance') private _instance: NgbTypeahead;
+            initializeTypeahead = (text$: Observable<string>): Observable<string[]> => {
+              const inputSource = text$.pipe(
+                debounceTime(200),
+                distinctUntilChanged(),
+              );
 
-          initializeTypeahead = (text$: Observable<string>): Observable<string[]> => {
-            const inputSource = text$.pipe(
-              debounceTime(200),
-              distinctUntilChanged(),
-            );
+              const focusSource = this._inputFocus$.pipe(
+                filter(() => !this._instance.isPopupOpen()),
+              );
 
-            const focusSource = this._inputFocus$.pipe(
-              filter(() => !this._instance.isPopupOpen()),
-            );
-
-            return merge(inputSource, focusSource).pipe(
-              map(searchTerm => /* return the list */)
-            );
+              return merge(inputSource, focusSource).pipe(
+                map(searchTerm => /* return the list */)
+              );
+            }
           }
-        }
-      `,
+        `,
+      }),
     },
   },
   click: {
-    template: {
+    template: Snippet({
       language: 'html',
-      code: fixIndent`
+      highlightedLines: '6',
+      code: `
         <input
           type="text"
           [ngbTypeahead]="initializeTypeahead"
@@ -94,14 +118,19 @@ export const SNIPPETS = {
           (click)="onClick($event)"
         />
       `,
-    },
-    component: {
+    }),
+    component: Snippet({
       language: 'typescript',
-      code: fixIndent`
+      highlightedLines: '7, 16, 26-28, 37, 41, 45, 47',
+      code: `
         import {Subject, merge} from 'rxjs';
-        import {map, debounceTime, distinctUntilChanged, filter, tap} from 'rxjs/operators';
-
-        // ...
+        import {
+          map,
+          debounceTime,
+          distinctUntilChanged,
+          filter,
+          tap,
+        } from 'rxjs/operators';
 
         export class MyComponent {
           @ViewChild('instance') private _instance: NgbTypeahead;
@@ -145,6 +174,6 @@ export const SNIPPETS = {
           }
         }
       `,
-    },
+    }),
   },
 };

@@ -9,21 +9,17 @@
 
 <p>Let's introduce some concepts: </p>
 <ul>
-  <li>the <span class="defined">search term</span>: is used as input to produce a result list</li>
-  <li>the <span class="defined">results list</span>, and the <span class="defined">result item</span>: the list given to the Typeahead for display</li>
-  <li>the <span class="defined">options list</span>, and the <span class="defined">option item</span>: the list displayed by the Typeahead in its attached popup, corresponding 1 by 1 to the result list</li>
-  <li>the <span class="defined">input field</span>: holds a representation of the currently selected result item if any, and allows editing the search term</li>
-  <li>the <span class="defined">popup</span>: the popup attached to the input field and displaying the options list</li>
+  <li>the <span class="definition">search term</span>: a string used as input to produce a <span class="defined">results list</span></li>
+  <li>the <span class="definition">results list</span> and the <span class="definition">result item</span>: the list given to the Typeahead for display; goes through formatting before to be converted to an <span class="defined">options list</span> for display</li>
+  <li>the <span class="definition">options list</span> and the <span class="definition">option item</span>: the list displayed by the Typeahead in its attached <span class="defined">popup</span>, corresponding 1 by 1 to the <span class="defined">results list</span></li>
+  <li>the <span class="definition">input field</span>: holds a formatted representation of the currently selected <span class="defined">result item</span> if any, and allows editing the <span class="defined">search term</span></li>
+  <li>the <span class="definition">popup</span>: the popup attached to the <span class="defined">input field</span> and displaying the <span class="defined">options list</span></li>
 </ul>
 
-<p>
- TODO: make a diagram pointing out each parts (including the popup, the input, etc)
-</p>
+<!-- <p>
+ TODO: make a diagram pointing out each parts (including the popup, the input, etc. but also what is data model and what is display)
+</p> -->
 
 <p>
-  For the sake of the demos, the search function will always take the search term and duplicate it to build new strings, from 1 to 5 times.
-</p>
-
-<p>
-  Example: <code>ab</code> gives <code>ab</code>, <code>abab</code>, <code>ababab</code>, <code>abababab</code> and <code>ababababab</code>.
+  For the sake of the demos, the Typeahead instances will filter out a basic list of colors, keeping only the ones starting with the <span class="defined">search term</span>.
 </p>

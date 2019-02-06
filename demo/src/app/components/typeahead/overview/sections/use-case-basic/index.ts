@@ -13,7 +13,7 @@ import {
 import {
   customDebounce,
   STYLES,
-  COLORS,
+  getResults,
 } from '../../common';
 
 import {SNIPPETS} from './snippets';
@@ -35,9 +35,6 @@ export class NgbdTypeaheadOverviewSectionUseCaseBasicComponent {
 
   initializeTypeahead = (text$: Observable<string>): Observable<string[]> => text$.pipe(
     customDebounce(() => this.debounceTime),
-    map(pattern => pattern.length === 0
-      ? COLORS
-      : COLORS.filter(color => color.startsWith(pattern))
-    ),
+    map(getResults),
   )
 }
