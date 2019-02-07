@@ -19,8 +19,8 @@ export const SNIPPETS = {
       highlightedLines: '2-3',
       code: `
         export class MyComponent {
-          initializeTypeahead = (text$: Observable<string>): Observable<string[]> =>
-            text$.pipe(
+          initializeTypeahead = (input$: Observable<string>): Observable<string[]> =>
+            input$.pipe(
               // ...
               // do any processing you need
               // ...
@@ -42,11 +42,11 @@ export const SNIPPETS = {
       code: `
         import {map} from 'rxjs/operators';
         // ...
-        initializeTypeahead = (text$: Observable<string>): Observable<string[]> =>
-          text$.pipe(
-            map(pattern => pattern.length === 0
+        initializeTypeahead = (input$: Observable<string>): Observable<string[]> =>
+          input$.pipe(
+            map(searchTerm => searchTerm.length === 0
               ? COLORS
-              : COLORS.filter(color => color.startsWith(pattern))
+              : COLORS.filter(color => color.startsWith(searchTerm))
             ),
           )
       `,
@@ -61,12 +61,12 @@ export const SNIPPETS = {
             debounceTime,
           } from 'rxjs/operators';
           // ...
-          initializeTypeahead = (text$: Observable<string>): Observable<string[]> =>
-            text$.pipe(
+          initializeTypeahead = (input$: Observable<string>): Observable<string[]> =>
+            input$.pipe(
               debounceTime(200),
-              map(pattern => pattern.length === 0
+              map(searchTerm => searchTerm.length === 0
                 ? COLORS
-                : COLORS.filter(color => color.startsWith(pattern))
+                : COLORS.filter(color => color.startsWith(searchTerm))
               ),
             )
         `,
@@ -81,13 +81,13 @@ export const SNIPPETS = {
             distinctUntilChanged,
           } from 'rxjs/operators';
           // ...
-          initializeTypeahead = (text$: Observable<string>): Observable<string[]> =>
-            text$.pipe(
+          initializeTypeahead = (input$: Observable<string>): Observable<string[]> =>
+            input$.pipe(
               debounceTime(200),
               distinctUntilChanged(),
-              map(pattern => pattern.length === 0
+              map(searchTerm => searchTerm.length === 0
                 ? COLORS
-                : COLORS.filter(color => color.startsWith(pattern))
+                : COLORS.filter(color => color.startsWith(searchTerm))
               ),
             )
         `,

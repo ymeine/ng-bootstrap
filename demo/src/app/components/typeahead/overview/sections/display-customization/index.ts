@@ -12,55 +12,74 @@ import {
 
 import {
   customDebounce,
-  getResults,
+  STYLES,
+  Color,
+  FULL_COLORS as COLORS,
 } from '../../common';
 
 import { SNIPPETS } from './snippets';
 
 
 
-interface Option {
-  label: string;
-  value: string;
-}
-
-
-
 @Component({
   selector: 'ngbd-typeahead-overview-section-display-customization',
   templateUrl: './template.html',
+  styles: [
+    STYLES,
+    `
+    .middle > * {
+      vertical-align: middle;
+    }
+
+    .color-chip {
+      display: inline-block;
+      height: 1em;
+      width: 1em;
+      border-radius: 0.5em;
+      border: solid black 1px;
+      margin-right: 0.30em;
+      margin-top: 2px;
+    }
+    `
+  ]
 })
 export class NgbdTypeaheadOverviewSectionDisplayCustomizationComponent {
- @ViewChild('displayResult') displayResultTemplate;
+  @ViewChild('displayResult') displayResultTemplate;
 
   model: string;
   debounceTime = 200;
 
-  useTemplate = true;
+  formatUpperCase = true;
+  resultTransformationType: 'formatter' | 'template' = 'template';
 
   snippets = SNIPPETS;
 
-  initializeTypeahead = (text$: Observable<string>): Observable<Option[]> => text$.pipe(
+  initializeTypeahead = (text$: Observable<string>): Observable<Color[]> => text$.pipe(
     customDebounce(() => this.debounceTime),
-    map(term => getResults(term).map(color => ({
-        label: `color: ${color}`,
-        value: color,
-      }))),
+    map(term => term === '' ? COLORS : COLORS.filter(color => color.name.toLowerCase().startsWith(term.toLowerCase()))),
   )
 
-  formatForInput(option: Option): string {
-    return option.label.toUpperCase();
+  formatForInput(color: Color): string {
+    let output = color.name;
+    if (this.formatUpperCase) {
+      output = output.toUpperCase();
+    }
+    return output;
   }
 
-  formatForOptionsList(option: Option): string {
-    return option.label.toUpperCase();
+  formatForOptionsList(color: Color): string {
+    return `${color.name} (${color.hexCode})`;
   }
 
   get resultTemplate() {
-    return this.useTemplate ? this.displayResultTemplate : null;
+    return this.resultTransformationType === 'template' ? this.displayResultTemplate : null;
   }
 
   get resultFormatter() {
-    return !this.useTemplate ? this.formatForOptionsList.bind(this) : null;
+    return this.resultTransformationType === 'formatter' ? this.formatForOptionsList.bind(this) : null;
+  }
+
+  get inputFormatter() {
+    return this.formatForInput.bind(this);
   }
 }

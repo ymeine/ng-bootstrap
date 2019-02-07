@@ -21,7 +21,7 @@ export function fixIndent(source) {
 }
 
 export interface SnippetSpec {
-  language: 'html' | 'typescript';
+  language: 'html' | 'typescript' | 'css';
   code: string;
   highlightedLines?: string;
 }

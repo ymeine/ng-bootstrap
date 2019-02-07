@@ -16,6 +16,7 @@ import {
         type="checkbox"
         [ngModel]="value"
         (ngModelChange)="valueChange.next($event)"
+        [ngModelOptions]="{standalone: true}"
         id="{{fullId}}"
       />
       <label
@@ -35,6 +36,6 @@ export class NgbdTypeaheadOverviewCommonCheckboxComponent {
   @Output() valueChange = new EventEmitter<boolean>();
 
   get fullId(): string {
-    return `'typeahead-overview-'${this.id}`;
+    return `typeahead-overview-${this.id}`;
   }
 }
