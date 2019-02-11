@@ -16,6 +16,12 @@ const operatorsSpecs: OperatorsSpecMap = {
     learnrxjs: 'creation/of',
     rxmarbles: true,
   },
+  merge: {
+    rxjs: 'index/function/merge',
+    learnrxjs: 'combination/merge',
+    rxmarbles: true,
+    reactivex: true,
+  },
   switchMap: {
     learnrxjs: 'transformation/switchmap',
     rxmarbles: true,

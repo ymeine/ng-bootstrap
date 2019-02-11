@@ -10,7 +10,7 @@
   To remind you, we made a distinction between the <span class="defined">result item</span> and the <span class="defined">option item</span>. There is an important difference between the two:
 </p>
 <ul>
-  <li>the <span class="defined">result item</span> is part of the data model, and holds the whole piece of data that you wanna keep and be able to select. This can be more complex than a string.</li>
+  <li>the <span class="defined">result item</span> is part of the data model, and holds the whole piece of data that you wanna keep in your program and be able to select. This can be more complex than a string.</li>
   <li>the <span class="defined">option item</span> is what is shown in the <span class="defined">popup</span>. It is a visual representation of the <span class="defined">result item</span>.</li>
 </ul>
 
@@ -47,7 +47,7 @@
 </p>
 
 <p>
-  It expects a reference to a function taking the <span class="defined">result item</span> as input (the type depending on your use case), and returning a string in output:
+  It expects a reference to a function taking the <span class="defined">result item</span> as input (the type depending on your use case), and returning a string as output:
 </p>
 
 <p>Pass it that way in the template: </p>
@@ -59,7 +59,7 @@
 <ngbd-code [lang]="snippets.resultFormatter.component.language" [code]="snippets.resultFormatter.component.code" [highlightedLines]="snippets.resultFormatter.component.highlightedLines"></ngbd-code>
 
 <p>
-  In that case, we not only simply extracted the name of the color, but also the hexadecimal code to generate a more detailed representation.
+  In that case, we not only extracted the name of the color, but also the hexadecimal code to generate a more detailed representation.
 </p>
 
 <p>
@@ -71,11 +71,11 @@
 <h5>Complex representation: <code>resultTemplate</code></h5>
 
 <p>
-  The <span class="defined">option item</span> can be displayed from a custom template. In this case, use the property <code>resultFormatter</code>.
+  The <span class="defined">option item</span> can be displayed from a custom template. In that case, use the property <code>resultFormatter</code>.
 </p>
 
 <p>
-  It expects a reference to a template taking from its context the <span class="defined">result item</span> and the <span class="defined">search term</span>, respectively as <code>result</code> and <code>term</code>:
+  It expects a reference to a template receiving a context with the <span class="defined">result item</span> and the <span class="defined">search term</span>, respectively as <code>result</code> and <code>term</code>:
 </p>
 
 <ngbd-code [lang]="snippets.resultTemplate.html.language" [code]="snippets.resultTemplate.html.code" [highlightedLines]="snippets.resultTemplate.html.highlightedLines"></ngbd-code>
@@ -89,7 +89,7 @@
 </p>
 
 <p>
-  Regarding the content of the template itself, on line 8 we define the color chip, leveraging the data present in the <span class="defined">result item</span>. On line 10 we use a helper component provided by bg-bootstrap to highlight part of a word, in this case to highlight which part matched from the <span class="defined">search term</span>. On line 12, we display the hexadecimal code again.
+  Regarding the content of the template itself, on line 8 we defined the color chip, leveraging the data present in the <span class="defined">result item</span>. On line 10 we used a helper component provided by ng-bootstrap to highlight part of a word, in this case to highlight which part matched from the <span class="defined">search term</span>. On line 12, we displayed the hexadecimal code again.
 </p>
 
 <p>
@@ -98,7 +98,9 @@
 
 <ngbd-code [lang]="snippets.resultTemplate.css.language" [code]="snippets.resultTemplate.css.code" [highlightedLines]="snippets.resultTemplate.css.highlightedLines"></ngbd-code>
 
-<h5>The input field content</h5>
+
+
+<h5>The input field content: <code>inputFormatter</code></h5>
 
 <p>
   Last but not least, it is also possible to customize the display of the <span class="defined">input field</span> when it must display a selected <span>result item</span>.
@@ -108,8 +110,8 @@
   There are two limitations though:
 </p>
 <ul>
-  <li>technical: since this is an input element, only a string representation can be used, no custom template</li>
-  <li>design: since the <span class="defined">input field</span> is also used to edit the <span class="defined">search term</span>, altering the content of the field will change the value you edit for your next search. Therefore this is more suitable for simple transformations, which would be handled by the search function in use.</li>
+  <li>one technical: since this is an input element, only a string representation can be used, no custom template</li>
+  <li>one of design: since the <span class="defined">input field</span> is also used to edit the <span class="defined">search term</span>, altering the content of the field will change the initial value you edit for your next search. Therefore this is more suitable for simple transformations, which would lead to a value that can still be handled by the search algorithm in use.</li>
 </ul>
 
 <p>
@@ -122,14 +124,14 @@
 
 <p>Pass it that way in the template: </p>
 
-<ngbd-code [lang]="snippets.resultFormatter.template.language" [code]="snippets.resultFormatter.template.code" [highlightedLines]="snippets.resultFormatter.template.highlightedLines"></ngbd-code>
+<ngbd-code [lang]="snippets.inputFormatter.template.language" [code]="snippets.inputFormatter.template.code" [highlightedLines]="snippets.inputFormatter.template.highlightedLines"></ngbd-code>
 
 <p>And define it in the component: </p>
 
-<ngbd-code [lang]="snippets.resultFormatter.component.language" [code]="snippets.resultFormatter.component.code" [highlightedLines]="snippets.resultFormatter.component.highlightedLines"></ngbd-code>
+<ngbd-code [lang]="snippets.inputFormatter.component.language" [code]="snippets.inputFormatter.component.code" [highlightedLines]="snippets.inputFormatter.component.highlightedLines"></ngbd-code>
 
 <p>
-  You can notice it works the same way as <code>resultFormatter</code>, but we implemented a simpler formatting function to avoid the issue regarding the following searches.
+  You can notice it works the same way as <code>resultFormatter</code>, but we implemented a simpler formatting function to avoid the issue regarding the subsequent searches.
 </p>
 
 
@@ -141,16 +143,24 @@
 </p>
 
 <p>
-  choose between the simple string formatter or the template rendering (default) and observe the difference.
+  Choose between the simple string formatter or the template rendering (default) and observe the difference.
 </p>
 
 <p>
-  Choose an option, and see how the name of the color is set to upper case in the input. Try disabling it with the checkbox, and choose again an option. See the difference.
+  Choose an option from the <span class="defined">options list</span>, and see how the name of the color is set to upper case in the input. Try disabling it with the checkbox, and choose again an option. See the difference.
 </p>
 
 <p>
   In all cases formatters are needed since the input data model contains objects, nothing that can be displayed as is in a user interface.
 </p>
+
+<button
+  type="button"
+  class="btn btn-primary"
+  (click)="reset()"
+>
+  Reset
+</button>
 
 <h6>Options</h6>
 

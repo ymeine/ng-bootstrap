@@ -119,9 +119,60 @@ export const SNIPPETS = {
         />
       `,
     }),
+    intermediateComponent: Snippet({
+      language: 'typescript',
+      highlightedLines: '13, 19-21, 33-35, 40',
+      code: `
+        import {Subject, merge} from 'rxjs';
+        import {
+          map,
+          debounceTime,
+          distinctUntilChanged,
+          filter,
+        } from 'rxjs/operators';
+
+        export class MyComponent {
+          @ViewChild('instance') private _instance: NgbTypeahead;
+
+          private _inputFocus$ = new Subject<string>();
+          private _inputClick$ = new Subject<string>();
+
+          onFocus(event: Event) {
+            this._inputFocus$.next((event.target as HTMLInputElement).value);
+          }
+
+          onClick(event: Event) {
+            this._inputClick$.next((event.target as HTMLInputElement).value);
+          }
+
+          initializeTypeahead = (text$: Observable<string>): Observable<string[]> => {
+            const inputSource = text$.pipe(
+              debounceTime(200),
+              distinctUntilChanged(),
+            );
+
+            const focusSource = this._inputFocus$.pipe(
+              filter(() => this._instance.isPopupOpen()),
+            );
+
+            const clickSource = this._inputClick$.pipe(
+              filter(() => this._instance.isPopupOpen()),
+            );
+
+            return merge(
+              inputSource,
+              focusSource,
+              clickSource,
+            ).pipe(
+              map(searchTerm => /* return the list */)
+            );
+          }
+        }
+      `,
+    }),
     component: Snippet({
       language: 'typescript',
-      highlightedLines: '7, 16, 26-28, 37, 41, 45, 47',
+      highlightedLines: '7, 16, 26-28, 37, 41, 49, 51',
       code: `
         import {Subject, merge} from 'rxjs';
         import {
@@ -166,7 +217,11 @@ export const SNIPPETS = {
               filter(() => this._shouldSearchOnClickOrFocus()),
             );
 
-            return merge(inputSource, focusSource, clickSource).pipe(
+            return merge(
+              inputSource,
+              focusSource,
+              clickSource,
+            ).pipe(
               tap(() => this._searching = true),
               map(searchTerm => /* return the list */)
               tap(() => this._searching = false),

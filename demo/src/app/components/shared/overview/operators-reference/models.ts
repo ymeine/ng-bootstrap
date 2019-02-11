@@ -1,6 +1,7 @@
 export type DefinedOperator =
   'tap'
 | 'of'
+| 'merge'
 | 'switchMap'
 | 'flatMap'
 | 'debounceTime'

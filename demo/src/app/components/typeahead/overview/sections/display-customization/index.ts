@@ -47,12 +47,16 @@ export class NgbdTypeaheadOverviewSectionDisplayCustomizationComponent {
   @ViewChild('displayResult') displayResultTemplate;
 
   model: string;
-  debounceTime = 200;
+  debounceTime: number;
 
-  formatUpperCase = true;
-  resultTransformationType: 'formatter' | 'template' = 'template';
+  formatUpperCase: boolean;
+  resultTransformationType: 'formatter' | 'template';
 
   snippets = SNIPPETS;
+
+  constructor() {
+    this.reset();
+  }
 
   initializeTypeahead = (text$: Observable<string>): Observable<Color[]> => text$.pipe(
     customDebounce(() => this.debounceTime),
@@ -81,5 +85,13 @@ export class NgbdTypeaheadOverviewSectionDisplayCustomizationComponent {
 
   get inputFormatter() {
     return this.formatForInput.bind(this);
+  }
+
+  reset() {
+    this.model = '';
+    this.debounceTime = 200;
+
+    this.formatUpperCase = true;
+    this.resultTransformationType = 'template';
   }
 }

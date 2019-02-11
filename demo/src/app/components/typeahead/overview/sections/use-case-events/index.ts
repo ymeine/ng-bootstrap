@@ -59,7 +59,17 @@ type SearchSource = 'programmatic' | 'input' | 'click' | 'focus';
 @Component({
   selector: 'ngbd-typeahead-overview-section-use-case-events',
   templateUrl: './template.html',
-  styles: [STYLES],
+  styles: [
+    STYLES,
+    `
+    .focusable {
+      border-bottom: 1px dashed gray;
+      padding: 0.2em;
+      cursor: pointer;
+      margin-bottom 0.2em;
+    }
+    `
+  ],
 })
 export class NgbdTypeaheadOverviewSectionUseCaseEventsComponent {
   model: string;

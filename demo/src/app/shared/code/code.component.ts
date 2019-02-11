@@ -29,7 +29,7 @@ export class NgbdCodeComponent implements AfterViewInit {
   get preClass() {
     return {
       [this.language]: true,
-      'line-numbers': this.highlightedLines != null || this.showLineNumbers;
+      'line-numbers': this.highlightedLines != null || this.showLineNumbers,
     };
   }
 

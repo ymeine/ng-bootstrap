@@ -38,7 +38,7 @@ export const SNIPPETS = {
         <input
           type="text"
           [ngbTypeahead]="initializeTypeahead"
-          [resultFormatter]="formatResult"
+          [resultFormatter]="formatResultForPopup"
         />
       `
     }),
@@ -47,7 +47,7 @@ export const SNIPPETS = {
       highlightedLines: '2-4',
       code: `
         export class MyComponent {
-          formatResult(color: Color): string {
+          formatResultForPopup(color: Color): string {
             return \`\${color.name} (\${color.hexCode})\`;
           }
         }
@@ -108,7 +108,7 @@ export const SNIPPETS = {
         <input
           type="text"
           [ngbTypeahead]="initializeTypeahead"
-          [inputFormatter]="formatResult"
+          [inputFormatter]="formatResultForInput"
         />
       `
     }),
@@ -117,7 +117,7 @@ export const SNIPPETS = {
       highlightedLines: '2-4',
       code: `
         export class MyComponent {
-          formatInput(color: Color): string {
+          formatResultForInput(color: Color): string {
             return color.name.toUpperCase();
           }
         }

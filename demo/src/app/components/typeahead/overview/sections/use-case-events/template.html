@@ -1,7 +1,7 @@
 <h5>Introduction</h5>
 
 <p>
-  In the previous example, we saw that to get the whole list of colors, we had to first type something to get the popup open, then empty the input to avoid filtering.
+  In the previous example, we saw that to get the whole list of colors, we had to first type something to get the popup open and only then empty the input to avoid filtering.
 </p>
 
 <p>
@@ -12,13 +12,13 @@
   If you remember the previous section, the only contract used to open/close/update the <span class="defined">popup</span> is the spawning of values from the Observable returned in the initialization function.
 </p>
 <p>
-  Even though this function provides an input Observable for convenience, it is not mandatory to use it, and it is not restricted to only this one: you can use any Observable, and any combination of them, as long as they return lists of strings.
+  Even though this initialization function provides an input Observable for convenience, it is not mandatory to use it, and it is <em>not restricted</em> to only this one: you can use any Observable, and any combination of them, as long as they return lists of items.
 </p>
 
 <h5>Opening on focus</h5>
 
 <p>
-  So let's start by allowing opening on focus.
+  So let's start by making it open on focus.
 </p>
 
 <p>
@@ -38,7 +38,7 @@
 <ngbd-code [lang]="snippets.focus.subject.language" [code]="snippets.focus.subject.code" [highlightedLines]="snippets.focus.subject.highlightedLines"></ngbd-code>
 
 <p>
-  That way, we push the current value of the input field in the <code>onFocus</code> handler. That makes us have an Observable just like the one provided in the Typeahead initialization callback, except that it reacts to focus events instead of input events.
+  That way, we push the current value of the input field in the <code>onFocus</code> handler. That makes us have an Observable just like the one provided in the Typeahead initialization function, except that it reacts to focus events instead of input events.
 </p>
 
 <p>
@@ -48,7 +48,7 @@
 <ngbd-code [lang]="snippets.focus.full.language" [code]="snippets.focus.full.code" [highlightedLines]="snippets.focus.full.highlightedLines"></ngbd-code>
 
 <p>
-  Now, you can see that we treat the Observable chain based on input events separately from the chain based on focus events. Indeed, processing like debouncing makes sense for input events, where the user can type fast, but not for focus events. We eventually merge them into an Observable, which spawns values to be used for immediate search.
+  Now, you can see that we treat the two Observable chains — the one based on input events and the one based on focus events — differently. Indeed, processing like debouncing makes sense for input events, where the user can type fast, but not for focus events. We eventually merge them into an Observable, which spawns values to be used for immediate search.
 </p>
 
 <p>
@@ -89,14 +89,22 @@
   Component:
 </p>
 
+<ngbd-code [lang]="snippets.click.intermediateComponent.language" [code]="snippets.click.intermediateComponent.code" [highlightedLines]="snippets.click.intermediateComponent.highlightedLines"></ngbd-code>
+
+<p>
+  This is however not completely ready. Indeed, we also need to make sure that the search won't be triggered twice for a same user action.
+</p>
+<p>
+  The case of clicking on the input is one of them: it will trigger both a <code>click</code> event and potentially a <code>focus</code> event if the input was not previously focused.
+</p>
+<p>
+  So we will introduce a new private boolean, <code>_searching</code>, to check if a search is already ongoing, and to avoid doing it twice.
+</p>
+
 <ngbd-code [lang]="snippets.click.component.language" [code]="snippets.click.component.code" [highlightedLines]="snippets.click.component.highlightedLines"></ngbd-code>
 
 <p>
-  In addition to adding an event handler, a Subject, and merging it, we also needed to make sure that the search won't be triggered twice for a same user action. The case of clicking on the input is one of them: it will trigger both a <code>click</code> event and potentially a <code>focus</code> event if the input was not previously focused.
-</p>
-
-<p>
-  That is why we introduce a new private boolean, <code>_searching</code>, used to check if a search is already ongoing, and to avoid doing it twice. To update the boolean, we wrap the search operation with two operations using the <ngbd-overview-operator-popup name="tap"></ngbd-overview-operator-popup> operator: this is used to make a side effect, simply forwarding the value through the pipe. The one before sets the boolean to <code>true</code>, and the one after resets it to <code>false</code>.
+  To update the boolean, we wrapped the search operation with two operations using the <ngbd-overview-operator-popup name="tap"></ngbd-overview-operator-popup> operator: this is used to make a side effect, simply forwarding the value through the pipe. The one before sets the boolean to <code>true</code>, and the one after resets it to <code>false</code>.
 </p>
 
 
@@ -110,16 +118,16 @@
 
 
 
-<h5>Custom input event vs initialization function parameter</h5>
+<h5>Custom input event Observable vs the one from initialization function</h5>
 
 <p>
   As you saw, we could plug on focus and click events, and use Observables to use those as inputs for searching.
 </p>
 <p>
-  You could therefore think that the Observable passed to the initialization callback is useless, since it could be done on your side by adding another event handler, a Subject, and merging it.
+  You could therefore think that the Observable passed to the initialization function is useless, since it could be done on your side by adding another event handler, a Subject, and merging it.
 </p>
 <p>
-  However, this input Observable is not a direct Observable on the input event, the Typeahead widget does some pre-processing and post-processing based on that, therefore, it is better to plug into this one instead of creating a custom one.
+  However, this input Observable is not a direct Observable on the input event, the Typeahead widget does some pre-processing and post-processing based on it, therefore it is better to plug into this one instead of creating a custom one.
 </p>
 
 
@@ -138,7 +146,7 @@
 </ul>
 
 <p>
-  Try focusing the input with the <kbd>tab</kbd> key, you will see the Typeahead open with all suggestions. Pay attention to the updated <code>search source</code>.
+  Try focusing the input with the <kbd>tab</kbd> key (use the dedicated element above it), you will see the Typeahead open with all suggestions. Pay attention to the updated <code>search source</code>.
 </p>
 
 <p>
@@ -205,6 +213,12 @@
 </button>
 
 <h6>Typeahead</h6>
+
+<p>
+  <span class="focusable" tabindex="0">
+    Focus me and press <kbd>tab</kbd> to focus the Typeahead
+  </span>
+</p>
 
 <input
   type="text"

@@ -53,17 +53,17 @@ export const increment = (value: number) => value + 1;
 })
 export class NgbdTypeaheadOverviewSectionUseCaseRemoteComponent {
   model: string;
-  debounceTime = 200;
+  debounceTime: number;
 
-  makeFail = false;
-  responseDelay = 2000;
+  makeFail: boolean;
+  responseDelay: number;
 
-  properties: PropertiesMap;
+  state: PropertiesMap;
 
   snippets = SNIPPETS;
 
   constructor(changeDetector: ChangeDetectorRef) {
-    this.properties = new PropertiesMap({
+    this.state = new PropertiesMap({
       animationDuration: 2000,
       update: () => changeDetector.detectChanges(),
       properties: {
@@ -85,14 +85,17 @@ export class NgbdTypeaheadOverviewSectionUseCaseRemoteComponent {
         },
       },
     });
+
+    this.resetProperties();
   }
 
   initializeTypeahead = (text$: Observable<string>): Observable<string[]> => text$.pipe(
     customDebounce(() => this.debounceTime),
 
-    tap(() => this.properties.update({
+    tap(() => this.state.update({
       searching: true,
       searchFailed: false,
+      error: null,
     })),
     switchMap(term => {
       const observable = search({
@@ -100,18 +103,18 @@ export class NgbdTypeaheadOverviewSectionUseCaseRemoteComponent {
         delay: this.responseDelay,
         fail: this.makeFail,
         listeners: {
-          onNext: (value) => this.properties.update({
+          onNext: (value) => this.state.update({
             counterOnNext: increment,
-            currentValue: value,
+            // currentValue: value,
           }),
-          onError: (error) => this.properties.update({
+          onError: (error) => this.state.update({
             counterOnError: increment,
             error,
           }),
-          onComplete: () => this.properties.update({
+          onComplete: () => this.state.update({
             counterOnComplete: increment,
           }),
-          onUnsubscribe: () => this.properties.update({
+          onUnsubscribe: () => this.state.update({
             counterOnUnsubscribe: increment,
           }),
         },
@@ -119,17 +122,30 @@ export class NgbdTypeaheadOverviewSectionUseCaseRemoteComponent {
 
       return observable.pipe(
         catchError(() => {
-          this.properties.update({
+          this.state.update({
             searchFailed: true,
           });
           return of([]);
         }),
       );
     }),
-    tap(() => this.properties.update({
+    tap((value) => this.state.update({
       searching: false,
+      currentValue: value,
     })),
   )
 
-  resetProperties() { this.properties.reset(); }
+  resetState() { this.state.reset(); }
+
+  resetProperties() {
+    this.model = '';
+    this.debounceTime = 200;
+    this.makeFail = false;
+    this.responseDelay = 2000;
+  }
+
+  resetDemo() {
+    this.resetProperties();
+    this.resetState();
+  }
 }

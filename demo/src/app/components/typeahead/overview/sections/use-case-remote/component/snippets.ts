@@ -51,7 +51,7 @@ export const SNIPPETS = {
             // ...
             switchMap(searchTerm => mySearchService(searchTerm).pipe(
               map(serviceResults => /* ... */),
-              // you could place it before or after:
+              // you could place it before or after the map above:
               // as for JavaScript exceptions,
               // an error will go through until it reaches the catching section
               catchError(() => of([])),

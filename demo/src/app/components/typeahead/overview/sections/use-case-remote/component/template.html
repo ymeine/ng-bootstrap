@@ -11,7 +11,7 @@
 </ul>
 
 <p>
-  But quite often the data can be fetched remotely, in real time to react to a new <span class="defined">search term</span> the user typed in. Basically on servers in practice, what actually defines remote data from our standpoint is:
+  But quite often the data can be fetched remotely, in real time to react to a new <span class="defined">search term</span> the user typed in. Even though remote data is most of the time located on servers, what actually matters in the definition of remote data from our standpoint is:
 </p>
 <ul>
   <li>data that can take variable, perceptible time to be received</li>
@@ -20,7 +20,7 @@
 </ul>
 
 <p>
-  For our use case, we will keep the same set of data and filtering behavior as for previous use cases, and we will see how to handle remote data safely. For practical reasons, the demo fakes the data being remote, by simulating delay and failure.
+  For our use case, we will keep the same set of data — colors — and filtering behavior as for previous use cases, and we will see how to handle remote data safely. For practical reasons, the demo fakes the data being remote, by simulating delay and failure.
 </p>
 
 
@@ -28,12 +28,12 @@
 <h5>The delay</h5>
 
 <p>
-  Fetching remote data often implies a potentially perceptible amount of delay. Per se, there is always a delay even for local data: the processing time. So what's the big deal? With a perceptible amount of delay, two new cases can occur:
+  Fetching remote data often implies a potentially perceptible amount of delay. Per se, there is always a delay even for local data: the processing time. So what's the big deal? With a perceptible amount of delay, two new situations can occur:
 </p>
 
 <ul>
-  <li>the delay is too high: we call that a timeout, and this is a kind of error which can occur and that needs to be handled, as other errors</li>
-  <li>the delay is long enough for the user to change the <span class="defined">search term</span> before receiving the data: cancellation is needed</li>
+  <li>the delay is too high: we call that a timeout, and this is a kind of error which can occur and that needs to be handled, along with other potential errors</li>
+  <li>the delay is long enough for the user to change the <span class="defined">search term</span> before receiving the data: cancellation of the previous search is needed</li>
 </ul>
 
 <p>
@@ -57,7 +57,7 @@
 </p>
 
 <p>
-  To cancel a search, we will use the capability of the operator <ngbd-overview-operator-popup name="switchMap"></ngbd-overview-operator-popup>. The latter receives the current value, and expects an Observable in return, whose values will be merged to the Observable chain using the operator. It is like the operator <ngbd-overview-operator-popup name="flatMap"></ngbd-overview-operator-popup> but with an important difference which makes it suitable for our use case: anytime the operator is called and a new Observable is returned, this new one is used in the pipe instead of the previous one, and this previous one is being unsubscribed from.
+  To cancel a search, we will use the capability of the operator <ngbd-overview-operator-popup name="switchMap"></ngbd-overview-operator-popup>. The latter receives the current value from the chain, and expects an Observable in return, whose values will be merged to the Observable chain using the operator. It is like the operator <ngbd-overview-operator-popup name="flatMap"></ngbd-overview-operator-popup> but with an important difference which makes it suitable for our use case: anytime the operator is called and a new Observable is returned, this new one is used in the pipe instead of the previous one, and this previous one is being unsubscribed from.
 </p>
 
 <p>
@@ -85,13 +85,13 @@
 </p>
 
 <p>
-  The Observables implementation provides an operator made to catch errors and continue the flow normally, similar to how JavaScript exceptions work: this operator is <ngbd-overview-operator-popup name="catchError"></ngbd-overview-operator-popup>.
+  The Observables implementation provides an operator made to catch errors and continue the flow normally, similar to how JavaScript exceptions work: this operator is called <ngbd-overview-operator-popup name="catchError"></ngbd-overview-operator-popup>.
 </p>
 
 <ngbd-code [lang]="snippets.errorHandling.language" [code]="snippets.errorHandling.code" [highlightedLines]="snippets.errorHandling.highlightedLines"></ngbd-code>
 
 <p>
-  <ngbd-overview-operator-popup name="catchError"></ngbd-overview-operator-popup> expects a new Observable in output, which will completely replace the previous Observable. You can either return a failing Observable using <ngbd-overview-operator-popup name="throwError"></ngbd-overview-operator-popup>, but that is quite uncommon. This is the equivalent of throwing again an error in a catch block in JavaScript. Or you can return a classic Observable.
+  <ngbd-overview-operator-popup name="catchError"></ngbd-overview-operator-popup> expects a new Observable in output, which will completely replace the previous Observable in the chain. You can either return a failing Observable using <ngbd-overview-operator-popup name="throwError"></ngbd-overview-operator-popup> (but that is quite uncommon), which is the equivalent of throwing again an error in a catch block in JavaScript, or you can return a classic Observable.
 </p>
 
 <p>
@@ -107,7 +107,7 @@
 </p>
 
 <p>
-  There can be many techniques, and we won't go too far into the demonstration, but one of them is to maintain a boolean flag in the component, which will be set according to if an error occurred or not.
+  There can be many techniques, and we won't go too far into the demonstration, but one of them is to maintain a boolean flag in the component, which will be set according to if an error occurred or not. It is then up to the component to adapt its display based on this boolean.
 </p>
 
 <ngbd-code [lang]="snippets.errorFlag.language" [code]="snippets.errorFlag.code" [highlightedLines]="snippets.errorFlag.highlightedLines"></ngbd-code>
@@ -117,7 +117,7 @@
 </p>
 
 <p>
-  The last step was to set this flag inside the function block of <ngbd-overview-operator-popup name="catchError"></ngbd-overview-operator-popup>.
+  The last step was to set this flag to <code>true</code> inside the function block of <ngbd-overview-operator-popup name="catchError"></ngbd-overview-operator-popup>.
 </p>
 
 
@@ -129,7 +129,7 @@
 </p>
 
 <p>
-  The <code>Reset state</code> button in this demo is important because the <code>State</code> section shows a lot of data, and is updated quite often. Here is what the values correspond to:
+  The <code>Reset state</code> button in this demo is important because the <code>State</code> section shows a lot of data, and is updated quite often. Note that as for other demos, a global reset button is also available, to fully reset the demo. Here is what the values of the state correspond to:
 </p>
 
 <ul>
@@ -147,22 +147,22 @@
   <li>
     current values:
     <ul>
-      <li><code>value</code>: the latest valid result</li>
-      <li><code>error</code>: the latest error value</li>
+      <li><code>value</code>: the latest received <span class="defined">results list</span>, coming from successful search or not</li>
+      <li><code>error</code>: the error value when latest search failed</li>
     </ul>
   </li>
 </ul>
 
 <p>
-  To experiment, try typing in and before the response arrives (check the configured delay), type again. You should see the <code>unsubscribe</code> counter increment.
+  To experiment, try typing in and before the response arrives (check the configured delay), type again. You should see the <code>unsubscribe</code> counter increment, meaning that the ongoing search was cancelled in favor of a new one.
 </p>
 
 <p>
-  Wait a bit until a result arrives, and you should see the <code>next</code> and <code>complete</code> counters increment too, as well as <code>unsubscribe</code> again. The <code>value</code> should update with the result.
+  Then wait a bit until a result arrives, and you should see the <code>next</code> and <code>complete</code> counters increment too, as well as <code>unsubscribe</code> again. The <code>value</code> should update with the result.
 </p>
 
 <p>
-  Check the <code>make fail</code> check box, type again and wait. You should eventually see the counters <code>error</code> and <code>unsubscribe</code> increment. The boolean <code>search failed</code> will display <code>true</code> and <code>error</code> the error message.
+  Check the <code>make fail</code> check box, type again and wait. You should eventually see the counters <code>error</code> and <code>unsubscribe</code> increment. The boolean <code>search failed</code> will display <code>true</code>, <code>error</code> the error message and <code>value</code> an empty list.
 </p>
 
 <p>
@@ -173,12 +173,20 @@
   Throughout all those experiments, pay attention to the boolean <code>searching</code>, which updates accordingly.
 </p>
 
+<button
+  type="button"
+  class="btn btn-primary"
+  (click)="resetDemo()"
+>
+  Reset demo
+</button>
+
 <h6>State</h6>
 
 <button
   type="button"
   class="btn btn-primary"
-  (click)="resetProperties()"
+  (click)="resetState()"
 >
   Reset state
 </button>
@@ -186,21 +194,21 @@
 <ng-template #booleanProperty let-name="name">
     <li>
       <span
-        [ngClass]="{flash: properties.get(name).animated}"
+        [ngClass]="{flash: state.get(name).animated}"
       >
-      <code>{{properties.get(name).label}}</code>:
+      <code>{{state.get(name).label}}</code>:
         <span
-          [ngStyle]="{color: properties.get(name).value ? 'green' : 'red'}"
-        >{{properties.get(name).value ? 'yes' : 'no'}}</span>
+          [ngStyle]="{color: state.get(name).value ? 'green' : 'red'}"
+        >{{state.get(name).value ? 'yes' : 'no'}}</span>
       </span>
       </li>
 </ng-template>
 
 <ng-template #property let-name="name">
     <li>
-        <span [ngClass]="{flash: properties.get(name).animated}">
-          <code>{{properties.get(name).label}}</code>:
-          {{properties.get(name).formattedValue}}
+        <span [ngClass]="{flash: state.get(name).animated}">
+          <code>{{state.get(name).label}}</code>:
+          {{state.get(name).formattedValue}}
         </span>
       </li>
 </ng-template>
