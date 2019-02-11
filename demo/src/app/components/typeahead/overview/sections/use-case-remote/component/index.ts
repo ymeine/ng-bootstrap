@@ -138,7 +138,7 @@ export class NgbdTypeaheadOverviewSectionUseCaseRemoteComponent {
   resetState() { this.state.reset(); }
 
   resetProperties() {
-    this.model = '';
+    this.model = null;
     this.debounceTime = 200;
     this.makeFail = false;
     this.responseDelay = 2000;

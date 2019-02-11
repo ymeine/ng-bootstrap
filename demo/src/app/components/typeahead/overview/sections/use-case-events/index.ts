@@ -73,11 +73,11 @@ type SearchSource = 'programmatic' | 'input' | 'click' | 'focus';
 })
 export class NgbdTypeaheadOverviewSectionUseCaseEventsComponent {
   model: string;
-  debounceTime = 200;
+  debounceTime: number;
 
-  opensOnFocus = true;
-  opensOnClick = true;
-  simulatesSearchDelay = true;
+  opensOnFocus: boolean;
+  opensOnClick: boolean;
+  simulatesSearchDelay: boolean;
 
   searchSource: null | SearchSource;
 
@@ -101,7 +101,7 @@ export class NgbdTypeaheadOverviewSectionUseCaseEventsComponent {
     this.opensOnFocus = true;
     this.opensOnClick = true;
     this.simulatesSearchDelay = true;
-    this.model = '';
+    this.model = null;
     this.debounceTime = 200;
   }
 

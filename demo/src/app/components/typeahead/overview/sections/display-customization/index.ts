@@ -88,7 +88,7 @@ export class NgbdTypeaheadOverviewSectionDisplayCustomizationComponent {
   }
 
   reset() {
-    this.model = '';
+    this.model = null;
     this.debounceTime = 200;
 
     this.formatUpperCase = true;

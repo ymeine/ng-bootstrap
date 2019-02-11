@@ -28,7 +28,7 @@ import {SNIPPETS} from './snippets';
 })
 export class NgbdTypeaheadOverviewSectionUseCaseBasicComponent {
   model: string;
-  debounceTime : number;
+  debounceTime: number;
 
   snippets = SNIPPETS;
 
@@ -42,7 +42,7 @@ export class NgbdTypeaheadOverviewSectionUseCaseBasicComponent {
   )
 
   reset() {
-    this.model = '';
+    this.model = null;
     this.debounceTime = 200;
   }
 }
