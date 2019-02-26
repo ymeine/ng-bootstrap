@@ -51,47 +51,5 @@ export const SNIPPETS = {
           )
       `,
     }),
-    debouncing: {
-      part1: Snippet({
-        language: 'typescript',
-        highlightedLines: '3, 8',
-        code: `
-          import {
-            map,
-            debounceTime,
-          } from 'rxjs/operators';
-          // ...
-          initializeTypeahead = (input$: Observable<string>): Observable<string[]> =>
-            input$.pipe(
-              debounceTime(200),
-              map(searchTerm => searchTerm.length === 0
-                ? COLORS
-                : COLORS.filter(color => color.startsWith(searchTerm))
-              ),
-            )
-        `,
-      }),
-      part2: Snippet({
-        language: 'typescript',
-        highlightedLines: '4, 10',
-        code: `
-          import {
-            map,
-            debounceTime,
-            distinctUntilChanged,
-          } from 'rxjs/operators';
-          // ...
-          initializeTypeahead = (input$: Observable<string>): Observable<string[]> =>
-            input$.pipe(
-              debounceTime(200),
-              distinctUntilChanged(),
-              map(searchTerm => searchTerm.length === 0
-                ? COLORS
-                : COLORS.filter(color => color.startsWith(searchTerm))
-              ),
-            )
-        `,
-      }),
-    },
   }
 };

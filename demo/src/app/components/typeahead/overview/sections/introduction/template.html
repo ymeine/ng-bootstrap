@@ -1,53 +1,14 @@
 <p>The Typeahead is basically a component which:</p>
 <ul>
-  <li>takes a user input</li>
+  <li>takes a user input as a string</li>
   <li>pipes this input to an Observable chain to get a list of options</li>
-  <li>handles the popup of options and option selection</li>
+  <li>handles the display of the popup containing the options</li>
+  <li>handles the navigation through and the selection of options</li>
 </ul>
 
-<p>Graphically it's a combination of an input and a popup containing a list.</p>
+<p>Graphically it's a combination of: </p>
+
 <ul>
-  <li>
-    the <span class="definition">search term</span>:
-
-    a string used as input to produce a <span class="defined">results list</span>
-  </li>
-
-  <li>
-    the <span class="definition">results list</span>:
-
-    the list given to the Typeahead for display and selection
-  </li>
-
-  <li>
-    the <span class="definition">result item</span>: 
-
-    an item of the <span class="defined">results list</span>. It is a constituent of the data modeland this is what is actually referenced when an <span class="defined">option item</span> is chosen. It is formatted both to be converted to an <span class="defined">option item</span> and to be displayed in the <span class="defined">input field</span>.
-  </li>
-
-  <li>
-    the <span class="definition">options list</span> and the <span class="definition">option item</span>:
-
-    the list displayed by the Typeahead in its attached <span class="defined">popup</span>, corresponding 1 by 1 to the <span class="defined">results list</span>
-  </li>
-
-  <li>
-    the <span class="definition">input field</span>:
-
-    holds a formatted representation of the currently selected <span class="defined">result item</span> if any, and allows editing the <span class="defined">search term</span>
-  </li>
-
-  <li>
-    the <span class="definition">popup</span>:
-
-    the popup attached to the <span class="defined">input field</span> and displaying the <span class="defined">options list</span>
-  </li>
+  <li>an input used to edit the search term and to display the selected option</li>
+  <li>a popup containing the list of options</li>
 </ul>
-
-<!-- <p>
- TODO: make a diagram pointing out each parts (including the popup, the input, etc. but also what is data model and what is display)
-</p> -->
-
-<p>
-  For the sake of the demos, the Typeahead instances will filter out a basic list of colors, keeping only the ones starting with the <span class="defined">search term</span>.
-</p>
