@@ -1,14 +1,21 @@
 <div class="mb-2">
+  <button type="button" class="btn btn-primary" (click)="toggle()">Toggle</button>
+  <button type="button" class="btn btn-primary" (click)="toggleWithoutAnimation()">Toggle without animation</button>
   <div>
-    <ngb-alert *ngIf="show" [dismissible]="false">
+    <ngb-alert *ngIf="show" [dismissible]="false" [enableAnimation]="animationEnabled">
       <strong>Warning!</strong> Better check yourself, you're not looking too good.
     </ngb-alert>
   </div>
-  <button type="button" class="btn btn-primary" (click)="toggle()">Toggle</button>
+  <div *ngIf="show">
+    <ngb-alert [dismissible]="false" [enableAnimation]="animationEnabled">
+      <strong>Warning!</strong> Better check yourself, you're not looking too good.
+    </ngb-alert>
+  </div>
 </div>
+
+<button type="button" class="btn btn-primary" (click)="randomAlerts()">Random</button>
 <div *ngFor="let alertNb of alerts" >
   <ngb-alert [dismissible]="false">
     <strong>Warning!</strong> Alert Nb {{ alertNb }}
   </ngb-alert>
 </div>
-<button type="button" class="btn btn-primary" (click)="randomAlerts()">Random</button>

@@ -7,6 +7,7 @@ import { Component } from '@angular/core';
 export class NgbdAlertBasic {
 
   show = true;
+  animationEnabled = true;
   alerts: Array<number>;
 
   constructor() {
@@ -15,6 +16,14 @@ export class NgbdAlertBasic {
 
   toggle() {
     this.show = !this.show;
+  }
+
+  toggleWithoutAnimation() {
+    this.animationEnabled = false;
+    setTimeout(() => {
+      this.show = !this.show;
+      setTimeout(() => this.animationEnabled = true, 10);
+    }, 10);
   }
 
   randomAlerts() {

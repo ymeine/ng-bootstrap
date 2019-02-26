@@ -121,19 +121,38 @@ export interface NgbPanelChangeEvent {
 @Component({
   selector: 'ngb-accordion',
   exportAs: 'ngbAccordion',
-  host: {'class': 'accordion', 'role': 'tablist', '[attr.aria-multiselectable]': '!closeOtherPanels'},
+  host: {
+    'class': 'accordion',
+    'role': 'tablist',
+    '[attr.aria-multiselectable]': '!closeOtherPanels'
+  },
   template: `
     <ng-template ngFor let-panel [ngForOf]="panels">
       <div class="card">
-        <div role="tab" id="{{panel.id}}-header" [class]="'card-header ' + (panel.type ? 'bg-'+panel.type: type ? 'bg-'+type : '')">
-          <button type="button" class="btn btn-link"
-            (click)="toggle(panel.id)" [disabled]="panel.disabled" [class.collapsed]="!panel.isOpen"
-            [attr.aria-expanded]="panel.isOpen" [attr.aria-controls]="panel.id">
+        <div
+          role="tab"
+          id="{{panel.id}}-header"
+          [class]="'card-header ' + (panel.type ? 'bg-' + panel.type : type ? 'bg-' + type : '')"
+        >
+          <button
+            type="button"
+            class="btn btn-link"
+            [class.collapsed]="!panel.isOpen"
+            [disabled]="panel.disabled"
+            [attr.aria-expanded]="panel.isOpen"
+            [attr.aria-controls]="panel.id"
+            (click)="toggle(panel.id)"
+          >
             {{panel.title}}<ng-template [ngTemplateOutlet]="panel.titleTpl?.templateRef"></ng-template>
           </button>
         </div>
-        <div id="{{panel.id}}" role="tabpanel" [attr.aria-labelledby]="panel.id + '-header'"
-            class="collapse" *ngIf="!destroyOnHide || panel.isOpen || panel.transitionRunning">
+        <div
+          *ngIf="!destroyOnHide || panel.isOpen || panel.transitionRunning"
+          class="collapse"
+          id="{{panel.id}}"
+          role="tabpanel"
+          [attr.aria-labelledby]="panel.id + '-header'"
+        >
           <div class="card-body">
               <ng-template [ngTemplateOutlet]="panel.contentTpl?.templateRef"></ng-template>
           </div>
@@ -181,7 +200,7 @@ export class NgbAccordion implements AfterContentChecked, OnChanges {
    */
   @Output() panelChange = new EventEmitter<NgbPanelChangeEvent>();
 
-  constructor(config: NgbAccordionConfig, private _renderer: Renderer2, private _element: ElementRef) {
+  constructor(config: NgbAccordionConfig, _renderer: Renderer2, private _element: ElementRef) {
     this.type = config.type;
     this.closeOtherPanels = config.closeOthers;
     this.enableAnimation = config.enableAnimation;
@@ -239,11 +258,16 @@ export class NgbAccordion implements AfterContentChecked, OnChanges {
    * Programmatically toggle a panel with a given id. Has no effect if the panel is disabled.
    */
   toggle(panelId: string) {
+    console.log('toggling');
+    console.log(this.activeIds);
+    console.log(panelId);
     if (this.activeIds.indexOf(panelId) > -1) {
       this._removeActiveId(panelId);
     } else {
       this._addActiveId(panelId);
     }
+    console.log(this.activeIds);
+    console.log('-'.repeat(80));
     this._updateAllOpenState();
   }
 
@@ -330,16 +354,11 @@ export class NgbAccordion implements AfterContentChecked, OnChanges {
 
       if (!defaultPrevented) {
         panel.transitionRunning = true;
-        const panelElement = this._getPanelElement(panel.id);
-        const _panelInitDone = this._panelInitDone;
-        setTimeout(() => {
-            this._collapsingTransition.show(this._getPanelElement(panel.id), {
+        setTimeout(async () => {
+            await this._collapsingTransition.show(this._getPanelElement(panel.id), {
               enableAnimation: this.enableAnimation,
-              callback: (params) => {
-                panel.isOpen = params.isOpen;
-                panel.transitionRunning = false;
-              }
             });
+            // panel.transitionRunning = false;
           }, 1);
         }
       }

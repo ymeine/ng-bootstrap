@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 
 import {NgbAlertConfig} from './alert-config';
-import { Transition, TransitionOptions } from '../util/transition/ngbTransition';
+import { Transition } from '../util/transition/ngbTransition';
 import { NgbTransitionService } from '../util/transition/ngbTransitionService';
 
 /**
@@ -23,11 +23,22 @@ import { NgbTransitionService } from '../util/transition/ngbTransitionService';
   selector: 'ngb-alert',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  host:
-      {'role': 'alert', 'class': 'alert show', '[class.alert-dismissible]': 'dismissible', '[class.fade]': 'enableAnimation'},
+  host: {
+    'role': 'alert',
+    'class': 'alert',
+    '[class.show]': 'shown',
+    '[class.alert-dismissible]': 'dismissible',
+    '[class.fade]': 'enableAnimation',
+  },
   template: `
-    <button *ngIf="dismissible" type="button" class="close" aria-label="Close" i18n-aria-label="@@ngb.alert.close"
-      (click)="closeHandler()">
+    <button
+      *ngIf="dismissible"
+      type="button"
+      class="close"
+      aria-label="Close"
+      i18n-aria-label="@@ngb.alert.close"
+      (click)="closeHandler()"
+    >
       <span aria-hidden="true">&times;</span>
     </button>
     <ng-content></ng-content>
@@ -37,6 +48,8 @@ import { NgbTransitionService } from '../util/transition/ngbTransitionService';
 export class NgbAlert implements OnInit,
     OnChanges {
   private _fadingTransition: Transition;
+
+  shown = false;
 
   /**
    * A flag indicating if a given alert can be dismissed (closed) by a user. If this flag is set, a close button (in a
@@ -57,17 +70,20 @@ export class NgbAlert implements OnInit,
    */
   @Output() close = new EventEmitter<void>();
 
-  constructor(config: NgbAlertConfig, private _renderer: Renderer2, private _element: ElementRef,
-    private _transitionService: NgbTransitionService) {
+  constructor(
+    config: NgbAlertConfig,
+    private _renderer: Renderer2,
+    private _element: ElementRef,
+    _transitionService: NgbTransitionService,
+  ) {
     this.dismissible = config.dismissible;
     this.type = config.type;
     this.enableAnimation = config.enableAnimation;
 
-
     this._fadingTransition = new Transition({classname: 'show'}, this._renderer);
 
     const element = _element.nativeElement;
-    _transitionService.onDestroy(element, () => {
+    _transitionService.registerBeforeDestroyHook(element, () => {
       return this._fadingTransition.hide(element, {enableAnimation: this.enableAnimation});
     });
   }
@@ -82,5 +98,12 @@ export class NgbAlert implements OnInit,
     }
   }
 
-  ngOnInit() { this._renderer.addClass(this._element.nativeElement, `alert-${this.type}`); }
+  ngOnInit() {
+    this._renderer.addClass(this._element.nativeElement, `alert-${this.type}`);
+    if (!this.enableAnimation) {
+      this.shown = true;
+    } else {
+      setTimeout(() => this.shown = true, 100);
+    }
+  }
 }

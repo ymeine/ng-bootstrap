@@ -1,11 +1,10 @@
 import { Renderer2 } from '@angular/core';
-import { Injectable } from '@angular/core';
 
-const EMPTY_CLASSNAME = '_noClass';
+
 
 interface TransitionContext {
   transitionCounter?: number;
-  eventsRemoval: Array<Function>;
+  eventsUnlisteners: Array<Function>;
 
   promiseResolve?(data?: any);
 }
@@ -23,17 +22,17 @@ export interface TransitionOptions {
   callback?(data?: any);
 }
 
-export class Transition {
-  transitionDef: TransitionDefinition;
 
-  selectorOrElement: any;
+
+export class Transition {
   direction?: 'show' | 'hide';
 
   private _contexts = new Map<any, TransitionContext>();
 
-  constructor(transitionDef: TransitionDefinition, private _renderer: Renderer2) {
-    this.transitionDef = transitionDef;
-  }
+  constructor(
+    public transitionDef: TransitionDefinition,
+    private _renderer: Renderer2,
+  ) {}
 
   show(element: HTMLElement, options: TransitionOptions = {}): Promise<any> {
     this.direction = 'show';
@@ -49,124 +48,83 @@ export class Transition {
     return (element || document.body).offsetHeight;
   }
 
-  destroy() {
-    this._removeEvents();
-  }
-
   private _run(element: HTMLElement, options: TransitionOptions) {
-    return new Promise((resolve, reject) => {
-      const enableAnimation = options.enableAnimation;
-
-
-      let context: TransitionContext = this._contexts.get(element);
-      if (!context) {
+    return new Promise((resolve) => {
+      const contexts = this._contexts;
+      let context: TransitionContext;
+      if (contexts.has(element)) {
+        context = contexts.get(element);
+      } else {
         context = {
           transitionCounter: 0,
           promiseResolve: resolve,
-          eventsRemoval: []
+          eventsUnlisteners: [],
         };
-        this._contexts.set(element, context);
+        contexts.set(element, context);
       }
 
-      const switchEffect = (enableAnimation ? this._runWithAnimation : this._runNoAnimation).bind(this);
-      return switchEffect(element, options);
-    });
-  }
+      const adding = this.direction === 'show';
+      const renderer = this._renderer;
+      const transitionDef = this.transitionDef;
 
-  private _runNoAnimation(element: HTMLElement, options: TransitionOptions) {
-    const adding = this.direction === 'show';
-    const renderer = this._renderer;
-    const transitionDef = this.transitionDef;
+      if (options.enableAnimation) {
+        if (transitionDef.beforeTransitionStart != null) {
+          transitionDef.beforeTransitionStart(element, options);
+        }
 
-    // if (effectDef.beforeAnimationStart) {
-    //   effectDef.beforeAnimationStart(effectOptions);
-    // }
+        this.reflow(element);
+        this._addEvents(element, options);
+      }
 
-    const classname = transitionDef.classname;
-    if (classname) {
-      if (adding) {
-        renderer.addClass(element, classname);
+      const {classname} = transitionDef;
+      if (classname != null) {
+        const ensureClassname = adding ? renderer.addClass : renderer.removeClass;
+        ensureClassname.call(renderer, element, classname);
+      }
+
+      let endNow;
+      if (!options.enableAnimation) {
+        endNow = true;
       } else {
-        renderer.removeClass(element, classname);
+        endNow = false;
+        this.reflow(element);
+
+        if (transitionDef.afterTransitionStart) {
+          endNow = transitionDef.afterTransitionStart(element, options) === false;
+        }
       }
-    }
-      // if (effectDef.beforeAnimationStart) {
-    //   effectDef.beforeAnimationStart(effectOptions);
-    // }
 
-    this._transitionEnd(element, options);
-  }
-
-  private _runWithAnimation(element: HTMLElement, options: TransitionOptions) {
-    const adding = this.direction === 'show';
-
-    // this._initAction(effectOptions);
-    const renderer = this._renderer;
-    const transitionDef = this.transitionDef;
-
-    const classnameRegExp = new RegExp('\\b' + transitionDef.classname + '\\b');
-    const currentClassName = element.className;
-    const hasClass = classnameRegExp.test(currentClassName);
-
-    if (transitionDef.beforeTransitionStart) {
-      transitionDef.beforeTransitionStart(element, options);
-    }
-
-    this.reflow(element);
-
-    this._addEvents(element, options);
-    const classname = transitionDef.classname;
-    if (classname) {
-      if (adding) {
-        renderer.addClass(element, classname);
-      } else {
-        renderer.removeClass(element, classname);
-      }
-    }
-
-    this.reflow(element);
-
-    if (transitionDef.afterTransitionStart) {
-      const animationStarted = transitionDef.afterTransitionStart(element, options) !== false;
-      if (!animationStarted) {
+      if (endNow) {
         this._transitionEnd(element, options);
       }
-    }
-
+    });
   }
 
   private _addEvents(element: HTMLElement, options: TransitionOptions) {
     const context = this._contexts.get(element);
+
     this._removeEvents(context);
-    const events = context.eventsRemoval = [];
+
     context.transitionCounter = 0;
+
     const renderer = this._renderer;
-    events.push(
+    context.eventsUnlisteners = [
       renderer.listen(
         element,
         'transitionstart',
         this._transitionStart.bind(this, element, options)
-      )
-    );
-    events.push(
+      ),
       renderer.listen(
         element,
         'transitionend',
         this._transitionEnd.bind(this, element, options)
-      )
-    );
+      ),
+    ];
   }
 
-  private _removeEvents(context?: TransitionContext) {
-    if (context) {
-      const events = context.eventsRemoval;
-      const length = events.length;
-      for (let i = 0; i < length; i++) {
-        events[i]();
-      }
-
-      context.eventsRemoval = [];
-    }
+  private _removeEvents(context: TransitionContext) {
+    context.eventsUnlisteners.forEach(unlisten => unlisten());
+    context.eventsUnlisteners = [];
   }
 
   private _transitionStart(context: TransitionContext) {
@@ -174,12 +132,14 @@ export class Transition {
   }
 
   private _transitionEnd(element: HTMLElement, options: TransitionOptions) {
+    if (!this._contexts.has(element)) { return; }
+
     const context = this._contexts.get(element);
-    if (context) {
+    console.log('on transition end, counter:', context.transitionCounter);
     context.transitionCounter--;
     const counter = context.transitionCounter;
     if (counter < 1) {
-        this._removeEvents(context);
+      this._removeEvents(context);
       this._contexts.delete(element);
       context.transitionCounter = 0;
 
@@ -193,5 +153,4 @@ export class Transition {
       context.promiseResolve(callbackParameters);
     }
   }
-}
 }

@@ -1,5 +1,4 @@
 import {Directive, Input, OnChanges, Renderer2, ElementRef} from '@angular/core';
-import {collapsingEffet, showEffect} from '../util/transition/ngbCollapseEffect';
 import {Transition} from '../util/transition/ngbTransition';
 import {collapsingTransition, showTransition} from '../util/transition/ngbCollapseTransition';
 

@@ -1,18 +1,36 @@
 import { NgbTransitionService } from './ngbTransitionService';
-import { Injectable, NgZone, Renderer2, RendererFactory2, RendererStyleFlags2, RendererType2, OnDestroy } from '@angular/core';
+
+import {
+  Injectable,
+  NgZone,
+  Renderer2,
+  RendererFactory2,
+  RendererStyleFlags2,
+  RendererType2,
+} from '@angular/core';
+
+
 
 @Injectable()
 export class NgbTransitionRendererFactory implements RendererFactory2 {
   private _rendererCache = new Map<Renderer2, NgbTransitionRenderer>();
-  private _renderer;
 
-  constructor(private delegate: RendererFactory2, private zone: NgZone, private _ngbTransitionService: NgbTransitionService) {}
+  constructor(
+    private delegate: RendererFactory2,
+    private zone: NgZone,
+    private _ngbTransitionService: NgbTransitionService,
+  ) {}
 
   createRenderer(hostElement: any, type: RendererType2): Renderer2 {
     const delegate = this.delegate.createRenderer(hostElement, type);
     let renderer: NgbTransitionRenderer | undefined = this._rendererCache.get(delegate);
     if (!renderer) {
-      renderer = new NgbTransitionRenderer('ng-bootstrap', delegate, this.zone, this._ngbTransitionService);
+      renderer = new NgbTransitionRenderer(
+        'ng-bootstrap',
+        delegate,
+        this.zone,
+        this._ngbTransitionService,
+      );
       // only cache this result when the base renderer is used
       this._rendererCache.set(delegate, renderer);
     }
@@ -20,32 +38,33 @@ export class NgbTransitionRendererFactory implements RendererFactory2 {
   }
 
   begin() { this.delegate.begin(); }
-
-
   end() { this.delegate.end(); }
-
-  whenRenderingDone(): Promise<any> {
-    return new Promise((resolve) => { resolve(); });
-  }
+  whenRenderingDone(): Promise<any> { return Promise.resolve(); }
 }
 
 export class NgbTransitionRenderer implements Renderer2 {
   destroyNode: (node: any) => void;
 
-  constructor(protected namespaceId: string, public delegate: Renderer2,
-    public zone: NgZone, private _ngbTransitionService: NgbTransitionService) {
-    this.destroyNode = this.delegate.destroyNode ? (n) => delegate.destroyNode !(n) : null;
+  constructor(
+    protected namespaceId: string,
+    public delegate: Renderer2,
+    public zone: NgZone,
+    private _ngbTransitionService: NgbTransitionService,
+  ) {
+    this.destroyNode = this.delegate.destroyNode
+      ? (n) => delegate.destroyNode!(n)
+      : null;
   }
 
-  get data() {
-    const data = this.delegate.data;
-    return data;
- }
+  get data() { return this.delegate.data; }
 
   destroy(): void { this.delegate.destroy(); }
 
-  createElement(name: string, namespace?: string | null | undefined) {
-    return this.delegate.createElement(name, namespace);
+  // createElement(name: string, namespace?: string | null | undefined) {
+  //   return this.delegate.createElement(name, namespace);
+  // }
+  createElement() {
+    return this.delegate.createElement.apply(this.delegate, arguments);
   }
 
   createComment(value: string) { return this.delegate.createComment(value); }
@@ -59,7 +78,7 @@ export class NgbTransitionRenderer implements Renderer2 {
   }
 
   removeChild(parent: any, oldChild: any): void {
-    this._ngbTransitionService.resolvePromiseForElement(oldChild).then(() => {
+    this._ngbTransitionService.callHooksForElement(oldChild).then(() => {
       this.delegate.removeChild(parent, oldChild);
     });
   }
@@ -70,8 +89,11 @@ export class NgbTransitionRenderer implements Renderer2 {
 
   nextSibling(node: any) { return this.delegate.nextSibling(node); }
 
-  setAttribute(el: any, name: string, value: string, namespace?: string | null | undefined): void {
-    this.delegate.setAttribute(el, name, value, namespace);
+  // setAttribute(el: any, name: string, value: string, namespace?: string | null | undefined): void {
+  //   this.delegate.setAttribute(el, name, value, namespace);
+  // }
+  setAttribute() {
+    this.delegate.setAttribute.apply(this.delegate, arguments);
   }
 
   removeAttribute(el: any, name: string, namespace?: string | null | undefined): void {
@@ -98,25 +120,4 @@ export class NgbTransitionRenderer implements Renderer2 {
     return this.delegate.listen(target, eventName, callback);
   }
 
-}
-
-
-function resolveElementFromTarget(target: 'window' | 'document' | 'body' | any): any {
-  switch (target) {
-    case 'body':
-      return document.body;
-    case 'document':
-      return document;
-    case 'window':
-      return window;
-    default:
-      return target;
-  }
-}
-
-function parseTriggerCallbackName(triggerName: string) {
-  const dotIndex = triggerName.indexOf('.');
-  const trigger = triggerName.substring(0, dotIndex);
-  const phase = triggerName.substr(dotIndex + 1);
-  return [trigger, phase];
 }

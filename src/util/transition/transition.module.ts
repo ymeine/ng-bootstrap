@@ -1,5 +1,4 @@
 import {NgModule, ModuleWithProviders, RendererFactory2, NgZone} from '@angular/core';
-import {CommonModule} from '@angular/common';
 import {NgbTransitionRendererFactory} from './ngbTransitionRenderer';
 import {ɵDomRendererFactory2 as DomRendererFactory2} from '@angular/platform-browser';
 import { NgbTransitionService } from './ngbTransitionService';
