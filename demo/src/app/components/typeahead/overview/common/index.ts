@@ -1,17 +1,4 @@
-import { NgbdTypeaheadOverviewCommonDebounceCustomizerComponent } from './debounce-customizer.component';
-import { NgbdTypeaheadOverviewCommonCheckboxComponent } from './checkbox.component';
-
-export * from './search';
 export * from './styles';
-
-
-
-export const COMPONENTS = [
-  NgbdTypeaheadOverviewCommonDebounceCustomizerComponent,
-  NgbdTypeaheadOverviewCommonCheckboxComponent,
-];
-
-
 
 export function fixIndent(source) {
   const lines = source.split(/(?:\r\n)|\n|\r/);

@@ -13,7 +13,6 @@ import { NgbdTypeaheadHttp } from './demos/http/typeahead-http';
 import { NgbdTypeaheadTemplate } from './demos/template/typeahead-template';
 import { SECTIONS_MAP as OVERVIEW_SECTIONS_MAP, NgbdTypeaheadOverviewComponent } from './overview';
 import { SECTIONS as OVERVIEW_SECTIONS } from './overview/sections';
-import { COMPONENTS as COMMON_COMPONENTS } from './overview/common';
 
 const DEMO_DIRECTIVES = [
   NgbdTypeaheadFormat,
@@ -24,7 +23,6 @@ const DEMO_DIRECTIVES = [
   NgbdTypeaheadConfig,
   NgbdTypeaheadOverviewComponent,
   ...OVERVIEW_SECTIONS,
-  ...COMMON_COMPONENTS,
 ];
 
 const DEMOS = {
