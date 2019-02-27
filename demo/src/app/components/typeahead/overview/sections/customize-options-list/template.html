@@ -8,7 +8,7 @@
 
 
 
-<h5>String representation for the options list: <code>resultFormatter</code></h5>
+<h5>Simple representation with a string</h5>
 
 <p>
   The option item can be displayed from a string. In this case, use the property <code>resultFormatter</code> to pass a function which takes the option item (whose model is up to you) as input and returns a string as output.
@@ -24,7 +24,7 @@
 
 
 
-<h5>Complex representation for the options list: <code>resultTemplate</code></h5>
+<h5>Complex representation with a template</h5>
 
 <p>
   Sometimes displaying a simple string is not enough. In that case, you can use a template by using the property <code>resultFormatter</code>, which expects a template reference.
@@ -39,27 +39,3 @@
 </ul>
 
 <ngbd-code [lang]="snippets.resultTemplate.html.language" [code]="snippets.resultTemplate.html.code" [highlightedLines]="snippets.resultTemplate.html.highlightedLines"></ngbd-code>
-
-
-
-<h5>String representation for the input field: <code>inputFormatter</code></h5>
-
-<p>
-  It is also possible to customize the display of the option inside the input field, using the property <code>inputFormatter</code> which expects a function taking the option item as input and returning a string as output.
-</p>
-
-<p>
-  There are two limitations though:
-</p>
-<ul>
-  <li>one is technical: since this is an input element, only a string representation can be used, no custom template</li>
-  <li>one is from the design of the widget: since the input field is also used to edit the search term, altering the content of the field will change the initial value you edit for your next search. Therefore this is more suitable for conversion from complex object to a string, or for simple transformations (like changing case) which would lead to a value that can still be handled by the search algorithm in use.</li>
-</ul>
-
-<p>Pass it that way in the template: </p>
-
-<ngbd-code [lang]="snippets.inputFormatter.template.language" [code]="snippets.inputFormatter.template.code" [highlightedLines]="snippets.inputFormatter.template.highlightedLines"></ngbd-code>
-
-<p>And define it in the component: </p>
-
-<ngbd-code [lang]="snippets.inputFormatter.component.language" [code]="snippets.inputFormatter.component.code" [highlightedLines]="snippets.inputFormatter.component.highlightedLines"></ngbd-code>

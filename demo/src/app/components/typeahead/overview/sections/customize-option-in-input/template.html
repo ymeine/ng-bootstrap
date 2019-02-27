@@ -1,0 +1,19 @@
+<p>
+  It is also possible to customize the display of the option inside the input field, using the property <code>inputFormatter</code> which expects a function taking the option item as input and returning a string as output.
+</p>
+
+<p>
+  There are two limitations though:
+</p>
+<ul>
+  <li>one is technical: since this is an input element, only a string representation can be used, no custom template</li>
+  <li>one is from the design of the widget: since the input field is also used to edit the search term, altering the content of the field will change the initial value you edit for your next search. Therefore this is more suitable for conversion from complex object to a string, or for simple transformations (like changing case) which would lead to a value that can still be handled by the search algorithm in use.</li>
+</ul>
+
+<p>Pass it that way in the template: </p>
+
+<ngbd-code [lang]="snippets.inputFormatter.template.language" [code]="snippets.inputFormatter.template.code" [highlightedLines]="snippets.inputFormatter.template.highlightedLines"></ngbd-code>
+
+<p>And define it in the component: </p>
+
+<ngbd-code [lang]="snippets.inputFormatter.component.language" [code]="snippets.inputFormatter.component.code" [highlightedLines]="snippets.inputFormatter.component.highlightedLines"></ngbd-code>

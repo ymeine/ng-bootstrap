@@ -5,9 +5,9 @@ import { SNIPPETS } from './snippets';
 
 
 @Component({
-  selector: 'ngbd-typeahead-overview-section-display-customization',
+  selector: 'ngbd-typeahead-overview-section-customize-option-in-input',
   templateUrl: './template.html',
 })
-export class NgbdTypeaheadOverviewSectionDisplayCustomizationComponent {
+export class NgbdTypeaheadOverviewSectionCustomizeOptionInInputComponent {
   snippets = SNIPPETS;
 }

@@ -1,5 +1,3 @@
-export * from './styles';
-
 export function fixIndent(source) {
   const lines = source.split(/(?:\r\n)|\n|\r/);
   lines.shift();

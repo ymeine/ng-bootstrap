@@ -1,24 +1,32 @@
 import { NgbdTypeaheadOverviewSectionIntroductionComponent } from './introduction';
+import { NgbdTypeaheadOverviewSectionBasicUsageComponent } from './basic-usage';
 import { NgbdTypeaheadOverviewSectionContractComponent } from './observable-contract';
 import { NgbdTypeaheadOverviewSectionUserInteractionComponent } from './user-interaction';
-import { NgbdTypeaheadOverviewSectionDisplayCustomizationComponent } from './display-customization';
+import { NgbdTypeaheadOverviewSectionCustomizeOptionInInputComponent } from './customize-option-in-input';
+import { NgbdTypeaheadOverviewSectionCustomizeOptionsListComponent } from './customize-options-list';
 
 
 export * from './introduction';
+export * from './basic-usage';
 export * from './observable-contract';
 export * from './user-interaction';
-export * from './display-customization';
+export * from './customize-option-in-input';
+export * from './customize-options-list';
 
 export const SECTIONS = [
   NgbdTypeaheadOverviewSectionIntroductionComponent,
+  NgbdTypeaheadOverviewSectionBasicUsageComponent,
   NgbdTypeaheadOverviewSectionContractComponent,
   NgbdTypeaheadOverviewSectionUserInteractionComponent,
-  NgbdTypeaheadOverviewSectionDisplayCustomizationComponent,
+  NgbdTypeaheadOverviewSectionCustomizeOptionInInputComponent,
+  NgbdTypeaheadOverviewSectionCustomizeOptionsListComponent,
 ];
 
 export const SECTIONS_MAP = {
   'introduction': 'Introduction',
-  'observable-contract': 'The Observable contract',
+  'basic-usage': 'Basic usage',
+  'observable-contract': 'Why the Observable?',
   'user-interaction': 'User interaction',
-  'display-customization': 'Customize the display',
+  'customize-options-list': 'Customize the options list display',
+  'customize-option-in-input': 'Format the option in the input',
 };
