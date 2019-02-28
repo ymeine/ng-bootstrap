@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 
-import {isInteger, isNumber, padNumber, toInteger} from '../util/util';
+import {isInteger, isNumber, padNumber, isDefined} from '../util/util';
 import {NgbTime} from './ngb-time';
 import {NgbTimepickerConfig} from './timepicker-config';
 import {NgbTimeAdapter} from './ngb-time-adapter';
@@ -19,6 +19,47 @@ const NGB_TIMEPICKER_VALUE_ACCESSOR = {
   useExisting: forwardRef(() => NgbTimepicker),
   multi: true
 };
+
+interface PartWrapperSpec {
+  format: (value: number) => string;
+  getStep: () => number;
+  update: (value: number) => void;
+  change: (step: number) => void;
+  getModel: () => NgbTime;
+  getValue: (model: NgbTime) => number;
+  afterChange: () => void;
+}
+
+interface IPartWrapper {
+  formattedValue: string | null;
+  increment: (step?: number) => void;
+  decrement: (step?: number) => void;
+  update: (value: number) => void;
+}
+
+class PartWrapper implements IPartWrapper {
+  constructor(private spec: PartWrapperSpec) {}
+
+  get formattedValue(): string | null {
+    const model = this.spec.getModel();
+    if (model == null) { return ''; }
+    const value = this.spec.getValue(model);
+    if (value == null) { return ''; }
+    return this.spec.format(value);
+  }
+
+  _updateRelative(sign, givenStep) {
+    const step = isDefined(givenStep) ? givenStep : this.spec.getStep();
+    this.spec.change(sign * step);
+    this.spec.afterChange();
+  }
+  increment(step?: number) { this._updateRelative(+1, step); }
+  decrement(step?: number) { this._updateRelative(-1, step); }
+  update(value: number) {
+    this.spec.update(value);
+    this.spec.afterChange();
+  }
+}
 
 /**
  * A lightweight & configurable timepicker directive.
@@ -40,8 +81,8 @@ const NGB_TIMEPICKER_VALUE_ACCESSOR = {
           label-increment="Increment hours" i18n-label-increment="@@ngb.timepicker.increment-hours"
           label-decrement="Decrement hours" i18n-label-decrement="@@ngb.timepicker.decrement-hours"
 
-          [value]="formatHour(model?.hour)"
-          (increment)="changeHour(+hourStep)" (decrement)="changeHour(-hourStep)" (valueChange)="updateHour($event)"
+          [value]="hourWrapper.formattedValue"
+          (increment)="hourWrapper.increment()" (decrement)="hourWrapper.decrement()" (valueChange)="hourWrapper.update($event)"
         ></ngb-timepicker-part>
 
         <div class="ngb-tp-spacer">:</div>
@@ -56,8 +97,8 @@ const NGB_TIMEPICKER_VALUE_ACCESSOR = {
           label-increment="Increment minutes" i18n-label-increment="@@ngb.timepicker.increment-minutes"
           label-decrement="Decrement minutes" i18n-label-decrement="@@ngb.timepicker.decrement-minutes"
 
-          [value]="formatMinSec(model?.minute)"
-          (increment)="changeMinute(+minuteStep)" (decrement)="changeMinute(-minuteStep)" (valueChange)="updateMinute($event)"
+          [value]="minuteWrapper.formattedValue"
+          (increment)="minuteWrapper.increment()" (decrement)="minuteWrapper.decrement()" (valueChange)="minuteWrapper.update($event)"
         ></ngb-timepicker-part>
 
         <div *ngIf="seconds" class="ngb-tp-spacer">:</div>
@@ -74,8 +115,8 @@ const NGB_TIMEPICKER_VALUE_ACCESSOR = {
           label-increment="Increment seconds" i18n-label-increment="@@ngb.timepicker.increment-seconds"
           label-decrement="Decrement seconds" i18n-label-decrement="@@ngb.timepicker.decrement-seconds"
 
-          [value]="formatMinSec(model?.second)"
-          (increment)="changeSecond(+secondStep)" (decrement)="changeSecond(-secondStep)" (valueChange)="updateSecond($event)"
+          [value]="secondWrapper.formattedValue"
+          (increment)="secondWrapper.increment()" (decrement)="secondWrapper.decrement()" (valueChange)="secondWrapper.update($event)"
         ></ngb-timepicker-part>
 
         <div *ngIf="meridian" class="ngb-tp-spacer"></div>
@@ -92,7 +133,12 @@ const NGB_TIMEPICKER_VALUE_ACCESSOR = {
 
             (click)="toggleMeridian()"
           >
-            <ng-container *ngIf="model?.hour >= 12; else am" i18n="@@ngb.timepicker.PM">PM</ng-container>
+            <ng-container
+              *ngIf="model?.hour >= 12; else am"
+              i18n="@@ngb.timepicker.PM"
+            >
+              PM
+            </ng-container>
             <ng-template #am i18n="@@ngb.timepicker.AM">AM</ng-template>
           </button>
         </div>
@@ -165,6 +211,10 @@ export class NgbTimepicker implements ControlValueAccessor,
    */
   @Input() size: 'small' | 'medium' | 'large';
 
+  hourWrapper: IPartWrapper;
+  minuteWrapper: IPartWrapper;
+  secondWrapper: IPartWrapper;
+
   constructor(
       private readonly _config: NgbTimepickerConfig, private _ngbTimeAdapter: NgbTimeAdapter<any>,
       private _cd: ChangeDetectorRef) {
@@ -177,6 +227,56 @@ export class NgbTimepicker implements ControlValueAccessor,
     this.disabled = _config.disabled;
     this.readonlyInputs = _config.readonlyInputs;
     this.size = _config.size;
+
+    const getModel = () => this.model;
+    const afterChange = () => this.propagateModelChange();
+
+    this.hourWrapper = new PartWrapper({
+      getModel, afterChange,
+      getStep: () => this.hourStep,
+      getValue: (model) => model.hour,
+
+      format: (value: number) => padNumber(!this.meridian
+        ? value % 24
+        : value % 12 === 0
+          ? 12
+          : value % 12
+      ),
+
+      update: (enteredHour) => {
+        const isPM = this.model.hour >= 12;
+        const realHourIsHigherThanInputHour = this.meridian && (isPM && enteredHour < 12 || !isPM && enteredHour === 12);
+
+        return this.model.updateHour(!realHourIsHigherThanInputHour
+          ? enteredHour
+          : enteredHour + 12
+        );
+      },
+
+      change: (step) => this.model.changeHour(step),
+    });
+
+    const formatMinSec = (value: number) => padNumber(value);
+
+    this.minuteWrapper = new PartWrapper({
+      getModel, afterChange,
+      getStep: () => this.minuteStep,
+      getValue: (model) => model.minute,
+
+      format: formatMinSec,
+      update: (value) => this.model.updateMinute(value),
+      change: (step) => this.model.changeMinute(step),
+    });
+
+    this.secondWrapper = new PartWrapper({
+      getModel, afterChange,
+      getStep: () => this.secondStep,
+      getValue: (model) => model.second,
+
+      format: formatMinSec,
+      update: (value) => this.model.updateSecond(value),
+      change: (step) => this.model.changeSecond(step),
+    });
   }
 
   onChange = (_: any) => {};
@@ -192,69 +292,17 @@ export class NgbTimepicker implements ControlValueAccessor,
   }
 
   registerOnChange(fn: (value: any) => any): void { this.onChange = fn; }
-
   registerOnTouched(fn: () => any): void { this.onTouched = fn; }
 
   setDisabledState(isDisabled: boolean) { this.disabled = isDisabled; }
 
-  changeHour(step: number) {
-    this.model.changeHour(step);
-    this.propagateModelChange();
-  }
-
-  changeMinute(step: number) {
-    this.model.changeMinute(step);
-    this.propagateModelChange();
-  }
-
-  changeSecond(step: number) {
-    this.model.changeSecond(step);
-    this.propagateModelChange();
-  }
-
-  updateHour(newVal: string) {
-    const isPM = this.model.hour >= 12;
-    const enteredHour = toInteger(newVal);
-    if (this.meridian && (isPM && enteredHour < 12 || !isPM && enteredHour === 12)) {
-      this.model.updateHour(enteredHour + 12);
-    } else {
-      this.model.updateHour(enteredHour);
-    }
-    this.propagateModelChange();
-  }
-
-  updateMinute(newVal: string) {
-    this.model.updateMinute(toInteger(newVal));
-    this.propagateModelChange();
-  }
-
-  updateSecond(newVal: string) {
-    this.model.updateSecond(toInteger(newVal));
-    this.propagateModelChange();
-  }
-
   toggleMeridian() {
     if (this.meridian) {
-      this.changeHour(12);
+      this.hourWrapper.increment(12);
     }
   }
-
-  formatHour(value: number) {
-    if (isNumber(value)) {
-      if (this.meridian) {
-        return padNumber(value % 12 === 0 ? 12 : value % 12);
-      } else {
-        return padNumber(value % 24);
-      }
-    } else {
-      return padNumber(NaN);
-    }
-  }
-
-  formatMinSec(value: number) { return padNumber(value); }
 
   get isSmallSize(): boolean { return this.size === 'small'; }
-
   get isLargeSize(): boolean { return this.size === 'large'; }
 
   ngOnChanges(changes: SimpleChanges): void {

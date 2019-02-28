@@ -1,4 +1,5 @@
 import {isNumber, toInteger} from '../util/util';
+import { isDefined } from '@angular/compiler/src/util';
 
 export class NgbTime {
   hour: number;
@@ -11,36 +12,44 @@ export class NgbTime {
     this.second = toInteger(second);
   }
 
-  changeHour(step = 1) { this.updateHour((isNaN(this.hour) ? 0 : this.hour) + step); }
-
-  updateHour(hour: number) {
-    if (isNumber(hour)) {
-      this.hour = (hour < 0 ? 24 + hour : hour) % 24;
-    } else {
-      this.hour = NaN;
-    }
+  private _update(
+    value: number,
+    transform: (value: number) => number,
+    afterUpdate?: (value: number, transformed: number) => void,
+  ) {
+    if (!isNumber(value)) { return NaN; }
+    const output = transform(value);
+    // FIXME 2019-02-28T17:28:32+01:00 It's not really afterUpdate, I should use a method instead of the return value.
+    if (isDefined(afterUpdate)) { afterUpdate(value, output); }
+    return output;
   }
 
-  changeMinute(step = 1) { this.updateMinute((isNaN(this.minute) ? 0 : this.minute) + step); }
-
-  updateMinute(minute: number) {
-    if (isNumber(minute)) {
-      this.minute = minute % 60 < 0 ? 60 + minute % 60 : minute % 60;
-      this.changeHour(Math.floor(minute / 60));
-    } else {
-      this.minute = NaN;
-    }
+  private _change(value: number, step = 1) {
+    return (isNaN(value) ? 0 : value) + step;
   }
 
-  changeSecond(step = 1) { this.updateSecond((isNaN(this.second) ? 0 : this.second) + step); }
+  changeHour(step: number) { this.updateHour(this._change(this.hour, step)); }
+  changeMinute(step: number) { this.updateMinute(this._change(this.minute, step)); }
+  changeSecond(step: number) { this.updateSecond(this._change(this.second, step)); }
 
-  updateSecond(second: number) {
-    if (isNumber(second)) {
-      this.second = second < 0 ? 60 + second % 60 : second % 60;
-      this.changeMinute(Math.floor(second / 60));
-    } else {
-      this.second = NaN;
-    }
+  updateHour(value: number) {
+    this.hour = this._update(value, hour => (hour < 0 ? 24 + hour : hour) % 24);
+  }
+
+  updateMinute(value: number) {
+    this.minute = this._update(
+      value,
+      minute => minute % 60 < 0 ? 60 + minute % 60 : minute % 60,
+      minute => this.changeHour(Math.floor(minute / 60)),
+    );
+  }
+
+  updateSecond(value: number) {
+    this.second = this._update(
+      value,
+      second => second < 0 ? 60 + second % 60 : second % 60,
+      second => this.changeMinute(Math.floor(second / 60)),
+    );
   }
 
   isValid(checkSecs = true) {
