@@ -1,12 +1,12 @@
 import {isNumber, toInteger} from '../util/util';
-import { isDefined } from '@angular/compiler/src/util';
+import {isDefined} from '@angular/compiler/src/util';
 
 
 
 interface PartSpec {
   initialValue?: number;
   transform: (value: number) => number;
-  afterUpdate?: (value: number, transformed: number) => void;
+  propagate?: (value: number, transformed: number) => void;
 }
 
 export class Part {
@@ -24,16 +24,18 @@ export class Part {
     this.set((isNaN(value) ? 0 : value) + step);
   }
 
-  set(value: number) {
+  set(value: number, doPropagate = true) {
     if (!isNumber(value)) {
       this.value = NaN;
       return;
     }
 
-    const {transform, afterUpdate} = this.spec;
+    const {transform, propagate} = this.spec;
     const finalValue = transform(value);
     this.value = finalValue;
-    if (isDefined(afterUpdate)) { afterUpdate(value, finalValue); }
+    if (doPropagate && isDefined(propagate)) {
+      propagate(value, finalValue);
+    }
   }
 }
 
@@ -56,18 +58,14 @@ export class NgbTime {
 
     this.minutePart = new Part({
       initialValue: minute,
-      transform: value => value % 60 < 0
-        ? 60 + value % 60
-        : value % 60,
-      afterUpdate: value => this.shiftHour(Math.floor(value / 60)),
+      transform: value => value % 60 < 0 ? 60 + value % 60 : value % 60,
+      propagate: value => this.shiftHour(Math.floor(value / 60)),
     });
 
     this.secondPart = new Part({
       initialValue: second,
-      transform: value => value < 0
-        ? 60 + value % 60
-        : value % 60,
-      afterUpdate: value => this.shiftMinute(Math.floor(value / 60)),
+      transform: value => value < 0 ? 60 + value % 60 : value % 60,
+      propagate: value => this.shiftMinute(Math.floor(value / 60)),
     });
   }
 
@@ -75,19 +73,15 @@ export class NgbTime {
   shiftMinute(step: number) { this.minutePart.shift(step); }
   shiftSecond(step: number) { this.secondPart.shift(step); }
 
-  setHour(value: number) { this.hourPart.set(value); }
-  setMinute(value: number) { this.minutePart.set(value); }
-  setSecond(value: number) { this.secondPart.set(value); }
+  setHour(value: number, propagate?: boolean) { this.hourPart.set(value, propagate); }
+  setMinute(value: number, propagate?: boolean) { this.minutePart.set(value, propagate); }
+  setSecond(value: number, propagate?: boolean) { this.secondPart.set(value, propagate); }
 
   isValid(checkSecs = true) {
-    return isNumber(this.hour)
-        && isNumber(this.minute)
-        && (checkSecs ? isNumber(this.second) : true);
+    return isNumber(this.hour) && isNumber(this.minute) && (checkSecs ? isNumber(this.second) : true);
   }
 
   toString() {
-    return [this.hour, this.minute, this.second]
-      .map(value => isNaN(value) || !isDefined(value) ? 0 : value)
-      .join(':');
+    return [this.hour, this.minute, this.second].map(value => isNaN(value) || !isDefined(value) ? 0 : value).join(':');
   }
 }

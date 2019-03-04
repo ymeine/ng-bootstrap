@@ -36,22 +36,33 @@ class PartUI {
 
   private _getPart(): Part | null {
     const model = this.spec.getModel();
-    if (!isDefined(model)) { return null; }
+    if (!isDefined(model)) {
+      return null;
+    }
     return this.spec.getPart(model);
   }
 
   get formattedValue(): string | null {
     const part = this._getPart();
-    if (!isDefined(part)) { return ''; }
+    if (!isDefined(part)) {
+      return '';
+    }
 
-    return this.spec.formatForField(part.value);
+    const {value} = part;
+    if (!isDefined(value) || isNaN(value)) {
+      return '';
+    }
+
+    return this.spec.formatForField(value);
   }
 
   increment(step?: number) { this._updateRelative(+1, step); }
   decrement(step?: number) { this._updateRelative(-1, step); }
   _updateRelative(sign, givenStep) {
     const part = this._getPart();
-    if (!isDefined(part)) { return; }
+    if (!isDefined(part)) {
+      return;
+    }
 
     const step = isDefined(givenStep) ? givenStep : this.spec.getStep();
     part.shift(sign * step);
@@ -60,7 +71,9 @@ class PartUI {
 
   setFromField(value: number) {
     const part = this._getPart();
-    if (!isDefined(part)) { return; }
+    if (!isDefined(part)) {
+      return;
+    }
 
     const {transformFromField} = this.spec;
     const finalValue = !isDefined(transformFromField) ? value : transformFromField(value);
@@ -145,9 +158,7 @@ class PartUI {
             <ng-container
               *ngIf="model?.hour >= 12; else am"
               i18n="@@ngb.timepicker.PM"
-            >
-              PM
-            </ng-container>
+            >PM</ng-container>
             <ng-template #am i18n="@@ngb.timepicker.AM">AM</ng-template>
           </button>
         </div>
@@ -241,30 +252,26 @@ export class NgbTimepicker implements ControlValueAccessor,
     const afterChange = () => this.propagateModelChange();
 
     this.hourWrapper = new PartUI({
-      getModel, afterChange,
+      getModel,
+      afterChange,
       getStep: () => this.hourStep,
       getPart: (model) => model.hourPart,
 
-      formatForField: (value: number) => padNumber(!this.meridian
-        ? value % 24
-        : value % 12 === 0
-          ? 12
-          : value % 12
-      ),
+      formatForField: (value: number) => padNumber(!this.meridian ? value % 24 : value % 12 === 0 ? 12 : value % 12),
 
       transformFromField: (enteredHour: number) => {
         const isPM = this.model.hour >= 12;
-        const realHourIsHigherThanInputHour = this.meridian && (isPM && enteredHour < 12 || !isPM && enteredHour === 12);
-        return !realHourIsHigherThanInputHour
-          ? enteredHour
-          : enteredHour + 12;
+        const realHourIsHigherThanInputHour =
+            this.meridian && (isPM && enteredHour < 12 || !isPM && enteredHour === 12);
+        return !realHourIsHigherThanInputHour ? enteredHour : enteredHour + 12;
       },
     });
 
     const formatMinSec = (value: number) => padNumber(value);
 
     this.minuteWrapper = new PartUI({
-      getModel, afterChange,
+      getModel,
+      afterChange,
       getPart: (model) => model.minutePart,
       getStep: () => this.minuteStep,
 
@@ -272,7 +279,8 @@ export class NgbTimepicker implements ControlValueAccessor,
     });
 
     this.secondWrapper = new PartUI({
-      getModel, afterChange,
+      getModel,
+      afterChange,
       getPart: (model) => model.secondPart,
       getStep: () => this.secondStep,
 
@@ -287,7 +295,7 @@ export class NgbTimepicker implements ControlValueAccessor,
     const structValue = this._ngbTimeAdapter.fromModel(value);
     this.model = structValue ? new NgbTime(structValue.hour, structValue.minute, structValue.second) : new NgbTime();
     if (!this.seconds && (!structValue || !isNumber(structValue.second))) {
-      this.model.setSecond(0);
+      this.model.setSecond(0, false);
     }
     this._cd.markForCheck();
   }
@@ -308,7 +316,7 @@ export class NgbTimepicker implements ControlValueAccessor,
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['seconds'] && !this.seconds && this.model && !isNumber(this.model.second)) {
-      this.model.setSecond(0);
+      this.model.setSecond(0, false);
       this.propagateModelChange(false);
     }
   }

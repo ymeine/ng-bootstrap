@@ -5,7 +5,7 @@ import {
   EventEmitter,
 } from '@angular/core';
 
-import { toInteger } from '../util/util';
+import {toInteger} from '../util/util';
 
 
 
@@ -92,9 +92,7 @@ export class NgbTimepickerPart {
   get isSmall(): boolean { return this.size === 'small'; }
   get isLarge(): boolean { return this.size === 'large'; }
 
-  get classes(): string[] {
-    return ['ngb-tp-input-container', `ngb-tp-${this.class_part}`];
-  }
+  get classes(): string[] { return ['ngb-tp-input-container', `ngb-tp-${this.class_part}`]; }
 
   increment() { this.increment$.emit(); }
   decrement() { this.decrement$.emit(); }
