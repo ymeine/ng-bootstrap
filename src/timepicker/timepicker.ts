@@ -10,7 +10,7 @@ import {
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 
 import {isInteger, isNumber, padNumber, isDefined} from '../util/util';
-import {NgbTime} from './ngb-time';
+import {NgbTime, Part} from './ngb-time';
 import {NgbTimepickerConfig} from './timepicker-config';
 import {NgbTimeAdapter} from './ngb-time-adapter';
 
@@ -20,43 +20,52 @@ const NGB_TIMEPICKER_VALUE_ACCESSOR = {
   multi: true
 };
 
-interface PartWrapperSpec {
-  format: (value: number) => string;
+interface PartUISpec {
+  getPart: (model: NgbTime) => Part;
   getStep: () => number;
-  update: (value: number) => void;
-  change: (step: number) => void;
+
+  formatForField: (value: number) => string;
+  transformFromField?: (value: number) => number;
+
   getModel: () => NgbTime;
-  getValue: (model: NgbTime) => number;
   afterChange: () => void;
 }
 
-interface IPartWrapper {
-  formattedValue: string | null;
-  increment: (step?: number) => void;
-  decrement: (step?: number) => void;
-  update: (value: number) => void;
-}
+class PartUI {
+  constructor(private spec: PartUISpec) {}
 
-class PartWrapper implements IPartWrapper {
-  constructor(private spec: PartWrapperSpec) {}
+  private _getPart(): Part | null {
+    const model = this.spec.getModel();
+    if (!isDefined(model)) { return null; }
+    return this.spec.getPart(model);
+  }
 
   get formattedValue(): string | null {
-    const model = this.spec.getModel();
-    if (model == null) { return ''; }
-    const value = this.spec.getValue(model);
-    if (value == null) { return ''; }
-    return this.spec.format(value);
+    const part = this._getPart();
+    if (!isDefined(part)) { return ''; }
+
+    return this.spec.formatForField(part.value);
   }
 
-  _updateRelative(sign, givenStep) {
-    const step = isDefined(givenStep) ? givenStep : this.spec.getStep();
-    this.spec.change(sign * step);
-    this.spec.afterChange();
-  }
   increment(step?: number) { this._updateRelative(+1, step); }
   decrement(step?: number) { this._updateRelative(-1, step); }
-  update(value: number) {
-    this.spec.update(value);
+  _updateRelative(sign, givenStep) {
+    const part = this._getPart();
+    if (!isDefined(part)) { return; }
+
+    const step = isDefined(givenStep) ? givenStep : this.spec.getStep();
+    part.shift(sign * step);
+    this.spec.afterChange();
+  }
+
+  setFromField(value: number) {
+    const part = this._getPart();
+    if (!isDefined(part)) { return; }
+
+    const {transformFromField} = this.spec;
+    const finalValue = !isDefined(transformFromField) ? value : transformFromField(value);
+
+    part.set(finalValue);
     this.spec.afterChange();
   }
 }
@@ -82,7 +91,7 @@ class PartWrapper implements IPartWrapper {
           label-decrement="Decrement hours" i18n-label-decrement="@@ngb.timepicker.decrement-hours"
 
           [value]="hourWrapper.formattedValue"
-          (increment)="hourWrapper.increment()" (decrement)="hourWrapper.decrement()" (valueChange)="hourWrapper.update($event)"
+          (increment)="hourWrapper.increment()" (decrement)="hourWrapper.decrement()" (valueChange)="hourWrapper.setFromField($event)"
         ></ngb-timepicker-part>
 
         <div class="ngb-tp-spacer">:</div>
@@ -98,7 +107,7 @@ class PartWrapper implements IPartWrapper {
           label-decrement="Decrement minutes" i18n-label-decrement="@@ngb.timepicker.decrement-minutes"
 
           [value]="minuteWrapper.formattedValue"
-          (increment)="minuteWrapper.increment()" (decrement)="minuteWrapper.decrement()" (valueChange)="minuteWrapper.update($event)"
+          (increment)="minuteWrapper.increment()" (decrement)="minuteWrapper.decrement()" (valueChange)="minuteWrapper.setFromField($event)"
         ></ngb-timepicker-part>
 
         <div *ngIf="seconds" class="ngb-tp-spacer">:</div>
@@ -116,7 +125,7 @@ class PartWrapper implements IPartWrapper {
           label-decrement="Decrement seconds" i18n-label-decrement="@@ngb.timepicker.decrement-seconds"
 
           [value]="secondWrapper.formattedValue"
-          (increment)="secondWrapper.increment()" (decrement)="secondWrapper.decrement()" (valueChange)="secondWrapper.update($event)"
+          (increment)="secondWrapper.increment()" (decrement)="secondWrapper.decrement()" (valueChange)="secondWrapper.setFromField($event)"
         ></ngb-timepicker-part>
 
         <div *ngIf="meridian" class="ngb-tp-spacer"></div>
@@ -211,9 +220,9 @@ export class NgbTimepicker implements ControlValueAccessor,
    */
   @Input() size: 'small' | 'medium' | 'large';
 
-  hourWrapper: IPartWrapper;
-  minuteWrapper: IPartWrapper;
-  secondWrapper: IPartWrapper;
+  hourWrapper: PartUI;
+  minuteWrapper: PartUI;
+  secondWrapper: PartUI;
 
   constructor(
       private readonly _config: NgbTimepickerConfig, private _ngbTimeAdapter: NgbTimeAdapter<any>,
@@ -231,51 +240,43 @@ export class NgbTimepicker implements ControlValueAccessor,
     const getModel = () => this.model;
     const afterChange = () => this.propagateModelChange();
 
-    this.hourWrapper = new PartWrapper({
+    this.hourWrapper = new PartUI({
       getModel, afterChange,
       getStep: () => this.hourStep,
-      getValue: (model) => model.hour,
+      getPart: (model) => model.hourPart,
 
-      format: (value: number) => padNumber(!this.meridian
+      formatForField: (value: number) => padNumber(!this.meridian
         ? value % 24
         : value % 12 === 0
           ? 12
           : value % 12
       ),
 
-      update: (enteredHour) => {
+      transformFromField: (enteredHour: number) => {
         const isPM = this.model.hour >= 12;
         const realHourIsHigherThanInputHour = this.meridian && (isPM && enteredHour < 12 || !isPM && enteredHour === 12);
-
-        return this.model.updateHour(!realHourIsHigherThanInputHour
+        return !realHourIsHigherThanInputHour
           ? enteredHour
-          : enteredHour + 12
-        );
+          : enteredHour + 12;
       },
-
-      change: (step) => this.model.changeHour(step),
     });
 
     const formatMinSec = (value: number) => padNumber(value);
 
-    this.minuteWrapper = new PartWrapper({
+    this.minuteWrapper = new PartUI({
       getModel, afterChange,
+      getPart: (model) => model.minutePart,
       getStep: () => this.minuteStep,
-      getValue: (model) => model.minute,
 
-      format: formatMinSec,
-      update: (value) => this.model.updateMinute(value),
-      change: (step) => this.model.changeMinute(step),
+      formatForField: formatMinSec,
     });
 
-    this.secondWrapper = new PartWrapper({
+    this.secondWrapper = new PartUI({
       getModel, afterChange,
+      getPart: (model) => model.secondPart,
       getStep: () => this.secondStep,
-      getValue: (model) => model.second,
 
-      format: formatMinSec,
-      update: (value) => this.model.updateSecond(value),
-      change: (step) => this.model.changeSecond(step),
+      formatForField: formatMinSec,
     });
   }
 
@@ -286,7 +287,7 @@ export class NgbTimepicker implements ControlValueAccessor,
     const structValue = this._ngbTimeAdapter.fromModel(value);
     this.model = structValue ? new NgbTime(structValue.hour, structValue.minute, structValue.second) : new NgbTime();
     if (!this.seconds && (!structValue || !isNumber(structValue.second))) {
-      this.model.second = 0;
+      this.model.setSecond(0);
     }
     this._cd.markForCheck();
   }
@@ -307,7 +308,7 @@ export class NgbTimepicker implements ControlValueAccessor,
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['seconds'] && !this.seconds && this.model && !isNumber(this.model.second)) {
-      this.model.second = 0;
+      this.model.setSecond(0);
       this.propagateModelChange(false);
     }
   }

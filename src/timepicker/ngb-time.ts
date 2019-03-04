@@ -1,60 +1,93 @@
 import {isNumber, toInteger} from '../util/util';
 import { isDefined } from '@angular/compiler/src/util';
 
+
+
+interface PartSpec {
+  initialValue?: number;
+  transform: (value: number) => number;
+  afterUpdate?: (value: number, transformed: number) => void;
+}
+
+export class Part {
+  value: number;
+
+  constructor(private spec: PartSpec) {
+    const {initialValue} = spec;
+    if (isDefined(initialValue)) {
+      this.value = toInteger(initialValue);
+    }
+  }
+
+  shift(step = 1) {
+    const {value} = this;
+    this.set((isNaN(value) ? 0 : value) + step);
+  }
+
+  set(value: number) {
+    if (!isNumber(value)) {
+      this.value = NaN;
+      return;
+    }
+
+    const {transform, afterUpdate} = this.spec;
+    const finalValue = transform(value);
+    this.value = finalValue;
+    if (isDefined(afterUpdate)) { afterUpdate(value, finalValue); }
+  }
+}
+
+
+
 export class NgbTime {
-  hour: number;
-  minute: number;
-  second: number;
+  hourPart: Part;
+  minutePart: Part;
+  secondPart: Part;
+
+  get hour(): number { return this.hourPart.value; }
+  get minute(): number { return this.minutePart.value; }
+  get second(): number { return this.secondPart.value; }
 
   constructor(hour?: number, minute?: number, second?: number) {
-    this.hour = toInteger(hour);
-    this.minute = toInteger(minute);
-    this.second = toInteger(second);
+    this.hourPart = new Part({
+      initialValue: hour,
+      transform: value => (value < 0 ? 24 + value : value) % 24,
+    });
+
+    this.minutePart = new Part({
+      initialValue: minute,
+      transform: value => value % 60 < 0
+        ? 60 + value % 60
+        : value % 60,
+      afterUpdate: value => this.shiftHour(Math.floor(value / 60)),
+    });
+
+    this.secondPart = new Part({
+      initialValue: second,
+      transform: value => value < 0
+        ? 60 + value % 60
+        : value % 60,
+      afterUpdate: value => this.shiftMinute(Math.floor(value / 60)),
+    });
   }
 
-  private _update(
-    value: number,
-    transform: (value: number) => number,
-    afterUpdate?: (value: number, transformed: number) => void,
-  ) {
-    if (!isNumber(value)) { return NaN; }
-    const output = transform(value);
-    // FIXME 2019-02-28T17:28:32+01:00 It's not really afterUpdate, I should use a method instead of the return value.
-    if (isDefined(afterUpdate)) { afterUpdate(value, output); }
-    return output;
-  }
+  shiftHour(step: number) { this.hourPart.shift(step); }
+  shiftMinute(step: number) { this.minutePart.shift(step); }
+  shiftSecond(step: number) { this.secondPart.shift(step); }
 
-  private _change(value: number, step = 1) {
-    return (isNaN(value) ? 0 : value) + step;
-  }
-
-  changeHour(step: number) { this.updateHour(this._change(this.hour, step)); }
-  changeMinute(step: number) { this.updateMinute(this._change(this.minute, step)); }
-  changeSecond(step: number) { this.updateSecond(this._change(this.second, step)); }
-
-  updateHour(value: number) {
-    this.hour = this._update(value, hour => (hour < 0 ? 24 + hour : hour) % 24);
-  }
-
-  updateMinute(value: number) {
-    this.minute = this._update(
-      value,
-      minute => minute % 60 < 0 ? 60 + minute % 60 : minute % 60,
-      minute => this.changeHour(Math.floor(minute / 60)),
-    );
-  }
-
-  updateSecond(value: number) {
-    this.second = this._update(
-      value,
-      second => second < 0 ? 60 + second % 60 : second % 60,
-      second => this.changeMinute(Math.floor(second / 60)),
-    );
-  }
+  setHour(value: number) { this.hourPart.set(value); }
+  setMinute(value: number) { this.minutePart.set(value); }
+  setSecond(value: number) { this.secondPart.set(value); }
 
   isValid(checkSecs = true) {
-    return isNumber(this.hour) && isNumber(this.minute) && (checkSecs ? isNumber(this.second) : true);
+    return isNumber(this.hour)
+        && isNumber(this.minute)
+        && (checkSecs ? isNumber(this.second) : true);
   }
 
-  toString() { return `${this.hour || 0}:${this.minute || 0}:${this.second || 0}`; }
+  toString() {
+    return [this.hour, this.minute, this.second]
+      .map(value => isNaN(value) || !isDefined(value) ? 0 : value)
+      .join(':');
+  }
 }
