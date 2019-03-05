@@ -1,11 +1,9 @@
 import {
   Component,
   Input,
-  Output,
-  EventEmitter,
 } from '@angular/core';
 
-import {toInteger} from '../util/util';
+import { PartUI } from './timepicker';
 
 
 
@@ -72,7 +70,8 @@ import {toInteger} from '../util/util';
   `,
 })
 export class NgbTimepickerPart {
-  @Input() value: string;
+  @Input() wrapper: PartUI;
+
   @Input('class-part') class_part: string;
 
   @Input() spinners = true;
@@ -85,16 +84,14 @@ export class NgbTimepickerPart {
   @Input('label-increment') label_increment: string;
   @Input('label-decrement') label_decrement: string;
 
-  @Output('increment') increment$ = new EventEmitter();
-  @Output('decrement') decrement$ = new EventEmitter();
-  @Output('valueChange') change$ = new EventEmitter<number>();
+  get value(): string { return this.wrapper.formattedValue; }
 
   get isSmall(): boolean { return this.size === 'small'; }
   get isLarge(): boolean { return this.size === 'large'; }
 
   get classes(): string[] { return ['ngb-tp-input-container', `ngb-tp-${this.class_part}`]; }
 
-  increment() { this.increment$.emit(); }
-  decrement() { this.decrement$.emit(); }
-  change(value: string) { this.change$.emit(toInteger(value)); }
+  increment() { this.wrapper.increment(); }
+  decrement() { this.wrapper.decrement(); }
+  change(value: string) { this.wrapper.setFromField(value); }
 }

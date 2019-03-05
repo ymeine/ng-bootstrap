@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 
-import {isInteger, isNumber, padNumber, isDefined} from '../util/util';
+import {isInteger, isNumber, padNumber, isDefined, toInteger} from '../util/util';
 import {NgbTime, Part} from './ngb-time';
 import {NgbTimepickerConfig} from './timepicker-config';
 import {NgbTimeAdapter} from './ngb-time-adapter';
@@ -20,7 +20,7 @@ const NGB_TIMEPICKER_VALUE_ACCESSOR = {
   multi: true
 };
 
-interface PartUISpec {
+export interface PartUISpec {
   getPart: (model: NgbTime) => Part;
   getStep: () => number;
 
@@ -31,7 +31,7 @@ interface PartUISpec {
   afterChange: () => void;
 }
 
-class PartUI {
+export class PartUI {
   constructor(private spec: PartUISpec) {}
 
   private _getPart(): Part | null {
@@ -69,7 +69,8 @@ class PartUI {
     this.spec.afterChange();
   }
 
-  setFromField(value: number) {
+  setFromField(text: string) {
+    const value = toInteger(text);
     const part = this._getPart();
     if (!isDefined(part)) {
       return;
@@ -103,8 +104,7 @@ class PartUI {
           label-increment="Increment hours" i18n-label-increment="@@ngb.timepicker.increment-hours"
           label-decrement="Decrement hours" i18n-label-decrement="@@ngb.timepicker.decrement-hours"
 
-          [value]="hourWrapper.formattedValue"
-          (increment)="hourWrapper.increment()" (decrement)="hourWrapper.decrement()" (valueChange)="hourWrapper.setFromField($event)"
+          [wrapper]="hour"
         ></ngb-timepicker-part>
 
         <div class="ngb-tp-spacer">:</div>
@@ -119,8 +119,7 @@ class PartUI {
           label-increment="Increment minutes" i18n-label-increment="@@ngb.timepicker.increment-minutes"
           label-decrement="Decrement minutes" i18n-label-decrement="@@ngb.timepicker.decrement-minutes"
 
-          [value]="minuteWrapper.formattedValue"
-          (increment)="minuteWrapper.increment()" (decrement)="minuteWrapper.decrement()" (valueChange)="minuteWrapper.setFromField($event)"
+          [wrapper]="minute"
         ></ngb-timepicker-part>
 
         <div *ngIf="seconds" class="ngb-tp-spacer">:</div>
@@ -137,8 +136,7 @@ class PartUI {
           label-increment="Increment seconds" i18n-label-increment="@@ngb.timepicker.increment-seconds"
           label-decrement="Decrement seconds" i18n-label-decrement="@@ngb.timepicker.decrement-seconds"
 
-          [value]="secondWrapper.formattedValue"
-          (increment)="secondWrapper.increment()" (decrement)="secondWrapper.decrement()" (valueChange)="secondWrapper.setFromField($event)"
+          [wrapper]="second"
         ></ngb-timepicker-part>
 
         <div *ngIf="meridian" class="ngb-tp-spacer"></div>
@@ -231,9 +229,9 @@ export class NgbTimepicker implements ControlValueAccessor,
    */
   @Input() size: 'small' | 'medium' | 'large';
 
-  hourWrapper: PartUI;
-  minuteWrapper: PartUI;
-  secondWrapper: PartUI;
+  hour: PartUI;
+  minute: PartUI;
+  second: PartUI;
 
   constructor(
       private readonly _config: NgbTimepickerConfig, private _ngbTimeAdapter: NgbTimeAdapter<any>,
@@ -251,7 +249,7 @@ export class NgbTimepicker implements ControlValueAccessor,
     const getModel = () => this.model;
     const afterChange = () => this.propagateModelChange();
 
-    this.hourWrapper = new PartUI({
+    this.hour = new PartUI({
       getModel,
       afterChange,
       getStep: () => this.hourStep,
@@ -269,7 +267,7 @@ export class NgbTimepicker implements ControlValueAccessor,
 
     const formatMinSec = (value: number) => padNumber(value);
 
-    this.minuteWrapper = new PartUI({
+    this.minute = new PartUI({
       getModel,
       afterChange,
       getPart: (model) => model.minutePart,
@@ -278,7 +276,7 @@ export class NgbTimepicker implements ControlValueAccessor,
       formatForField: formatMinSec,
     });
 
-    this.secondWrapper = new PartUI({
+    this.second = new PartUI({
       getModel,
       afterChange,
       getPart: (model) => model.secondPart,
@@ -307,7 +305,7 @@ export class NgbTimepicker implements ControlValueAccessor,
 
   toggleMeridian() {
     if (this.meridian) {
-      this.hourWrapper.increment(12);
+      this.hour.increment(12);
     }
   }
 
