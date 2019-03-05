@@ -11,6 +11,7 @@ import {TooltipFocusComponent} from './tooltip/focus/tooltip-focus.component';
 import {TooltipPositionComponent} from './tooltip/position/tooltip-position.component';
 import {TypeaheadAutoCloseComponent} from './typeahead/autoclose/typeahead-autoclose.component';
 import {TypeaheadFocusComponent} from './typeahead/focus/typeahead-focus.component';
+import {TimepickerNavigationComponent} from './timepicker/navigation';
 import {TypeaheadValidationComponent} from './typeahead/validation/typeahead-validation.component';
 import {DropdownPositionComponent} from './dropdown/position/dropdown-position.component';
 
@@ -43,7 +44,13 @@ export const routes: Routes = [
       {path: 'focus', component: TypeaheadFocusComponent}, {path: 'autoclose', component: TypeaheadAutoCloseComponent},
       {path: 'validation', component: TypeaheadValidationComponent}
     ]
-  }
+  },
+  {
+    path: 'timepicker',
+    children: [
+      {path: 'navigation', component: TimepickerNavigationComponent},
+    ]
+  },
 ];
 
 export const routing: ModuleWithProviders = RouterModule.forRoot(routes, {useHash: true});
