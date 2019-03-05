@@ -3,7 +3,7 @@ import {
   Input,
 } from '@angular/core';
 
-import { PartUI } from './timepicker';
+import {PartUI} from './timepicker';
 
 
 
@@ -17,6 +17,7 @@ import { PartUI } from './timepicker';
         *ngIf="spinners"
 
         type="button"
+        tabindex="-1"
         [disabled]="disabled"
 
         class="btn btn-link"
@@ -46,14 +47,15 @@ import { PartUI } from './timepicker';
         [value]="value"
 
         (change)="change($event.target.value)"
-        (keydown.ArrowUp)="increment()"
-        (keydown.ArrowDown)="decrement()"
+        (keydown.ArrowUp)="increment(); $event.preventDefault();"
+        (keydown.ArrowDown)="decrement(); $event.preventDefault();"
       >
 
       <button
         *ngIf="spinners"
 
         type="button"
+        tabindex="-1"
         [disabled]="disabled"
 
         class="btn btn-link"
