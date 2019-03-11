@@ -11,7 +11,7 @@ import {TooltipFocusComponent} from './tooltip/focus/tooltip-focus.component';
 import {TooltipPositionComponent} from './tooltip/position/tooltip-position.component';
 import {TypeaheadAutoCloseComponent} from './typeahead/autoclose/typeahead-autoclose.component';
 import {TypeaheadFocusComponent} from './typeahead/focus/typeahead-focus.component';
-import {TimepickerNavigationComponent} from './timepicker/navigation';
+import {TimepickerNavigationComponent} from './timepicker/navigation/timepicker-navigation.component';
 import {TypeaheadValidationComponent} from './typeahead/validation/typeahead-validation.component';
 import {DropdownPositionComponent} from './dropdown/position/dropdown-position.component';
 
