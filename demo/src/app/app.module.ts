@@ -1,4 +1,5 @@
 import { InjectionToken, NgModule } from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
@@ -58,7 +59,10 @@ const DEMOS = [
     NgbdSharedModule,
     ...DEMOS
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
+  providers: [
+    TitleCasePipe,
+  ],
 })
 export class NgbdModule {
 }

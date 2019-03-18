@@ -32,7 +32,7 @@
 
           <li class="nav-item" *ngFor="let childRoute of route.routeConfig.children">
             <a class="nav-link" routerLink="./{{childRoute.path}}" [class.active]="activeTab === childRoute.path">
-              {{ childRoute.path | titlecase }}
+              {{ getTabLabel(childRoute) }}
             </a>
           </li>
 

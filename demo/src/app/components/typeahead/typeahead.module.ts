@@ -5,6 +5,7 @@ import { ComponentWrapper } from '../../shared/component-wrapper/component-wrapp
 import { NgbdComponentsSharedModule, NgbdDemoList } from '../shared';
 import { NgbdApiPage } from '../shared/api-page/api.component';
 import { NgbdExamplesPage } from '../shared/examples-page/examples.component';
+import { NgbdTypeaheadAdvancedComponent } from './advanced/typeahead-advanced.component';
 import { NgbdTypeaheadBasic } from './demos/basic/typeahead-basic';
 import { NgbdTypeaheadConfig } from './demos/config/typeahead-config';
 import { NgbdTypeaheadFocus } from './demos/focus/typeahead-focus';
@@ -67,7 +68,8 @@ export const ROUTES = [
     component: ComponentWrapper,
     children: [
       { path: 'examples', component: NgbdExamplesPage },
-      { path: 'api', component: NgbdApiPage }
+      { path: 'api', component: NgbdApiPage },
+      { path: 'advanced', component: NgbdTypeaheadAdvancedComponent, data: {title: 'Advanced Use Cases'} },
     ]
   }
 ];
@@ -77,7 +79,10 @@ export const ROUTES = [
     NgbdSharedModule,
     NgbdComponentsSharedModule
   ],
-  declarations: DEMO_DIRECTIVES,
+  declarations: [
+    ...DEMO_DIRECTIVES,
+    NgbdTypeaheadAdvancedComponent,
+  ],
   entryComponents: DEMO_DIRECTIVES
 })
 export class NgbdTypeaheadModule {

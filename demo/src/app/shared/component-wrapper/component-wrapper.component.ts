@@ -1,4 +1,5 @@
 import { Component, NgZone } from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -23,7 +24,7 @@ export class ComponentWrapper {
 
   tableOfContent: any[] = [];
 
-  constructor(public route: ActivatedRoute, private _router: Router, ngZone: NgZone) {
+  constructor(public route: ActivatedRoute, private _router: Router, ngZone: NgZone, private _titleCasePipe: TitleCasePipe) {
     // This component is used in route definition 'components'
     // So next child route will always be ':componentType' & next one will always be ':pageType' (or tab)
     this._router.events.pipe(
@@ -86,5 +87,18 @@ export class ComponentWrapper {
       // TODO: maybe we should also have an abstract class to test instanceof
       this.tableOfContent = Object.values(component.sections).map(section => section);
     }
+  }
+
+  getTabLabel(route): string {
+    if (route.data != null && route.data.title != null) {
+      return route.data.title;
+    }
+
+    const label = route.path;
+    if (label === 'api') {
+      return 'API';
+    }
+
+    return this._titleCasePipe.transform(label);
   }
 }
