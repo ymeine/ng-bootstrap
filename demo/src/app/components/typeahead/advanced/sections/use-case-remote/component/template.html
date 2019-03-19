@@ -1,0 +1,267 @@
+<h5>Local data vs remote data</h5>
+
+<p>
+  So far in all previous examples, we have seen only local data. Local data can be:
+</p>
+<ul>
+  <li>hard coded: for simple auto completion</li>
+  <li>remote data that has been cached</li>
+  <li>generated data</li>
+  <li>etc.</li>
+</ul>
+
+<p>
+  But quite often the data can be fetched remotely, in real time to react to a new <span class="defined">search term</span> the user typed in. Even though remote data is most of the time located on servers, what actually matters in the definition of remote data from our standpoint is:
+</p>
+<ul>
+  <li>data that can take variable, perceptible time to be received</li>
+  <li>data that can fail arriving</li>
+  <li>data whose fetching can be canceled</li>
+</ul>
+
+<p>
+  For our use case, we will keep the same set of data — colors — and filtering behavior as for previous use cases, and we will see how to handle remote data safely. For practical reasons, the demo fakes the data being remote, by simulating delay and failure.
+</p>
+
+
+
+<h5>The delay</h5>
+
+<p>
+  Fetching remote data often implies a potentially perceptible amount of delay. Per se, there is always a delay even for local data: the processing time. So what's the big deal? With a perceptible amount of delay, two new situations can occur:
+</p>
+
+<ul>
+  <li>the delay is too high: we call that a timeout, and this is a kind of error which can occur and that needs to be handled, along with other potential errors</li>
+  <li>the delay is long enough for the user to change the <span class="defined">search term</span> before receiving the data: cancellation of the previous search is needed</li>
+</ul>
+
+<p>
+  We will see how to handle those two cases below.
+</p>
+
+
+
+<h5>Handling cancellation</h5>
+
+<p>
+  If the user types in a <span class="defined">search term</span> and the debouncing timer completes, a search will be triggered. But the data can take some significant enough time to be received, and the user might start typing again: therefore while the search for the old <span class="defined">search term</span> is still ongoing, a search for the new <span class="defined">search term</span> will be triggered.
+</p>
+
+<p>
+  <em>What to do in this case?</em>
+</p>
+
+<p>
+  The choice is yours and might involve some UX decisions, but the common use case is to cancel the pending search right away, since the user will expect results for the new <span class="defined">search term</span>, not the old one, and we also want to avoid the obsolete results to pop in the middle of editing the new <span class="defined">search term</span>.
+</p>
+
+<p>
+  To cancel a search, we will use the capability of the operator <ngbd-operator-popup name="switchMap"></ngbd-operator-popup>. The latter receives the current value from the chain, and expects an Observable in return, whose values will be merged to the Observable chain using the operator. It is like the operator <ngbd-operator-popup name="flatMap"></ngbd-operator-popup> but with an important difference which makes it suitable for our use case: anytime the operator is called and a new Observable is returned, this new one is used in the pipe instead of the previous one, and this previous one is being unsubscribed from.
+</p>
+
+<p>
+  By using the new Observable instead of the previous one, it will avoid displaying the obsolete results, which is one of the two goals of cancellation. The second goal is to actually cancel any processing behind, like HTTP requests for instance. This highly depends on the implementation of the Observable which is used in the <ngbd-operator-popup name="switchMap"></ngbd-operator-popup>, which has to clean itself when being unsubscribed from. This also requires that no other subscriptions are attached to this Observable, otherwise it will be maintained "alive".
+</p>
+
+<p>
+  The main structure of the code will now look like this:
+</p>
+
+<ngbd-code [lang]="snippets.cancellation.language" [code]="snippets.cancellation.code" [highlightedLines]="snippets.cancellation.highlightedLines"></ngbd-code>
+
+<p>
+  More precisely, here is how the code inside a <ngbd-operator-popup name="switchMap"></ngbd-operator-popup> could look like:
+</p>
+
+<ngbd-code [lang]="snippets.cancellationExample.language" [code]="snippets.cancellationExample.code" [highlightedLines]="snippets.cancellationExample.highlightedLines"></ngbd-code>
+
+
+
+<h5>Handling errors</h5>
+
+<p>
+  Remote data often involves network requests, and once hardware third parties are involved, some unpredictable errors can occur. Unlike a source code issue, these errors are part of the design: it is expected that a server and/or network can be failing, and there is no way to <em>fix</em> it from your code, you just have to <em>handle</em> it.
+</p>
+
+<p>
+  The Observables implementation provides an operator made to catch errors and continue the flow normally, similar to how JavaScript exceptions work: this operator is called <ngbd-operator-popup name="catchError"></ngbd-operator-popup>.
+</p>
+
+<ngbd-code [lang]="snippets.errorHandling.language" [code]="snippets.errorHandling.code" [highlightedLines]="snippets.errorHandling.highlightedLines"></ngbd-code>
+
+<p>
+  <ngbd-operator-popup name="catchError"></ngbd-operator-popup> expects a new Observable in output, which will completely replace the previous Observable in the chain. You can either return a failing Observable using <ngbd-operator-popup name="throwError"></ngbd-operator-popup> (but that is quite uncommon), which is the equivalent of throwing again an error in a catch block in JavaScript, or you can return a classic Observable.
+</p>
+
+<p>
+  In our use case, we consider that if an error occurs, no results should be returned, that's why we build an Observable spawning a single empty list. To create such an Observable, we used the operator <ngbd-operator-popup name="of"></ngbd-operator-popup>, which takes a single static value to spawn once and that's it.
+</p>
+
+<p>
+  You could however have different specifications, such as returning the last valid set of results, or returning all results, if applicable and relevant.
+</p>
+
+<p>
+  In both cases, there is an important UX concern to be tackled: warn the user that there was an error.
+</p>
+
+<p>
+  There can be many techniques, and we won't go too far into the demonstration, but one of them is to maintain a boolean flag in the component, which will be set according to if an error occurred or not. It is then up to the component to adapt its display based on this boolean.
+</p>
+
+<ngbd-code [lang]="snippets.errorFlag.language" [code]="snippets.errorFlag.code" [highlightedLines]="snippets.errorFlag.highlightedLines"></ngbd-code>
+
+<p>
+  Using <ngbd-operator-popup name="tap"></ngbd-operator-popup> again, we reset the flag to <code>false</code> when a new search is planned to be done, considering that it is no longer necessary to keep the information that the previous search failed, and therefore referring to the new pending search instead.
+</p>
+
+<p>
+  The last step was to set this flag to <code>true</code> inside the function block of <ngbd-operator-popup name="catchError"></ngbd-operator-popup>.
+</p>
+
+
+
+<h5>Demo</h5>
+
+<p>
+  This demo allows you to play on the two main traits of remote data: response time (delay) and failure. Don't hesitate to experiment.
+</p>
+
+<p>
+  The <code>Reset state</code> button in this demo is important because the <code>State</code> section shows a lot of data, and is updated quite often. Note that as for other demos, a global reset button is also available, to fully reset the demo. Here is what the values of the state correspond to:
+</p>
+
+<ul>
+  <li><code>searching</code>: a boolean displaying <code>true</code> when a search is ongoing, <code>false</code> otherwise</li>
+  <li><code>search failed</code>: a boolean displaying <code>true</code> if the latest search failed, <code>false</code> otherwise or if a new search is ongoing</li>
+  <li>
+    observable events: counters of events happening on the Observable associated to the current search.
+    <ul>
+      <li><code>next</code>: +1 anytime a search emits results</li>
+      <li><code>error</code>: +1 anytime a search errors</li>
+      <li><code>complete</code>: +1 anytime a search completes successfully (in practice, this mirrors the value of <code>next</code>)</li>
+      <li><code>unsubscribe</code>: +1 anytime an Observable is being unsubscribed from. This happens when an Observable completes, successfully or not, but also when it is being cancelled, replaced thanks to the <ngbd-operator-popup name="switchMap"></ngbd-operator-popup> operator</li>
+    </ul>
+  </li>
+  <li>
+    current values:
+    <ul>
+      <li><code>value</code>: the latest received <span class="defined">results list</span>, coming from successful search or not</li>
+      <li><code>error</code>: the error value when latest search failed</li>
+    </ul>
+  </li>
+</ul>
+
+<p>
+  To experiment, try typing in and before the response arrives (check the configured delay), type again. You should see the <code>unsubscribe</code> counter increment, meaning that the ongoing search was cancelled in favor of a new one.
+</p>
+
+<p>
+  Then wait a bit until a result arrives, and you should see the <code>next</code> and <code>complete</code> counters increment too, as well as <code>unsubscribe</code> again. The <code>value</code> should update with the result.
+</p>
+
+<p>
+  Check the <code>make fail</code> check box, type again and wait. You should eventually see the counters <code>error</code> and <code>unsubscribe</code> increment. The boolean <code>search failed</code> will display <code>true</code>, <code>error</code> the error message and <code>value</code> an empty list.
+</p>
+
+<p>
+  Try playing a bit more on your own. Don't forget that you can reset the state anytime.
+</p>
+
+<p>
+  Throughout all those experiments, pay attention to the boolean <code>searching</code>, which updates accordingly.
+</p>
+
+<button
+  type="button"
+  class="btn btn-primary"
+  (click)="resetDemo()"
+>
+  Reset demo
+</button>
+
+<h6>State</h6>
+
+<button
+  type="button"
+  class="btn btn-primary"
+  (click)="resetState()"
+>
+  Reset state
+</button>
+
+<ng-template #booleanProperty let-name="name">
+    <li>
+      <span
+        [ngClass]="{flash: state.get(name).animated}"
+      >
+      <code>{{state.get(name).label}}</code>:
+        <span
+          [ngStyle]="{color: state.get(name).value ? 'green' : 'red'}"
+        >{{state.get(name).value ? 'yes' : 'no'}}</span>
+      </span>
+      </li>
+</ng-template>
+
+<ng-template #property let-name="name">
+    <li>
+        <span [ngClass]="{flash: state.get(name).animated}">
+          <code>{{state.get(name).label}}</code>:
+          {{state.get(name).formattedValue}}
+        </span>
+      </li>
+</ng-template>
+
+<ul>
+  <ng-container *ngTemplateOutlet="booleanProperty; context: {name: 'searching'}"></ng-container>
+  <ng-container *ngTemplateOutlet="booleanProperty; context: {name: 'searchFailed'}"></ng-container>
+  <li>
+    observable events:
+    <ul>
+      <ng-container *ngTemplateOutlet="property; context: {name: 'counterOnNext'}"></ng-container>
+      <ng-container *ngTemplateOutlet="property; context: {name: 'counterOnError'}"></ng-container>
+      <ng-container *ngTemplateOutlet="property; context: {name: 'counterOnComplete'}"></ng-container>
+      <ng-container *ngTemplateOutlet="property; context: {name: 'counterOnUnsubscribe'}"></ng-container>
+    </ul>
+  </li>
+  <li>
+      current values:
+      <ul>
+          <ng-container *ngTemplateOutlet="property; context: {name: 'currentValue'}"></ng-container>
+          <ng-container *ngTemplateOutlet="property; context: {name: 'error'}"></ng-container>
+      </ul>
+    </li>
+</ul>
+
+<h6>Options</h6>
+
+<ngbd-typeahead-common-checkbox
+  [(value)]="makeFail"
+  label="make fail"
+  id="sections-use-case-async-make-fail"
+></ngbd-typeahead-common-checkbox>
+
+<div class="form-group form-inline">
+  <label>response delay:&nbsp;</label>
+  <input
+    type="number"
+    class="form-control"
+    [(ngModel)]="responseDelay"
+    step='100'
+    min='0'
+    max='5000'
+  />
+</div>
+
+<ngbd-typeahead-common-debounce-customizer [(value)]="debounceTime"></ngbd-typeahead-common-debounce-customizer>
+
+<h6>Typeahead</h6>
+
+<input
+  type="text"
+  class="form-control"
+
+  [(ngModel)]="model"
+  [ngbTypeahead]="initializeTypeahead"
+/>

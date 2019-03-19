@@ -31,7 +31,12 @@
         <ul class="nav nav-tabs px-4 px-lg-5 content-tabset justify-content-md-start justify-content-end">
 
           <li class="nav-item" *ngFor="let childRoute of route.routeConfig.children">
-            <a class="nav-link" routerLink="./{{childRoute.path}}" [class.active]="activeTab === childRoute.path">
+            <a
+              class="nav-link"
+              [class.active]="activeTab === childRoute.path"
+              routerLink="./{{childRoute.path}}"
+              [fragment]="getTabFragment(childRoute)"
+            >
               {{ getTabLabel(childRoute) }}
             </a>
           </li>

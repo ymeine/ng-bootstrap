@@ -101,4 +101,12 @@ export class ComponentWrapper {
 
     return this._titleCasePipe.transform(label);
   }
+
+  getTabFragment(route): string | null {
+    if (route.data != null && route.data.fragment != null) {
+      return route.data.fragment;
+    }
+
+    return null;
+  }
 }

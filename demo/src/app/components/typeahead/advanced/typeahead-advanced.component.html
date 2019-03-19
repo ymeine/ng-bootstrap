@@ -1,0 +1,50 @@
+<ngb-accordion
+  [activeIds]="activePanelId"
+  (panelChange)="onPanelChange($event)"
+>
+  <ngb-panel
+    [title]="sections['introduction'].title"
+    [id]="sections['introduction'].fragment"
+  >
+    <ng-template ngbPanelContent>
+      <ngbd-typeahead-advanced-introduction></ngbd-typeahead-advanced-introduction>
+    </ng-template>
+  </ngb-panel>
+
+  <ngb-panel
+    [title]="sections['use-case-basic'].title"
+    [id]="sections['use-case-basic'].fragment"
+  >
+    <ng-template ngbPanelContent>
+      <ngbd-typeahead-advanced-use-case-basic></ngbd-typeahead-advanced-use-case-basic>
+    </ng-template>
+  </ngb-panel>
+
+  <ngb-panel
+    [title]="sections['use-case-events'].title"
+    [id]="sections['use-case-events'].fragment"
+  >
+    <ng-template ngbPanelContent>
+      <ngbd-typeahead-advanced-use-case-events></ngbd-typeahead-advanced-use-case-events>
+    </ng-template>
+  </ngb-panel>
+
+  <ngb-panel
+    [title]="sections['use-case-remote'].title"
+    [id]="sections['use-case-remote'].fragment"
+  >
+    <ng-template ngbPanelContent>
+      <ngbd-typeahead-advanced-use-case-remote></ngbd-typeahead-advanced-use-case-remote>
+    </ng-template>
+  </ngb-panel>
+
+  <ngb-panel
+    [title]="sections['display-customization'].title"
+    [id]="sections['display-customization'].fragment"
+  >
+    <ng-template ngbPanelContent>
+      <ngbd-typeahead-advanced-display-customization></ngbd-typeahead-advanced-display-customization> -->
+    </ng-template>
+  </ngb-panel>
+
+</ngb-accordion>
