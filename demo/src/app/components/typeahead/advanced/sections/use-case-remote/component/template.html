@@ -68,13 +68,13 @@
   The main structure of the code will now look like this:
 </p>
 
-<ngbd-code [lang]="snippets.cancellation.language" [code]="snippets.cancellation.code" [highlightedLines]="snippets.cancellation.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.cancellation"></ngbd-code>
 
 <p>
   More precisely, here is how the code inside a <ngbd-operator-popup name="switchMap"></ngbd-operator-popup> could look like:
 </p>
 
-<ngbd-code [lang]="snippets.cancellationExample.language" [code]="snippets.cancellationExample.code" [highlightedLines]="snippets.cancellationExample.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.cancellationExample"></ngbd-code>
 
 
 
@@ -88,7 +88,7 @@
   The Observables implementation provides an operator made to catch errors and continue the flow normally, similar to how JavaScript exceptions work: this operator is called <ngbd-operator-popup name="catchError"></ngbd-operator-popup>.
 </p>
 
-<ngbd-code [lang]="snippets.errorHandling.language" [code]="snippets.errorHandling.code" [highlightedLines]="snippets.errorHandling.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.errorHandling"></ngbd-code>
 
 <p>
   <ngbd-operator-popup name="catchError"></ngbd-operator-popup> expects a new Observable in output, which will completely replace the previous Observable in the chain. You can either return a failing Observable using <ngbd-operator-popup name="throwError"></ngbd-operator-popup> (but that is quite uncommon), which is the equivalent of throwing again an error in a catch block in JavaScript, or you can return a classic Observable.
@@ -110,7 +110,7 @@
   There can be many techniques, and we won't go too far into the demonstration, but one of them is to maintain a boolean flag in the component, which will be set according to if an error occurred or not. It is then up to the component to adapt its display based on this boolean.
 </p>
 
-<ngbd-code [lang]="snippets.errorFlag.language" [code]="snippets.errorFlag.code" [highlightedLines]="snippets.errorFlag.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.errorFlag"></ngbd-code>
 
 <p>
   Using <ngbd-operator-popup name="tap"></ngbd-operator-popup> again, we reset the flag to <code>false</code> when a new search is planned to be done, considering that it is no longer necessary to keep the information that the previous search failed, and therefore referring to the new pending search instead.

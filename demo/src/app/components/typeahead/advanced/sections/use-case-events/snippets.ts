@@ -6,7 +6,7 @@ export const SNIPPETS = {
   focus: {
     template: Snippet({
       language: 'html',
-      highlightedLines: '4',
+      highlightedLines: [4],
       code: `
         <input
           type="text"
@@ -17,7 +17,7 @@ export const SNIPPETS = {
     }),
     subject: Snippet({
       language: 'typescript',
-      highlightedLines: '1, 4, 7',
+      highlightedLines: [1, 4, 7],
       code: `
         import {Subject} from 'rxjs';
 
@@ -32,7 +32,7 @@ export const SNIPPETS = {
     }),
     full: Snippet({
       language: 'typescript',
-      highlightedLines: '3, 14, 15, 17-19',
+      highlightedLines: [3, 14, 15, [17, 19]],
       code: `
         import {
           Subject,
@@ -60,7 +60,7 @@ export const SNIPPETS = {
     detail: {
       template: Snippet({
         language: 'html',
-        highlightedLines: '5',
+        highlightedLines: 5,
         code: `
           <input
             type="text"
@@ -72,7 +72,7 @@ export const SNIPPETS = {
       }),
       component: Snippet({
         language: 'typescript',
-        highlightedLines: '6, 10-11, 20',
+        highlightedLines: [6, [10, 11], 20],
         code: `
           import {Subject, merge} from 'rxjs';
           import {
@@ -108,7 +108,7 @@ export const SNIPPETS = {
   click: {
     template: Snippet({
       language: 'html',
-      highlightedLines: '6',
+      highlightedLines: 6,
       code: `
         <input
           type="text"
@@ -121,7 +121,7 @@ export const SNIPPETS = {
     }),
     intermediateComponent: Snippet({
       language: 'typescript',
-      highlightedLines: '13, 19-21, 33-35, 40',
+      highlightedLines: [13, [19, 21], [33, 35], 40],
       code: `
         import {Subject, merge} from 'rxjs';
         import {
@@ -172,7 +172,7 @@ export const SNIPPETS = {
     }),
     component: Snippet({
       language: 'typescript',
-      highlightedLines: '7, 16, 26-28, 37, 41, 49, 51',
+      highlightedLines: [7, 16, [26, 28], 37, 41, 49, 51],
       code: `
         import {Subject, merge} from 'rxjs';
         import {

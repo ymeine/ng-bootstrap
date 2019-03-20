@@ -5,7 +5,7 @@ import {Snippet} from '../../../common';
 export const SNIPPETS = {
   cancellation: Snippet({
     language: 'typescript',
-    highlightedLines: '3, 11',
+    highlightedLines: [3, 11],
     code: `
       import {
         map, debounceTime, distinctUntilChanged,
@@ -24,7 +24,7 @@ export const SNIPPETS = {
   }),
   cancellationExample: Snippet({
     language: 'typescript',
-    highlightedLines: '3-5',
+    highlightedLines: [[3, 5]],
     code: `
       text$.pipe(
         // ...
@@ -37,7 +37,7 @@ export const SNIPPETS = {
   }),
   errorHandling: Snippet({
     language: 'typescript',
-    highlightedLines: '3-4, 13-16',
+    highlightedLines: [[3, 4], [13, 16]],
     code: `
       import {
         map, debounceTime, distinctUntilChanged, switchMap,
@@ -63,7 +63,7 @@ export const SNIPPETS = {
   }),
   errorFlag: Snippet({
     language: 'typescript',
-    highlightedLines: '3, 7, 12, 16-17',
+    highlightedLines: [3, 7, 12, [16, 17]],
     code: `
       import {
         map, debounceTime, distinctUntilChanged, switchMap, catchError, of,

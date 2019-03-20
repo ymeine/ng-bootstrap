@@ -33,7 +33,7 @@ export const SNIPPETS = {
   resultFormatter: {
     template: Snippet({
       language: 'html',
-      highlightedLines: '4',
+      highlightedLines: 4,
       code: `
         <input
           type="text"
@@ -44,7 +44,7 @@ export const SNIPPETS = {
     }),
     component: Snippet({
       language: 'typescript',
-      highlightedLines: '2-4',
+      highlightedLines: [[2, 4]],
       code: `
         export class MyComponent {
           formatResultForPopup(color: Color): string {
@@ -57,7 +57,7 @@ export const SNIPPETS = {
   resultTemplate: {
     html: Snippet({
       language: 'html',
-      highlightedLines: '2, 4-5, 8, 10, 12, 19',
+      highlightedLines: [2, [4, 5], 8, 10, 12, 19],
       code: `
         <ng-template
           #displayResult
@@ -103,7 +103,7 @@ export const SNIPPETS = {
   inputFormatter: {
     template: Snippet({
       language: 'html',
-      highlightedLines: '4',
+      highlightedLines: 4,
       code: `
         <input
           type="text"
@@ -114,7 +114,7 @@ export const SNIPPETS = {
     }),
     component: Snippet({
       language: 'typescript',
-      highlightedLines: '2-4',
+      highlightedLines: [[2, 4]],
       code: `
         export class MyComponent {
           formatResultForInput(color: Color): string {

@@ -352,3 +352,9 @@ ngb-carousel {
     width: 100%;
   }
 }
+
+.highlighted-line {
+  display: inline-block;
+  width: 100%;
+  background-color: hsla(24, 20%, 50%, 0.08);
+}

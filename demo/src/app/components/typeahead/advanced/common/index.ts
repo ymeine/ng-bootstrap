@@ -1,5 +1,7 @@
 import { Component, Input } from '@angular/core';
 
+import { Snippet as ISnippet } from '../../../../shared/code/code.component';
+
 import { NgbdTypeaheadCommonDebounceCustomizerComponent } from './debounce-customizer.component';
 import { NgbdTypeaheadCommonCheckboxComponent } from './checkbox.component';
 
@@ -25,20 +27,26 @@ export const COMPONENTS = [
 export function fixIndent(source) {
   const lines = source.split(/(?:\r\n)|\n|\r/);
   lines.shift();
+  lines.pop();
   const indentLevel = /( *).*/g.exec(lines[0])[1].length;
-  return lines.map(line => line.substring(indentLevel)).join('\n');
+  return lines
+    .map(line => line.substring(indentLevel))
+    .join('\n');
 }
 
-export interface SnippetSpec {
-  language: 'html' | 'typescript' | 'css';
-  code: string;
-  highlightedLines?: string;
-}
 
-export function Snippet(spec: SnippetSpec): SnippetSpec {
+export function Snippet({language, code, highlightedLines, showLineNumbers}: ISnippet): ISnippet {
+  code = fixIndent(code);
+
+  const lines = code.split(/(?:\r\n)|\n|\r/gi);
+  if (showLineNumbers == null && lines.length >= 10 && highlightedLines != null) {
+    showLineNumbers = true;
+  }
+
   return {
-    language: spec.language,
-    code: fixIndent(spec.code),
-    highlightedLines: spec.highlightedLines,
+    language,
+    code,
+    highlightedLines,
+    showLineNumbers,
   };
 }

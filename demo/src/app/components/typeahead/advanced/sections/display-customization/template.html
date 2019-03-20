@@ -32,11 +32,11 @@
 
 <p>Interface: </p>
 
-<ngbd-code [lang]="snippets.model.language" [code]="snippets.model.code" [highlightedLines]="snippets.model.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.model"></ngbd-code>
 
 <p>Data: </p>
 
-<ngbd-code [lang]="snippets.data.language" [code]="snippets.data.code" [highlightedLines]="snippets.data.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.data"></ngbd-code>
 
 
 
@@ -52,11 +52,11 @@
 
 <p>Pass it that way in the template: </p>
 
-<ngbd-code [lang]="snippets.resultFormatter.template.language" [code]="snippets.resultFormatter.template.code" [highlightedLines]="snippets.resultFormatter.template.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.resultFormatter.template"></ngbd-code>
 
 <p>And define it in the component: </p>
 
-<ngbd-code [lang]="snippets.resultFormatter.component.language" [code]="snippets.resultFormatter.component.code" [highlightedLines]="snippets.resultFormatter.component.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.resultFormatter.component"></ngbd-code>
 
 <p>
   In that case, we not only extracted the name of the color, but also the hexadecimal code to generate a more detailed representation.
@@ -78,7 +78,7 @@
   It expects a reference to a template receiving a context with the <span class="defined">result item</span> and the <span class="defined">search term</span>, respectively as <code>result</code> and <code>term</code>:
 </p>
 
-<ngbd-code [lang]="snippets.resultTemplate.html.language" [code]="snippets.resultTemplate.html.code" [highlightedLines]="snippets.resultTemplate.html.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.resultTemplate.html"></ngbd-code>
 
 <p>
   We took the opportunity of being able to output anything to display a color chip, a visual aid for the user.
@@ -96,7 +96,7 @@
   For the record, here is the associated CSS:
 </p>
 
-<ngbd-code [lang]="snippets.resultTemplate.css.language" [code]="snippets.resultTemplate.css.code" [highlightedLines]="snippets.resultTemplate.css.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.resultTemplate.css"></ngbd-code>
 
 
 
@@ -124,11 +124,11 @@
 
 <p>Pass it that way in the template: </p>
 
-<ngbd-code [lang]="snippets.inputFormatter.template.language" [code]="snippets.inputFormatter.template.code" [highlightedLines]="snippets.inputFormatter.template.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.inputFormatter.template"></ngbd-code>
 
 <p>And define it in the component: </p>
 
-<ngbd-code [lang]="snippets.inputFormatter.component.language" [code]="snippets.inputFormatter.component.code" [highlightedLines]="snippets.inputFormatter.component.highlightedLines"></ngbd-code>
+<ngbd-code [snippet]="snippets.inputFormatter.component"></ngbd-code>
 
 <p>
   You can notice it works the same way as <code>resultFormatter</code>, but we implemented a simpler formatting function to avoid the issue regarding the subsequent searches.
