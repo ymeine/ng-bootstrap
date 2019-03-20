@@ -1,3 +1,5 @@
+const GO_TO_EXAMPLE_COLOR = '#007bff';
+
 export const STYLES = `
 .definition, .defined {
   font-style: italic;
@@ -13,6 +15,20 @@ export const STYLES = `
 .definition {
   font-weight: bold;
   border-bottom-color: #black;
+}
+
+.go-to-example > a {
+  display: block;
+  width: 50%;
+  text-align: center;
+  margin: 1em auto;
+
+  color: ${GO_TO_EXAMPLE_COLOR};
+  text-decoration: none;
+
+  border: 2px solid ${GO_TO_EXAMPLE_COLOR};
+  padding: 1em;
+  border-radius: 0.5em;
 }
 `;
 
