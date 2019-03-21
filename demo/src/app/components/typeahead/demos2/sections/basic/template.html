@@ -1,0 +1,51 @@
+<ng-template #instructions>
+  <p>
+    Try typing <code>b</code>, <code>bl</code> or <code>gr</code>.
+  </p>
+
+  <p>
+    Try emptying the input to see all the colors.
+  </p>
+
+  <p>
+    You can also try to input something wrong like <code>z</code>, to see that the popup does not open or closes (depending on if it was already open or not).
+  </p>
+
+  <p>
+    You can also change the debounce time. Try increasing it to actually feel its effect.
+  </p>
+</ng-template>
+
+<ng-template #options>
+  <button
+    type="button"
+    class="btn btn-primary reset"
+    (click)="reset()"
+  >
+    Reset
+  </button>
+
+  <ngbd-typeahead-common-debounce-customizer [(value)]="debounceTime"></ngbd-typeahead-common-debounce-customizer>
+</ng-template>
+
+<ng-template #instance>
+  <input
+    type="text"
+    class="form-control"
+    [(ngModel)]="model"
+    [ngbTypeahead]="initializeTypeahead"
+  />
+</ng-template>
+
+<ngbd-example2
+  [section]="section"
+  explanations-fragment="use-case-basic"
+
+  [snippet-component]="snippets.component"
+  [snippet-template]="snippets.template"
+  [snippet-data]="snippets.data"
+
+  [instance]="instance"
+  [instructions]="instructions"
+  [options]="options"
+></ngbd-example2>

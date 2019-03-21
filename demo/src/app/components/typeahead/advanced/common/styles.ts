@@ -1,3 +1,5 @@
+import { PRIMARY_COLOR } from '../../common/example/style';
+
 const GO_TO_EXAMPLE_COLOR = '#007bff';
 
 export const STYLES = `
@@ -29,6 +31,28 @@ export const STYLES = `
   border: 2px solid ${GO_TO_EXAMPLE_COLOR};
   padding: 1em;
   border-radius: 0.5em;
+}
+
+.reset {
+  width: 100%;
+  margin: 1em 0;
+}
+
+.code-tabs {
+  display: flex;
+  margin: 1em 0;
+}
+
+.code-tabs > div {
+  cursor: pointer;
+  flex: 1;
+  border-bottom: 0.1em solid gray;
+  padding-bottom: 0.25em;
+  margin: 0 1em;
+  text-align: center;
+}
+.code-tabs > div.focused {
+  border-color: ${PRIMARY_COLOR};
 }
 `;
 

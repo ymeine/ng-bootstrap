@@ -1,0 +1,111 @@
+<ng-template #instructions>
+  <p>
+    The demo below uses several sources to trigger a search:
+  </p>
+
+  <ul>
+    <li>input event</li>
+    <li>focus event</li>
+    <li>click event</li>
+    <li>programmatic</li>
+  </ul>
+
+  <p>
+    Try focusing the input with the <kbd>tab</kbd> key (use the dedicated element above it), you will see the Typeahead open with all suggestions. Pay attention to the updated <code>search source</code>.
+  </p>
+
+  <p>
+    Then start typing and see the suggestions being updated. The <code>search source</code> is updated accordingly.
+  </p>
+
+  <p>
+    Now close the popup by pressing <kbd>escape</kbd> (to keep the focus) and click on the input: it will open again. One more time, check the value of <code>search source</code>.
+  </p>
+
+  <p>
+    To finish with this demo, click anytime on the button whose label starts with <code>Search with term</code> and see the popup being open, and the value of <code>search source</code> changing. Note that only the content of the popup changes, not the input, so the two can be mismatching, but this is beyond the concerns of the demo.
+  </p>
+
+  <p>
+    Feel free to experiment more: checkboxes allow the disable/enable some event sources, and the <code>Reset</code> button fully resets the demo to its initial state.
+  </p>
+</ng-template>
+
+<ng-template #options>
+  <button
+    type="button"
+    class="btn btn-primary reset"
+    (click)="resetProperties()"
+  >
+    Reset
+  </button>
+
+  <h6>State</h6>
+  <ul>
+    <li><code>search source</code>: {{searchSource}}</li>
+  </ul>
+
+  <h6>Options</h6>
+
+  <ngbd-typeahead-common-checkbox
+    [(value)]="opensOnFocus"
+    label="open on focus"
+    id="sections-use-case-focus-opens-on-focus"
+    ></ngbd-typeahead-common-checkbox>
+
+  <ngbd-typeahead-common-checkbox
+    [(value)]="opensOnClick"
+    label="open on click"
+    id="sections-use-case-focus-opens-on-click"
+  ></ngbd-typeahead-common-checkbox>
+
+  <ngbd-typeahead-common-checkbox
+    [(value)]="simulatesSearchDelay"
+    label="simulate search delay (100ms)"
+    id="sections-use-case-focus-simulates-search-delay"
+  ></ngbd-typeahead-common-checkbox>
+
+  <ngbd-typeahead-common-debounce-customizer [(value)]="debounceTime"></ngbd-typeahead-common-debounce-customizer>
+</ng-template>
+
+<ng-template #instance>
+  <button
+    type="button"
+    class="btn btn-primary search"
+    (click)="search('bl')"
+  >
+    Search with search term: bl
+  </button>
+
+  <p>
+    <span class="focusable" tabindex="0">
+      Focus me and press <kbd>tab</kbd> to focus the Typeahead
+    </span>
+  </p>
+
+  <input
+    type="text"
+    class="form-control"
+
+    [(ngModel)]="model"
+    [ngbTypeahead]="initializeTypeahead"
+
+    #instance="ngbTypeahead"
+    #input
+    (focus)="onFocus($event)"
+    (click)="onClick($event)"
+    (blur)="onBlur($event)"
+  />
+</ng-template>
+
+<ngbd-example2
+  [section]="section"
+  explanations-fragment="use-case-events"
+
+  [snippet-component]="snippets.component"
+  [snippet-template]="snippets.template"
+
+  [instance]="instance"
+  [instructions]="instructions"
+  [options]="options"
+></ngbd-example2>

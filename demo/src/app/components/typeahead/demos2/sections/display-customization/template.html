@@ -1,0 +1,106 @@
+<ng-template #instructions>
+  <p>
+    Here is the demo corresponding to what we implemented above.
+  </p>
+
+  <p>
+    Choose between the simple string formatter or the template rendering (default) and observe the difference.
+  </p>
+
+  <p>
+    Choose an option from the <span class="defined">options list</span>, and see how the name of the color is set to upper case in the input. Try disabling it with the checkbox, and choose again an option. See the difference.
+  </p>
+
+  <p>
+    In all cases formatters are needed since the input data model contains objects, nothing that can be displayed as is in a user interface.
+  </p>
+</ng-template>
+
+<ng-template #options>
+  <button
+    type="button"
+    class="btn btn-primary reset"
+    (click)="reset()"
+  >
+    Reset
+  </button>
+
+  <div class="form-check">
+    <input
+      class="form-check-input"
+      type="radio"
+      [(ngModel)]="resultTransformationType"
+      value="formatter"
+      [ngModelOptions]="{standalone: true}"
+      id="typeahead-overview-sections-use-case-customization-use-formatter"
+    />
+    <label
+      class="form-check-label"
+      for="typeahead-overview-sections-use-case-customization-use-formatter"
+    >
+      use custom formatter for options list
+    </label>
+  </div>
+
+  <div class="form-check">
+    <input
+      class="form-check-input"
+      type="radio"
+      [(ngModel)]="resultTransformationType"
+      value="template"
+      [ngModelOptions]="{standalone: true}"
+      id="typeahead-overview-sections-use-case-customization-use-template"
+    />
+    <label
+      class="form-check-label"
+      for="typeahead-overview-sections-use-case-customization-use-template"
+    >
+      use custom template for options list
+    </label>
+  </div>
+
+  <ngbd-typeahead-common-checkbox
+    [(value)]="formatUpperCase"
+    label="format input to upper case"
+    id="sections-use-case-customization-use-input-formatter"
+  ></ngbd-typeahead-common-checkbox>
+
+  <ngbd-typeahead-common-debounce-customizer [(value)]="debounceTime"></ngbd-typeahead-common-debounce-customizer>
+</ng-template>
+
+<ng-template #instance>
+  <ng-template
+    #displayResult
+    let-color="result"
+    let-term="term"
+  >
+    <div class="middle">
+      <div class="color-chip" [ngStyle]="{'background-color': '#' + color.hexCode}"></div>
+      <ngb-highlight [result]="color.name" [term]="term"></ngb-highlight><span> ({{color.hexCode}})</span>
+    </div>
+  </ng-template>
+
+  <input
+    type="text"
+    class="form-control"
+    [(ngModel)]="model"
+    [ngbTypeahead]="initializeTypeahead"
+
+    [resultTemplate]="resultTemplate"
+    [resultFormatter]="resultFormatter"
+    [inputFormatter]="inputFormatter"
+  />
+</ng-template>
+
+<ngbd-example2
+  [section]="section"
+  explanations-fragment="display-customization"
+
+  [snippet-component]="snippets.resultFormatter.component"
+  [snippet-template]="snippets.resultFormatter.template"
+  [snippet-data]="snippets.data"
+
+  [instance]="instance"
+  [instructions]="instructions"
+  [options]="options"
+></ngbd-example2>

@@ -13,6 +13,9 @@ import { NgbdTypeaheadHttp } from './demos/http/typeahead-http';
 import { NgbdTypeaheadTemplate } from './demos/template/typeahead-template';
 import { COMPONENTS as ADVANCED_COMPONENTS } from './advanced';
 import { NgbdTypeaheadAdvancedComponent } from './advanced/typeahead-advanced.component';
+import { NgbdTypeaheadDemos2Component } from './demos2/typeahead-demos2.component';
+import { COMPONENTS as DEMOS2_COMPONENTS } from './demos2';
+import { NgbdExample2 } from './common/example';
 
 const DEMO_DIRECTIVES = [
   NgbdTypeaheadFormat,
@@ -78,6 +81,14 @@ export const ROUTES = [
           fragment: 'introduction',
         }
       },
+      {
+        path: 'examples-2',
+        component: NgbdTypeaheadDemos2Component,
+        data: {
+          title: 'Examples (2)',
+          fragment: 'basic',
+        }
+      },
     ]
   }
 ];
@@ -90,6 +101,8 @@ export const ROUTES = [
   declarations: [
     ...DEMO_DIRECTIVES,
     ...ADVANCED_COMPONENTS,
+    ...DEMOS2_COMPONENTS,
+    NgbdExample2,
   ],
   entryComponents: DEMO_DIRECTIVES
 })

@@ -1,0 +1,67 @@
+<div class="title">
+  <div class="content"><ngbd-overview-section [section]="section"></ngbd-overview-section></div>
+  <div class="spacer"></div>
+  <div class="content explanations">
+    <a
+      [routerLink]="['../advanced']"
+      [fragment]="explanationsFragment"
+    >Go to advanced explanations</a>
+  </div>
+</div>
+
+<div class="wrapper">
+  <div class="instance">
+    <ng-template [ngTemplateOutlet]="instance"></ng-template>
+  </div>
+
+  <details>
+    <summary>Instructions</summary>
+    <div class="instructions">
+      <ng-template [ngTemplateOutlet]="instructions"></ng-template>
+    </div>
+  </details>
+
+  <details>
+    <summary>Options</summary>
+    <div class="options">
+      <ng-template [ngTemplateOutlet]="options"></ng-template>
+    </div>
+  </details>
+
+  <details>
+    <summary>Code</summary>
+    <div class="code">
+      <div class="code-tabs">
+          <div
+            *ngIf="snippetComponent != null"
+            (click)="snippet = 'component'"
+            [class.focused]="snippet === 'component'">
+            Component
+          </div>
+          <div
+            *ngIf="snippetTemplate != null"
+            (click)="snippet = 'template'"
+            [class.focused]="snippet === 'template'">
+            Template
+          </div>
+          <div
+            *ngIf="snippetData != null"
+            (click)="snippet = 'data'"
+            [class.focused]="snippet === 'data'">
+            Data
+          </div>
+        </div>
+        <div class="snippet">
+          <div *ngIf="snippet === 'component'">
+            <ngbd-code [snippet]="snippetComponent"></ngbd-code>
+          </div>
+          <div *ngIf="snippet === 'template'">
+            <ngbd-code [snippet]="snippetTemplate"></ngbd-code>
+          </div>
+          <div *ngIf="snippet === 'data'">
+            <ngbd-code [snippet]="snippetData"></ngbd-code>
+          </div>
+        </div>
+    </div>
+  </details>
+</div>
