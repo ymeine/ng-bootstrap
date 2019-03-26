@@ -1,0 +1,21 @@
+<p>
+  <span class="focusable" tabindex="0">
+    Focus me and press <kbd>tab</kbd> to focus the Typeahead
+  </span>
+</p>
+
+<input
+  type="text"
+  class="form-control"
+
+  [ngModel]="modelValue"
+  (ngModelChange)="modelChange.emit($event)"
+
+  [ngbTypeahead]="initializeTypeahead"
+
+  #instance="ngbTypeahead"
+  #input
+  (focus)="onFocus($event)"
+  (click)="onClick($event)"
+  (blur)="onBlur($event)"
+/>

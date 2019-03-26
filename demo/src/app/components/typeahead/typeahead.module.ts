@@ -85,7 +85,7 @@ export const ROUTES = [
         path: 'examples-2',
         component: NgbdTypeaheadDemos2Component,
         data: {
-          title: 'Examples (2)',
+          title: 'Playground',
           fragment: 'basic',
         }
       },

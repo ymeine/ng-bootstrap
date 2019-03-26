@@ -20,7 +20,7 @@
   <button
     type="button"
     class="btn btn-primary reset"
-    (click)="reset()"
+    (click)="resetOptions()"
   >
     Reset
   </button>
@@ -29,12 +29,10 @@
 </ng-template>
 
 <ng-template #instance>
-  <input
-    type="text"
-    class="form-control"
-    [(ngModel)]="model"
-    [ngbTypeahead]="initializeTypeahead"
-  />
+  <ngbd-typeahead-demos2-basic-demo
+    [(model)]="model"
+    [debounceTime]="debounceTime"
+  ></ngbd-typeahead-demos2-basic-demo>
 </ng-template>
 
 <ngbd-example2
@@ -44,6 +42,8 @@
   [snippet-component]="snippets.component"
   [snippet-template]="snippets.template"
   [snippet-data]="snippets.data"
+
+  [resetDemo]="resetDemo"
 
   [instance]="instance"
   [instructions]="instructions"

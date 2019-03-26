@@ -1,13 +1,14 @@
-import { NgbdTypeaheadDemos2BasicComponent } from './basic';
-import { NgbdTypeaheadDemos2EventsComponent } from './events';
+import { COMPONENTS as BASIC_COMPONENTS } from './basic';
+import { COMPONENTS as EVENTS_COMPONENTS } from './events';
 import { NgbdTypeaheadDemos2RemoteComponent } from './remote';
-import { NgbdTypeaheadDemos2DisplayCustomizationComponent } from './display-customization';
+import { COMPONENTS as DISPLAY_CUSTOMIZATION_COMPONENTS } from './display-customization';
+
 
 export const COMPONENTS = [
-  NgbdTypeaheadDemos2BasicComponent,
-  NgbdTypeaheadDemos2EventsComponent,
+  ...BASIC_COMPONENTS,
+  ...EVENTS_COMPONENTS,
   NgbdTypeaheadDemos2RemoteComponent,
-  NgbdTypeaheadDemos2DisplayCustomizationComponent,
+  ...DISPLAY_CUSTOMIZATION_COMPONENTS,
 ];
 
 export const SECTIONS_LIST = [

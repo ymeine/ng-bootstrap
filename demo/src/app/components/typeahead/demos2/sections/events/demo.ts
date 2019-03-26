@@ -1,0 +1,171 @@
+import {
+  Component,
+  ViewChild,
+  ElementRef,
+  Input,
+  Output,
+  EventEmitter,
+} from '@angular/core';
+
+import {
+  Observable,
+  Subject,
+  merge,
+  timer,
+  of,
+} from 'rxjs';
+
+import {
+  map,
+  filter,
+  tap,
+  delay,
+  finalize,
+  delayWhen,
+} from 'rxjs/operators';
+
+import {
+  NgbTypeahead,
+} from '@ng-bootstrap/ng-bootstrap';
+
+import {
+  customDebounce,
+  STYLES,
+  getResults,
+} from '../../../advanced/common';
+
+import {SearchSource} from './model';
+
+
+
+type AlwaysTapCallback<T> = (value?: T) => void;
+type AlwaysTapOutput<T> = (observable$: Observable<T>) => Observable<T>;
+
+const alwaysTap = <T>(callback: AlwaysTapCallback<T>): AlwaysTapOutput<T> => (observable$) => {
+  let executed = false;
+
+  return observable$.pipe(
+    tap(value => {
+      callback(value);
+      executed = true;
+    }),
+    finalize(() => {
+      if (!executed) { callback(); }
+      executed = false;
+    }),
+  );
+};
+
+@Component({
+  selector: 'ngbd-typeahead-demos2-events-demo',
+  templateUrl: './demo.html',
+  styles: [
+    STYLES,
+    `
+    button.search {
+      margin: 1em 0;
+    }
+    `,
+    `
+    .focusable {
+      border-bottom: 1px dashed gray;
+      padding: 0.2em;
+      cursor: pointer;
+      margin-bottom 0.2em;
+    }
+    `
+  ],
+})
+export class NgbdTypeaheadDemos2EventsDemoComponent {
+  @Input('model') modelValue: string = null;
+  @Output() modelChange = new EventEmitter<string>();
+
+  @Input() debounceTime = 200;
+
+  @Input() opensOnFocus = true;
+  @Input() opensOnClick = true;
+  @Input() simulatesSearchDelay = true;
+
+  @Output() searchSource = new EventEmitter<SearchSource>();
+
+  @ViewChild('instance') private _instance: NgbTypeahead;
+  @ViewChild('input') private _input: ElementRef<HTMLInputElement>;
+  private _inputFocus$ = new Subject<string>();
+  private _inputClick$ = new Subject<string>();
+  private _programmatic$ = new Subject<string>();
+
+  private _searching = false;
+  private _justBlurred = false;
+
+  initializeTypeahead = (text$: Observable<string>): Observable<string[]> => {
+    const searchSources: Observable<{term: string, source: SearchSource}>[] = [
+      this._programmatic$.pipe(
+        // the delay of 0 is used to prevent any click event to automatically close the popup
+        // therefore we launch every search after a delay, in case
+        delay(0),
+        map(term => ({term, source: 'programmatic' as SearchSource})),
+      ),
+
+      text$.pipe(
+        customDebounce(() => this.debounceTime),
+        map(term => ({term, source: 'input' as SearchSource})),
+      ),
+
+      this._inputClick$.pipe(
+        filter(() => this.opensOnClick && this._shouldOpenOnClickOrFocus()),
+        map(term => ({term, source: 'click' as SearchSource})),
+      ),
+
+      this._inputFocus$.pipe(
+        filter(() => this.opensOnFocus && this._shouldOpenOnClickOrFocus()),
+        map(term => ({term, source: 'focus' as SearchSource})),
+      ),
+    ];
+
+    return merge(...searchSources).pipe(
+      tap(({source}) => {
+        this._searching = true;
+        this.searchSource.emit(source);
+        // this._update();
+      }),
+      map(({term}) => getResults(term)),
+      delayWhen(() => this.simulatesSearchDelay ? timer(100) : of()),
+      alwaysTap(() => this._searching = false),
+    );
+  }
+
+  search(term: string) {
+    this._programmatic$.next(term);
+    this._input.nativeElement.focus();
+  }
+  onFocus(event: Event) { this._searchOnEvent(event, this._inputFocus$); }
+  onClick(event: Event) { this._searchOnEvent(event, this._inputClick$); }
+  private _searchOnEvent(event: Event, observable$: Subject<string>) {
+    observable$.next((event.target as HTMLInputElement).value);
+  }
+
+  onBlur() {
+    this._justBlurred = true;
+    setTimeout(() => this._justBlurred = false, 100);
+  }
+
+  private _isOpen(): boolean { return this._instance.isPopupOpen(); }
+  private _isClosed(): boolean { return !this._isOpen(); }
+
+  private _isSearching(): boolean { return this._searching; }
+  private _isNotSearching(): boolean { return !this._isSearching(); }
+
+  // FIXME 2018-11-14T11:29:29+01:00
+  // this is not enough to watch the blur
+  // when opened programmatically, it won't be tracked
+  // the best would be to be notified when the popup closes, no matter why
+  // the only way would be to monkey patch the private method `_closePopup`
+  private _hasJustClosed(): boolean { return this._justBlurred; }
+
+  private _shouldOpenOnClickOrFocus(): boolean {
+    return this._isNotSearching()
+    && this._isClosed()
+    && !this._hasJustClosed()
+    ;
+  }
+}

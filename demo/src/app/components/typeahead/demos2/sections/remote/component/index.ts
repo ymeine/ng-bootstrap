@@ -89,7 +89,7 @@ export class NgbdTypeaheadDemos2RemoteComponent {
       },
     });
 
-    this.resetProperties();
+    this.resetOptions();
   }
 
   initializeTypeahead = (text$: Observable<string>): Observable<string[]> => text$.pipe(
@@ -140,15 +140,16 @@ export class NgbdTypeaheadDemos2RemoteComponent {
 
   resetState() { this.state.reset(); }
 
-  resetProperties() {
-    this.model = '';
+  resetOptions() {
     this.debounceTime = 200;
     this.makeFail = false;
     this.responseDelay = 2000;
   }
 
-  resetDemo() {
-    this.resetProperties();
+  resetDemo = () => {
+    this.model = null;
+
+    this.resetOptions();
     this.resetState();
   }
 }

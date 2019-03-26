@@ -50,6 +50,14 @@
 </ng-template>
 
 <ng-template #options>
+  <button
+    type="button"
+    class="btn btn-primary reset"
+    (click)="resetOptions()"
+  >
+    Reset
+  </button>
+
   <ngbd-typeahead-common-checkbox
     [(value)]="makeFail"
     label="make fail"
@@ -72,22 +80,22 @@
 </ng-template>
 
 <ng-template #instance>
-  <button
-    type="button"
-    class="btn btn-primary reset"
-    (click)="resetDemo()"
-  >
-    Reset demo
-  </button>
+  <input
+    type="text"
+    class="form-control"
 
-  <h6>State</h6>
+    [(ngModel)]="model"
+    [ngbTypeahead]="initializeTypeahead"
+  />
+</ng-template>
 
+<ng-template #stateTemplate>
   <button
     type="button"
     class="btn btn-primary reset"
     (click)="resetState()"
   >
-    Reset state
+    Reset
   </button>
 
   <ng-template #booleanProperty let-name="name">
@@ -132,14 +140,6 @@
         </ul>
       </li>
   </ul>
-
-  <input
-    type="text"
-    class="form-control"
-
-    [(ngModel)]="model"
-    [ngbTypeahead]="initializeTypeahead"
-  />
 </ng-template>
 
 <ngbd-example2
@@ -148,7 +148,10 @@
 
   [snippet-component]="snippets.component"
 
+  [resetDemo]="resetDemo"
+
   [instance]="instance"
   [instructions]="instructions"
   [options]="options"
+  [state]="stateTemplate"
 ></ngbd-example2>

@@ -35,17 +35,10 @@
   <button
     type="button"
     class="btn btn-primary reset"
-    (click)="resetProperties()"
+    (click)="resetOptions()"
   >
     Reset
   </button>
-
-  <h6>State</h6>
-  <ul>
-    <li><code>search source</code>: {{searchSource}}</li>
-  </ul>
-
-  <h6>Options</h6>
 
   <ngbd-typeahead-common-checkbox
     [(value)]="opensOnFocus"
@@ -69,6 +62,31 @@
 </ng-template>
 
 <ng-template #instance>
+  <ngbd-typeahead-demos2-events-demo
+    #demo
+    [(model)]="model"
+    [debounceTime]="debounceTime"
+    [opensOnFocus]="opensOnFocus"
+    [opensOnClick]="opensOnClick"
+    [simulatesSearchDelay]="simulatesSearchDelay"
+    (searchSource)="searchSource = $event"
+  ></ngbd-typeahead-demos2-events-demo>
+</ng-template>
+
+<ng-template #state>
+  <button
+    type="button"
+    class="btn btn-primary reset"
+    (click)="resetState()"
+  >
+    Reset
+  </button>
+  <ul>
+    <li><code>search source</code>: {{searchSource}}</li>
+  </ul>
+</ng-template>
+
+<ng-template #actions>
   <button
     type="button"
     class="btn btn-primary search"
@@ -76,26 +94,6 @@
   >
     Search with search term: bl
   </button>
-
-  <p>
-    <span class="focusable" tabindex="0">
-      Focus me and press <kbd>tab</kbd> to focus the Typeahead
-    </span>
-  </p>
-
-  <input
-    type="text"
-    class="form-control"
-
-    [(ngModel)]="model"
-    [ngbTypeahead]="initializeTypeahead"
-
-    #instance="ngbTypeahead"
-    #input
-    (focus)="onFocus($event)"
-    (click)="onClick($event)"
-    (blur)="onBlur($event)"
-  />
 </ng-template>
 
 <ngbd-example2
@@ -105,7 +103,11 @@
   [snippet-component]="snippets.component"
   [snippet-template]="snippets.template"
 
+  [resetDemo]="resetDemo"
+
   [instance]="instance"
   [instructions]="instructions"
   [options]="options"
+  [state]="state"
+  [actions]="actions"
 ></ngbd-example2>

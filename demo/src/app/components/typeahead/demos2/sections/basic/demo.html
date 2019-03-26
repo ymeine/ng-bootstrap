@@ -1,0 +1,9 @@
+<input
+  type="text"
+  class="form-control"
+
+  [ngModel]="modelValue"
+  (ngModelChange)="modelChange.emit($event)"
+
+  [ngbTypeahead]="initializeTypeahead"
+/>

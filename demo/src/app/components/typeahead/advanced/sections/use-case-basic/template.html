@@ -142,51 +142,6 @@
   This is important to place this operator after the debouncing! Because without the delay of the debounce, <ngbd-operator-popup name="distinctUntilChanged"></ngbd-operator-popup> would remember some inputs as if they had been processed and would therefore ignore them, even if they have actually not been processed because of the debouncing.
 </p>
 
-
-
-<h5>Demo</h5>
-
-<p>
-  Here is the corresponding demo.
-</p>
-
-<p>
-  Try typing <code>b</code>, <code>bl</code> or <code>gr</code>.
-</p>
-
-<p>
-  Try emptying the input to see all the colors.
-</p>
-
-<p>
-  You can also try to input something wrong like <code>z</code>, to see that the popup does not open or closes (depending on if it was already open or not).
-</p>
-
-<p>
-  You can also change the debounce time. Try increasing it to actually feel its effect.
-</p>
-
-<button
-  type="button"
-  class="btn btn-primary"
-  (click)="reset()"
->
-  Reset
-</button>
-
-<h6>Options</h6>
-
-<ngbd-typeahead-common-debounce-customizer [(value)]="debounceTime"></ngbd-typeahead-common-debounce-customizer>
-
-<h6>Typeahead</h6>
-
-<input
-  type="text"
-  class="form-control"
-  [(ngModel)]="model"
-  [ngbTypeahead]="initializeTypeahead"
-/>
-
 <div class="go-to-example">
   <a [routerLink]="['../examples']" fragment="basic">Go to example</a>
 </div>

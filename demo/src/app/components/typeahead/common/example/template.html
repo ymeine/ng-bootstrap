@@ -10,9 +10,36 @@
 </div>
 
 <div class="wrapper">
+  <button
+    *ngIf="resetDemo != null"
+    type="button"
+    class="btn btn-primary reset"
+    (click)="resetDemo()"
+  >
+    Reset whole demo
+  </button>
+
+  <div class="description">
+    TODO: short description to bring context (different from instructions which are guiding the playground)
+  </div>
+
   <div class="instance">
     <ng-template [ngTemplateOutlet]="instance"></ng-template>
   </div>
+
+  <details *ngIf="actions != null">
+    <summary>Actions</summary>
+    <div class="actions">
+      <ng-template [ngTemplateOutlet]="actions"></ng-template>
+    </div>
+  </details>
+
+  <details *ngIf="state != null">
+    <summary>State</summary>
+    <div class="state">
+      <ng-template [ngTemplateOutlet]="state"></ng-template>
+    </div>
+  </details>
 
   <details>
     <summary>Instructions</summary>

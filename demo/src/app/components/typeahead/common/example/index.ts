@@ -22,10 +22,14 @@ export class NgbdExample2 {
   @Input('snippet-template') snippetTemplate;
   @Input('snippet-data') snippetData;
 
+  @Input() resetDemo: Function;
+
   @Input() instance: TemplateRef<void>;
   @Input() instructions: TemplateRef<void>;
   @Input() options: TemplateRef<void>;
   @Input() code: TemplateRef<void>;
+  @Input() state: TemplateRef<void>;
+  @Input() actions: TemplateRef<void>;
 
   snippet = 'component';
 }

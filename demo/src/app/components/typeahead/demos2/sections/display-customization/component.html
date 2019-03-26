@@ -69,27 +69,12 @@
 </ng-template>
 
 <ng-template #instance>
-  <ng-template
-    #displayResult
-    let-color="result"
-    let-term="term"
-  >
-    <div class="middle">
-      <div class="color-chip" [ngStyle]="{'background-color': '#' + color.hexCode}"></div>
-      <ngb-highlight [result]="color.name" [term]="term"></ngb-highlight><span> ({{color.hexCode}})</span>
-    </div>
-  </ng-template>
-
-  <input
-    type="text"
-    class="form-control"
-    [(ngModel)]="model"
-    [ngbTypeahead]="initializeTypeahead"
-
-    [resultTemplate]="resultTemplate"
-    [resultFormatter]="resultFormatter"
-    [inputFormatter]="inputFormatter"
-  />
+  <ngbd-typeahead-demos2-display-customization-demo
+    [(model)]="model"
+    [debounceTime]="debounceTime"
+    [formatUpperCase]="formatUpperCase"
+    [resultTransformationType]="resultTransformationType"
+  ></ngbd-typeahead-demos2-display-customization-demo>
 </ng-template>
 
 <ngbd-example2
@@ -99,6 +84,8 @@
   [snippet-component]="snippets.resultFormatter.component"
   [snippet-template]="snippets.resultFormatter.template"
   [snippet-data]="snippets.data"
+
+  [resetDemo]="resetDemo"
 
   [instance]="instance"
   [instructions]="instructions"
