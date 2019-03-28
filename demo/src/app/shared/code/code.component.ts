@@ -8,7 +8,6 @@ import {CodeHighlightService} from './code-highlight.service';
   template: `
     <pre
       [ngClass]="preClass"
-      [attr.data-line]="highlightedLines"
     ><code
       #codeEl
       [ngClass]="language"
@@ -29,7 +28,6 @@ export class NgbdCodeComponent implements AfterViewInit {
   get preClass() {
     return {
       [this.language]: true,
-      'line-numbers': this.highlightedLines != null || this.showLineNumbers,
     };
   }
 

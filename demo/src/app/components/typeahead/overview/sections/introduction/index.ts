@@ -39,6 +39,29 @@ export const COLORS: Color[] = [
       margin-right: 0.30em;
       margin-top: 2px;
     }
+
+    #demo {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      padding-bottom: 2em;
+      margin-bottom: 2em;
+      border-bottom: 0.25em solid hsla(24, 20%, 50%, 0.08);
+    }
+
+    #demo > label {
+      padding-right: 1em;
+      margin-bottom: unset;
+    }
+
+    #demo > .form-control {
+      width: unset;
+      flex-grow: 1;
+    }
+
+    #demo > .spacer {
+      flex-grow: 3;
+    }
     `
   ]
 })

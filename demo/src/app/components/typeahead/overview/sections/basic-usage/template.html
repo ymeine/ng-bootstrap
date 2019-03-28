@@ -1,7 +1,5 @@
-<h5>How to set up the Typeahead</h5>
-
 <p>
-  You need to pass an initialization function to the Typeahead. This function must return an Observable spawning lists of options: this is how you control the list of displayed options.
+  To set up a Typeahead instance, you need to pass an initialization function to it. This function must return an Observable spawning lists of options: this is how you control the list of displayed options.
 </p>
 
 <p>
@@ -27,7 +25,7 @@
 <ngbd-code [lang]="snippets.data.language" [code]="snippets.data.code" [highlightedLines]="snippets.data.highlightedLines"></ngbd-code>
 
 <p>
-  The function used to provide the Observable to the Typeahead receives a single argument: another Observable. It spawns:
+  The function used to provide the Observable to Typeahead receives a single argument: another Observable. It spawns:
 </p>
 <ul>
   <li>what: strings corresponding to the current content of the input</li>
@@ -45,5 +43,5 @@
 </p>
 
 <p>
-  Basic Typeahead will still require basic processing like debouncing, search term length threshold, etc., while more advanced use cases will require even further usage of the Observables.
+  Basic Typeahead instance will still require basic processing like debouncing, search term length threshold, etc., while more advanced use cases will require even further usage of the Observables.
 </p>
