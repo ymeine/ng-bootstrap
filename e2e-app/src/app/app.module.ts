@@ -26,10 +26,22 @@ import {TypeaheadValidationComponent} from './typeahead/validation/typeahead-val
 
 @NgModule({
   declarations: [
-    AppComponent, NavigationComponent, DatepickerAutoCloseComponent, DatepickerFocusComponent,
-    DropdownAutoCloseComponent, DropdownFocusComponent, DropdownPositionComponent, ModalFocusComponent, PopoverAutocloseComponent,
-    TooltipAutocloseComponent, TooltipFocusComponent, TooltipPositionComponent, TypeaheadFocusComponent,
-    TypeaheadValidationComponent, TypeaheadAutoCloseComponent, TimepickerNavigationComponent,
+    AppComponent,
+    NavigationComponent,
+    DatepickerAutoCloseComponent,
+    DatepickerFocusComponent,
+    DropdownAutoCloseComponent,
+    DropdownFocusComponent,
+    DropdownPositionComponent,
+    ModalFocusComponent,
+    PopoverAutocloseComponent,
+    TooltipAutocloseComponent,
+    TooltipFocusComponent,
+    TooltipPositionComponent,
+    TypeaheadFocusComponent,
+    TypeaheadValidationComponent,
+    TypeaheadAutoCloseComponent,
+    TimepickerNavigationComponent,
   ],
   imports: [BrowserModule, FormsModule, ReactiveFormsModule, routing, NgbModule],
   bootstrap: [AppComponent]

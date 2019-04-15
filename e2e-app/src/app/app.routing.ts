@@ -25,14 +25,16 @@ export const routes: Routes = [
       {path: 'autoclose', component: DatepickerAutoCloseComponent}
     ]
   },
-  {path: 'modal', children: [{path: 'focus', component: ModalFocusComponent}]}, {
+  {path: 'modal', children: [{path: 'focus', component: ModalFocusComponent}]},
+  {
     path: 'dropdown',
     children: [
       {path: 'autoclose', component: DropdownAutoCloseComponent}, {path: 'focus', component: DropdownFocusComponent},
       {path: 'position', component: DropdownPositionComponent}
     ]
   },
-  {path: 'popover', children: [{path: 'autoclose', component: PopoverAutocloseComponent}]}, {
+  {path: 'popover', children: [{path: 'autoclose', component: PopoverAutocloseComponent}]},
+  {
     path: 'tooltip',
     children: [
       {path: 'autoclose', component: TooltipAutocloseComponent}, {path: 'focus', component: TooltipFocusComponent},

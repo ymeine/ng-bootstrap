@@ -7,7 +7,5 @@ export class Page {
   getInputAfter() { return $('#after'); }
   getField(field: Field) { return $(`.ngb-tp-${field} > input`); }
 
-  getFields() {
-    return ['hour', 'minute', 'second'].map((field: Field) => this.getField(field));
-  }
+  getFields() { return ['hour', 'minute', 'second'].map((field: Field) => this.getField(field)); }
 }

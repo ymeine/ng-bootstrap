@@ -30,7 +30,7 @@ describe('Timepicker', () => {
     it(`should jump between inputs`, async() => {
       await focusInputBefore();
 
-      const [hourField, minuteField, secondField] = page.getFields();
+      const[hourField, minuteField, secondField] = page.getFields();
 
       await goNext();
       await expectFocused(hourField, 'Hour field should be focused');
@@ -54,7 +54,7 @@ describe('Timepicker', () => {
 
   describe('arrow keys', () => {
     it(`should keep caret at the end of the input`, async() => {
-      const testField = async (fieldElement: ElementFinder) => {
+      const testField = async(fieldElement: ElementFinder) => {
         await fieldElement.click();
 
         const endPosition = 2;
