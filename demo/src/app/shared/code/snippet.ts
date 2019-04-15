@@ -4,7 +4,7 @@ export interface ISnippet {
 }
 
 export interface SnippetInput extends ISnippet {
-  fixIdent?: boolean;
+  fixIndent?: boolean;
 }
 
 function removeEmptyLineAtIndex(lines: string[], index: number) {
@@ -32,10 +32,10 @@ export function fixIndent(lines: string[]): string[] {
 }
 
 
-export function Snippet({lang, code, fixIdent}: SnippetInput): ISnippet {
-  if (fixIdent == null) { fixIdent = true; }
+export function Snippet({lang, code, fixIndent:doFixIndent}: SnippetInput): ISnippet {
+  if (doFixIndent == null) { doFixIndent = true; }
   return {
     lang,
-    code: !fixIdent ? code : fixIndent(code.split(/(?:\r\n)|\n|\r/gi)).join('\n'),
+    code: !doFixIndent ? code : fixIndent(code.split(/(?:\r\n)|\n|\r/gi)).join('\n'),
   };
 }
