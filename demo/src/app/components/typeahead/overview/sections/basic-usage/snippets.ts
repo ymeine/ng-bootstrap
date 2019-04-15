@@ -7,6 +7,7 @@ export const SNIPPETS = {
   observableSetup: {
     template: Snippet({
       lang: 'html',
+      highlightedLines: [3],
       code: `
         <input
           type="text"
@@ -16,6 +17,7 @@ export const SNIPPETS = {
     }),
     component: Snippet({
       lang: 'typescript',
+      highlightedLines: [[2, 3]],
       code: `
         export class MyComponent {
           initializeTypeahead = (input$: Observable<string>): Observable<string[]> =>
@@ -37,6 +39,7 @@ export const SNIPPETS = {
   observable: {
     mapping: Snippet({
       lang: 'typescript',
+      highlightedLines: [1, [5, 8]],
       code: `
         import {map} from 'rxjs/operators';
         // ...

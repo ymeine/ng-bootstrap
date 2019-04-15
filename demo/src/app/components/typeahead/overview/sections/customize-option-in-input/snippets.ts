@@ -6,6 +6,7 @@ export const SNIPPETS = {
   inputFormatter: {
     template: Snippet({
       lang: 'html',
+      highlightedLines: [4],
       code: `
         <input
           type="text"
@@ -16,6 +17,7 @@ export const SNIPPETS = {
     }),
     component: Snippet({
       lang: 'typescript',
+      highlightedLines: [[2, 4]],
       code: `
         export class MyComponent {
           formatResultForInput(color: Color): string {
