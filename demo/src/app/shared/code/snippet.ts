@@ -1,9 +1,20 @@
+export type Lang = 'html' | 'typescript' | 'css' | 'bash';
+
+export type HighlightedLines = number | Array<number | [number, number]>;
+
 export interface ISnippet {
-  lang: 'html' | 'typescript' | 'css' | 'bash';
+  lang: Lang;
   code: string;
+  highlightedLines?: HighlightedLines;
+  showLineNumbers: boolean;
 }
 
-export interface SnippetInput extends ISnippet {
+export interface SnippetInput {
+  lang: Lang;
+  code: string;
+  highlightedLines?: HighlightedLines;
+  showLineNumbers?: boolean;
+
   fixIndent?: boolean;
 }
 
@@ -31,11 +42,23 @@ export function fixIndent(lines: string[]): string[] {
   return lines.map(line => line.substring(indentLevel));
 }
 
-
-export function Snippet({lang, code, fixIndent:doFixIndent}: SnippetInput): ISnippet {
+export function Snippet({lang, code, fixIndent: doFixIndent, highlightedLines, showLineNumbers}: SnippetInput): ISnippet {
   if (doFixIndent == null) { doFixIndent = true; }
+
+  let lines = code.split(/(?:\r\n)|\n|\r/gi);
+
+  if (doFixIndent) {
+    lines = fixIndent(lines);
+  }
+
+  if (showLineNumbers == null && lines.length >= 10 && highlightedLines != null) {
+    showLineNumbers = true;
+  }
+
   return {
     lang,
-    code: !doFixIndent ? code : fixIndent(code.split(/(?:\r\n)|\n|\r/gi)).join('\n'),
+    code: lines.join('\n'),
+    highlightedLines,
+    showLineNumbers,
   };
 }

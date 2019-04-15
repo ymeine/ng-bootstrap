@@ -7,18 +7,71 @@ import {CodeHighlightService} from './code-highlight.service';
   selector: 'ngbd-code',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <pre class="language-{{ snippet.lang }}"><code #code class="language-{{ snippet.lang }}"></code></pre>
-  `
+    <pre
+      [ngClass]="preClass"
+    ><code
+      #codeEl
+      [ngClass]="language"
+    >{{snippet.code.trim()}}</code></pre>
+  `,
 })
 export class NgbdCodeComponent implements AfterViewInit {
+  @ViewChild('codeEl') codeEl: ElementRef<HTMLElement>;
 
-  @ViewChild('code') codeEl: ElementRef<HTMLElement>;
-
-  @Input() snippet: ISnippet;
+  @Input() snippet: ISnippet = null;
 
   constructor(private _service: CodeHighlightService) { }
 
-  ngAfterViewInit() {
-    this.codeEl.nativeElement.innerHTML = this._service.highlight(this.snippet.code, this.snippet.lang);
+  get preClass() {
+    return {
+      [this.language]: true,
+      'line-numbers': this.snippet.showLineNumbers,
+    };
+  }
+
+  get language(): string { return `language-${this.snippet.lang}`; }
+
+  ngAfterViewInit() { this._highlight(); }
+
+  private _highlight() {
+    const element = this.codeEl.nativeElement;
+    this._service.highlightElement(element);
+
+    const indexes = Array.from(this.highlightedLinesIndexes);
+    if (indexes.length !== 0) {
+      const lines = element.innerHTML.split(/(?:\r\n)|\n|\r/gi);
+
+      indexes.forEach(index => {
+        const realIndex = index - 1;
+        const line = lines[realIndex];
+        lines[realIndex] = `<span class="highlighted-line">${line}</span>`;
+      });
+
+      element.innerHTML = lines.join('\n');
+    }
+  }
+
+  private get highlightedLinesIndexes(): Set<number> {
+    const {highlightedLines} = this.snippet;
+    const indexes = new Set();
+
+    if (highlightedLines == null) {
+      // no index
+    } else if (typeof highlightedLines === 'number') {
+      indexes.add(highlightedLines);
+    } else {
+      highlightedLines.forEach(item => {
+        if (typeof item === 'number') {
+          indexes.add(item);
+        } else {
+          const [start, end] = item;
+          for (let index = start; index <= end; index++) {
+            indexes.add(index);
+          }
+        }
+      });
+    }
+
+    return indexes;
   }
 }
